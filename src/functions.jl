@@ -8,7 +8,7 @@ function step!(c::AbstractTimeIndependentComponent)
     return nothing
 end
 
-function update_inputs!(c::AbstractComponent, component_list::Vector{AbstractComponent})
+function update_inputs!(c::AbstractComponent, component_list::Vector{T}) where T <: AbstractComponent
     # Update the inputs of the ODE component based on the outputs of other components
     i = c.inputs
     for key in keys(i)
@@ -33,7 +33,7 @@ function update_outputs!(c::ODEComponent)
 end
 
 function step!(c::ODEComponent)
-    sol = solve(c.model, Tsit5(), u0=c.state, p=id, tspan=(0.0, c.time_step), adaptive=false, dt=c.timestep)
+    sol = solve(c.model, Euler(), u0=c.state, p=collect(values(c.inputs)), tspan=(0.0, c.time_step), adaptive=false, dt=c.time_step)
     c.state = sol.u[end]
     return nothing
 end
@@ -41,13 +41,22 @@ end
 function solve!(v::Vector{ODEComponent}, max_t)
     # Solve the system of components
     curr_t = 0.0
-    while curr_t < max_t
+    dt = minimum([c.time_step for c in v])
+    # Create an array to store the outputs
+    outputs = zeros(Int(round(max_t / dt)),3)
+    while curr_t < max_t-dt/2
         for c in v
             if c.time < curr_t
                 update_inputs!(c, v)
                 step!(c)
+                c.time += c.time_step
             end
         end
+        for c in v
+            update_outputs!(c)
+        end
+        outputs[Int(round(curr_t / dt)) + 1, :] = pushfirst!([c.outputs["pop"] for c in v], curr_t)
+        curr_t += dt
     end
-    return v
+    return v, outputs
 end

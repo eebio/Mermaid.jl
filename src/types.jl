@@ -16,7 +16,7 @@ abstract type AbstractTimeDependentComponent <: AbstractComponent end
 
 
 # Predefined concrete types
-@kwdef struct ODEComponent <: AbstractComponent
+@kwdef mutable struct ODEComponent <: AbstractComponent
     model::ODEProblem
     name::String = "ODE Component"
     outputs::Dict{String,Any} = NamedTuple{String,Any}()
