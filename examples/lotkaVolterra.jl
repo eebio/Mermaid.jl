@@ -13,7 +13,7 @@ end
 u0 = [4.0, 2.0]
 tspan = (0.0, 10.0)
 prob = ODEProblem(f!, u0, tspan)
-sol = solve(prob, Euler(); adaptive=false, dt=0.01)
+@time sol = solve(prob, Euler(); adaptive=false, dt=0.01)
 
 # Plot the solution
 plot(sol, title="Lotka-Volterra Model", xlabel="Time", ylabel="Population",
@@ -54,7 +54,7 @@ c2 = ODEComponent(model=prob, name="Predator", time_step=0.01, state=y0, output_
 # Create the system of components
 components = Vector{ODEComponent}([c1, c2])
 
-components, outputs = Mermaid.solve!(components, 10.0)
+@time components, outputs = Mermaid.solve!(components, 10.0)
 
 plot!(outputs[:,1], outputs[:,2:3], title="Lotka-Volterra Model", xlabel="Time", ylabel="Population",
     label=["Prey" "Predator"], legend=:topright, linestyle=:dot)
