@@ -18,9 +18,9 @@ for tend in maxt
     u0 = [4.0, 2.0]
     tspan = (0.0, tend)
     prob = ODEProblem(f!, u0, tspan)
-    sol = solve(prob, Euler(); adaptive=false, dt=0.002)
-    plot(sol, title="Lotka-Volterra ODE", xlabel="Time", ylabel="Population", label=["Prey ODE" "Predator ODE"])
-    push!(odeTimes, @elapsed sol = solve(prob, Euler(); adaptive=false, dt=0.002))
+    solODE = solve(prob, Euler(); adaptive=false, dt=0.002)
+    plot(solODE, title="Lotka-Volterra ODE", xlabel="Time", ylabel="Population", label=["Prey ODE" "Predator ODE"])
+    push!(odeTimes, @elapsed solve(prob, Euler(); adaptive=false, dt=0.002))
 
     # Create the system as components
     using Mermaid
@@ -54,10 +54,10 @@ for tend in maxt
     using CommonSolve
     alg = MermaidSolver()
     # Ensure the code is compiled
-    sol = solve(mp, alg)
-    plot!(sol.t, sol.u["Prey.pop"], label = "Prey Mermaid")
-    display(plot!(sol.t, sol.u["Predator.pop"], label = "Predator Mermaid"))
-    push!(mermaidTimes, @elapsed sol = solve(mp, alg))
+    solMer = solve(mp, alg)
+    plot!(solMer.t, solMer.u["Prey.pop"], label = "Prey Mermaid")
+    display(plot!(solMer.t, solMer.u["Predator.pop"], label = "Predator Mermaid"))
+    push!(mermaidTimes, @elapsed solve(mp, alg))
 end
 
 @show mermaidTimes./odeTimes

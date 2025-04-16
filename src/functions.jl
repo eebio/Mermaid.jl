@@ -45,12 +45,14 @@ Steps the integrator for the given time step.
 - `int::MermaidIntegrator`: The integrator to be stepped.
 - `dt::Float64`: The time step for the integrator.
 """
-function CommonSolve.step!(merInt::MermaidIntegrator, dt::Float64)
+function CommonSolve.step!(merInt::MermaidIntegrator, dt)
+    # Update the current time
+    merInt.currtime += dt
     # Step the integrator
     for int in merInt.integrators
         # Update the inputs of the component
         update_inputs!(int, merInt)
-        while int.integrator.t <= merInt.currtime
+        while int.integrator.t + int.component.time_step <= merInt.currtime
             # Step the integrator
             CommonSolve.step!(int)
         end
@@ -59,8 +61,6 @@ function CommonSolve.step!(merInt::MermaidIntegrator, dt::Float64)
         # Update the outputs of the component
         update_outputs!(int)
     end
-    # Update the current time
-    merInt.currtime += dt
 end
 
 """
@@ -77,21 +77,30 @@ This handles all the message passing and calls step! on the MermaidIntegrator.
 - `MermaidSolution`: The solution of the problem.
 """
 function CommonSolve.solve!(int::MermaidIntegrator)
-    t = []
+    t = [0.0]
+    dt = minimum([i.component.time_step for i in int.integrators]) # Minimum isnt sufficient to guarantee we don't jump over anything
     u = Dict()
     for i in int.integrators
         for key in keys(i.outputs)
             u[i.component.name * "." * key] = []
         end
     end
-    while int.currtime <= int.maxt
+    for i in int.integrators
+        for key in keys(i.outputs)
+            push!(u[i.component.name*"."*key], i.outputs[key])
+        end
+    end
+    while int.currtime < int.maxt
+        if int.currtime + dt > int.maxt
+            dt = int.maxt - int.currtime
+        end
+        CommonSolve.step!(int, dt)
         push!(t, int.currtime)
         for i in int.integrators
             for key in keys(i.outputs)
                 push!(u[i.component.name * "." * key], i.outputs[key])
             end
         end
-        CommonSolve.step!(int, int.integrators[1].component.time_step)
     end
     return MermaidSolution(t, u)
 end
