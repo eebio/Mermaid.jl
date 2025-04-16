@@ -43,8 +43,8 @@ function solve!(v::Vector{ODEComponent}, max_t)
     curr_t = 0.0
     dt = minimum([c.time_step for c in v])
     # Create an array to store the outputs
-    outputs = zeros(Int(round(max_t / dt)),3)
-    while curr_t < max_t-dt/2
+    outputs = zeros(Int(round(max_t / dt))+1,3)
+    for _ in eachrow(outputs)
         for c in v
             if c.time < curr_t
                 update_inputs!(c, v)
