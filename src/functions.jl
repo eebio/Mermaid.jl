@@ -108,7 +108,7 @@ function CommonSolve.step!(compInt::ODEComponentIntegrator)
     p = collect(values(compInt.inputs)) # Need to be smarter about this
     compInt.integrator.p = p
     u_modified!(compInt.integrator, true)
-    CommonSolve.step!(compInt.integrator, compInt.component.time_step)
+    CommonSolve.step!(compInt.integrator)
 end
 
 function update_outputs!(compInt::ODEComponentIntegrator)
