@@ -18,15 +18,12 @@ abstract type AbstractTimeDependentComponent <: AbstractComponent end
 
 
 # Predefined concrete types
-@kwdef mutable struct ODEComponent <: AbstractComponent # No longer needs to be mutable
+@kwdef struct ODEComponent <: AbstractComponent
     model::ODEProblem
     name::String = "ODE Component"
-    outputs::Dict{String,Any} = NamedTuple{String,Any}()
-    inputs::Dict{String,Any} = NamedTuple{String,Any}()
     output_indices::Dict{String,Any} = NamedTuple{String,Any}()
-    state = Vector{Float64}() # Can be removed
+    input_names::Vector{String} = []
     time_step::Float64 = 1.0
-    time::Float64 = 0.0 # Can be removed
 end
 
 abstract type ComponentIntegrator end
@@ -34,6 +31,8 @@ abstract type ComponentIntegrator end
 mutable struct ODEComponentIntegrator <: ComponentIntegrator
     integrator::OrdinaryDiffEqCore.ODEIntegrator
     component::ODEComponent
+    outputs::Dict{String,Any}
+    inputs::Dict{String,Any}
 end
 
 mutable struct MermaidIntegrator

@@ -19,6 +19,7 @@ for tend in maxt
     tspan = (0.0, tend)
     prob = ODEProblem(f!, u0, tspan)
     sol = solve(prob, Euler(); adaptive=false, dt=0.002)
+    plot(sol, title="Lotka-Volterra ODE", xlabel="Time", ylabel="Population", label=["Prey ODE" "Predator ODE"])
     push!(odeTimes, @elapsed sol = solve(prob, Euler(); adaptive=false, dt=0.002))
 
     # Create the system as components
@@ -33,10 +34,8 @@ for tend in maxt
     c1 = ODEComponent(
         model=prob,
         name="Prey",
-        outputs=Dict("pop" => x0),
-        inputs=Dict("Predator.pop" => 0.0),
+        input_names=["Predator.pop"],
         output_indices=Dict("pop" => 1),
-        state=x0,
         time_step=0.002,
     )
 
@@ -47,8 +46,8 @@ for tend in maxt
     y0 = 2.0
     tspan = (0.0, 10.0)
     prob = ODEProblem(f2, y0, tspan, [4.0])
-    c2 = ODEComponent(model=prob, name="Predator", time_step=0.002, state=y0, output_indices=Dict("pop" => 1),
-        inputs=Dict("Prey.pop" => 0.0), outputs=Dict("pop" => y0))
+    c2 = ODEComponent(model=prob, name="Predator", time_step=0.002, output_indices=Dict("pop" => 1),
+        input_names=["Prey.pop"])
 
     mp = MermaidProblem(components=[c1,c2], max_t=tend)
 
@@ -56,6 +55,8 @@ for tend in maxt
     alg = MermaidSolver()
     # Ensure the code is compiled
     sol = solve(mp, alg)
+    plot!(sol.t, sol.u["Prey.pop"], label = "Prey Mermaid")
+    display(plot!(sol.t, sol.u["Predator.pop"], label = "Predator Mermaid"))
     push!(mermaidTimes, @elapsed sol = solve(mp, alg))
 end
 

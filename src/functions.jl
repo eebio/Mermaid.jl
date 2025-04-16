@@ -30,7 +30,9 @@ end
 """
 function CommonSolve.init(c::ODEComponent)
     # Initialize the integrator for the component
-    integrator = ODEComponentIntegrator(init(c.model, Euler(), adaptive=false, dt=c.time_step), c)
+    outputs = Dict{String,Any}([key => c.model.u0[value] for (key, value) in c.output_indices])
+    inputs = Dict{String,Any}([key => 0.0 for key in c.input_names])
+    integrator = ODEComponentIntegrator(init(c.model, Euler(), adaptive=false, dt=c.time_step), c, outputs, inputs)
     return integrator
 end
 
@@ -78,15 +80,15 @@ function CommonSolve.solve!(int::MermaidIntegrator)
     t = []
     u = Dict()
     for i in int.integrators
-        for key in keys(i.component.outputs)
+        for key in keys(i.outputs)
             u[i.component.name * "." * key] = []
         end
     end
     while int.currtime <= int.maxt
         push!(t, int.currtime)
         for i in int.integrators
-            for key in keys(i.component.outputs)
-                push!(u[i.component.name * "." * key], i.component.outputs[key])
+            for key in keys(i.outputs)
+                push!(u[i.component.name * "." * key], i.outputs[key])
             end
         end
         CommonSolve.step!(int, int.integrators[1].component.time_step)
@@ -103,7 +105,7 @@ Steps the ODE component integrator.
 """
 function CommonSolve.step!(compInt::ODEComponentIntegrator)
     # Update compInt.integrator with the parameters from inputs
-    p = collect(values(compInt.component.inputs)) # Need to be smarter about this
+    p = collect(values(compInt.inputs)) # Need to be smarter about this
     compInt.integrator.p = p
     u_modified!(compInt.integrator, true)
     CommonSolve.step!(compInt.integrator, compInt.component.time_step)
@@ -112,24 +114,22 @@ end
 function update_outputs!(compInt::ODEComponentIntegrator)
     # Update the outputs of the ODE component based on the current state
     s = compInt.integrator.u
-    for output_key in keys(compInt.component.outputs)
+    for output_key in keys(compInt.outputs)
         # Update the output data for the component
-        compInt.component.outputs[output_key] = s[compInt.component.output_indices[output_key]]
+        compInt.outputs[output_key] = s[compInt.component.output_indices[output_key]]
     end
 end
 
 function update_inputs!(compInt::ComponentIntegrator, mermaidInt::MermaidIntegrator)
     # Update the inputs of the ODE component based on the outputs of other components
-    for key in keys(compInt.component.inputs)
+    for key in keys(compInt.inputs)
         comp_name, variable_name = split(key, ".")
         for int in mermaidInt.integrators
             if int.component.name == comp_name
                 # Update the input data for the component
-                o = int.component.outputs
-                compInt.component.inputs[key] = o[variable_name]
+                o = int.outputs
+                compInt.inputs[key] = o[variable_name]
             end
         end
     end
 end
-
-# TODO I think we might still be preturbing the components because the integrators contains references to the component and the component is changed, I probably need a copy for the components during compInt init
