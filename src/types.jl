@@ -18,7 +18,7 @@ abstract type AbstractTimeDependentComponent <: AbstractComponent end
 
 
 # Predefined concrete types
-@kwdef struct ODEComponent <: AbstractComponent
+@kwdef struct ODEComponent <: AbstractTimeDependentComponent
     model::ODEProblem
     name::String = "ODE Component"
     output_indices::Dict{String,Any} = NamedTuple{String,Any}()
