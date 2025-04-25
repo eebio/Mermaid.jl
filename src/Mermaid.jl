@@ -9,5 +9,6 @@ export MermaidSolver
 export solve!, solve
 include("types.jl")
 include("functions.jl")
+include("DiffEq.jl")
 
 end
