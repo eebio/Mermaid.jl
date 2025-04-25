@@ -1,5 +1,6 @@
 using DifferentialEquations
 using Plots
+using Mermaid
 
 maxt = [0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
 odeTimes = []
@@ -18,12 +19,9 @@ for tend in maxt
     u0 = [4.0, 2.0]
     tspan = (0.0, tend)
     prob = ODEProblem(f!, u0, tspan)
-    solODE = solve(prob, Euler(); adaptive=false, dt=0.002)
+    global solODE = solve(prob, Euler(); adaptive=false, dt=0.002)
     plot(solODE, title="Lotka-Volterra ODE", xlabel="Time", ylabel="Population", label=["Prey ODE" "Predator ODE"])
     push!(odeTimes, @elapsed solve(prob, Euler(); adaptive=false, dt=0.002))
-
-    # Create the system as components
-    using Mermaid
 
     function f1(x, p, t)
         return x - x * p[1]
@@ -54,7 +52,7 @@ for tend in maxt
     using CommonSolve
     alg = MermaidSolver()
     # Ensure the code is compiled
-    solMer = solve(mp, alg)
+    global solMer = solve(mp, alg)
     plot!(solMer.t, solMer.u["Prey.pop"], label = "Prey Mermaid")
     display(plot!(solMer.t, solMer.u["Predator.pop"], label = "Predator Mermaid"))
     push!(mermaidTimes, @elapsed solve(mp, alg))
