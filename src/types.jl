@@ -24,6 +24,8 @@ abstract type AbstractTimeDependentComponent <: AbstractComponent end
     output_indices::Dict{String,Any} = NamedTuple{String,Any}()
     input_names::Vector{String} = []
     time_step::Float64 = 1.0
+    alg = Rodas5()
+    intkwargs::Tuple{Pair{Symbol,Any}} = ()
 end
 
 abstract type ComponentIntegrator end

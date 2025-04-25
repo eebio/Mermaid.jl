@@ -35,6 +35,8 @@ for tend in maxt
         input_names=["Predator.pop"],
         output_indices=Dict("pop" => 1),
         time_step=0.002,
+        alg=Euler(),
+        intkwargs=(:adaptive=>false,),
     )
 
     # Predator
@@ -45,7 +47,7 @@ for tend in maxt
     tspan = (0.0, 10.0)
     prob = ODEProblem(f2, y0, tspan, [4.0])
     c2 = ODEComponent(model=prob, name="Predator", time_step=0.002, output_indices=Dict("pop" => 1),
-        input_names=["Prey.pop"])
+        input_names=["Prey.pop"], alg=Euler(), intkwargs=(:adaptive=>false,))
 
     mp = MermaidProblem(components=[c1,c2], max_t=tend)
 
