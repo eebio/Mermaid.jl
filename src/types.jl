@@ -16,6 +16,7 @@ abstract type AbstractTimeIndependentComponent <: AbstractComponent end
 
 abstract type AbstractTimeDependentComponent <: AbstractComponent end
 
+abstract type AbstractMermaidSolver end
 
 # Predefined concrete types
 @kwdef struct ODEComponent <: AbstractTimeDependentComponent
@@ -41,14 +42,12 @@ mutable struct MermaidIntegrator
     integrators::Vector
     maxt::Float64
     currtime::Float64
+    alg::AbstractMermaidSolver
 end
 
 @kwdef struct MermaidProblem
     components::Vector
     max_t::Float64 = 1.0
-end
-
-struct MermaidSolver
 end
 
 struct MermaidSolution

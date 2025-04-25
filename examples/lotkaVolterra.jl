@@ -52,7 +52,7 @@ for tend in maxt
     mp = MermaidProblem(components=[c1,c2], max_t=tend)
 
     using CommonSolve
-    alg = MermaidSolver()
+    alg = MinimumTimeStepper()
     # Ensure the code is compiled
     global solMer = solve(mp, alg)
     plot!(solMer.t, solMer.u["Prey.pop"], label = "Prey Mermaid")

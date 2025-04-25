@@ -14,14 +14,14 @@ Converts a MermaidProblem to a MermaidIntegrator.
 # Returns
 - `MermaidIntegrator`: The initialized integrator for the problem.
 """
-function CommonSolve.init(prob::MermaidProblem, alg::MermaidSolver)
+function CommonSolve.init(prob::MermaidProblem, alg::AbstractMermaidSolver)
     # Initialize the solver
     integrators = Vector{ODEComponentIntegrator}()
     for c in prob.components
         integrator = CommonSolve.init(c)
         push!(integrators, integrator)
     end
-    return MermaidIntegrator(integrators, prob.max_t, 0.0)
+    return MermaidIntegrator(integrators, prob.max_t, 0.0, alg)
 end
 
 """
@@ -34,21 +34,7 @@ Steps the integrator for the given time step.
 - `dt::Float64`: The time step for the integrator.
 """
 function CommonSolve.step!(merInt::MermaidIntegrator, dt)
-    # Update the current time
-    merInt.currtime += dt
-    # Step the integrator
-    for int in merInt.integrators
-        # Update the inputs of the component
-        update_inputs!(int, merInt)
-        while int.integrator.t + int.component.time_step <= merInt.currtime
-            # Step the integrator
-            CommonSolve.step!(int)
-        end
-    end
-    for int in merInt.integrators
-        # Update the outputs of the component
-        update_outputs!(int)
-    end
+    merInt.alg(merInt, dt)
 end
 
 """
