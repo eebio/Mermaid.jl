@@ -91,9 +91,6 @@ function CommonSolve.solve!(int::MermaidIntegrator)
         end
     end
     while int.currtime < int.maxt
-        if int.currtime + dt > int.maxt
-            dt = int.maxt - int.currtime
-        end
         CommonSolve.step!(int, dt)
         push!(t, int.currtime)
         for i in int.integrators
