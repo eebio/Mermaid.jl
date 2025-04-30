@@ -14,7 +14,7 @@ function CommonSolve.init(c::ODEComponent)
         setinputs! = setp(c.model.f.sys, [c.mtk_input_symbols[names] for names in c.input_names])
     else
         function setinputs!(int::ODEIntegrator, inputs)
-            int.p = inputs
+            int.p[1:length(inputs)] = inputs
         end
     end
 
