@@ -27,6 +27,7 @@ abstract type AbstractMermaidSolver end
     time_step::Float64 = 1.0
     alg = Rodas5()
     intkwargs::Tuple{Pair{Symbol,Any}} = ()
+    mtk_input_symbols::Dict = Dict()
 end
 
 abstract type ComponentIntegrator end
@@ -36,6 +37,7 @@ mutable struct ODEComponentIntegrator <: ComponentIntegrator
     component::ODEComponent
     outputs::Dict{String,Any}
     inputs::Dict{String,Any}
+    setinputs!
 end
 
 mutable struct MermaidIntegrator

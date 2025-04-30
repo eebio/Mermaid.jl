@@ -1,4 +1,6 @@
 using CommonSolve
+using ModelingToolkit
+using SymbolicIndexingInterface
 
 """
     init(c::ODEComponent)
@@ -7,7 +9,16 @@ function CommonSolve.init(c::ODEComponent)
     # Initialize the integrator for the component
     outputs = Dict{String,Any}([key => c.model.u0[value] for (key, value) in c.output_indices])
     inputs = Dict{String,Any}([key => 0.0 for key in c.input_names])
-    integrator = ODEComponentIntegrator(init(c.model, c.alg; dt=c.time_step, c.intkwargs...), c, outputs, inputs)
+
+    if isa(c.model.p, MTKParameters)
+        setinputs! = setp(c.model.f.sys, [c.mtk_input_symbols[names] for names in c.input_names])
+    else
+        function setinputs!(int::ODEIntegrator, inputs::Dict{String,Any})
+            int.integrator.p = collect(values(inputs))
+        end
+    end
+
+    integrator = ODEComponentIntegrator(init(c.model, c.alg; dt=c.time_step, c.intkwargs...), c, outputs, inputs, setinputs!)
     return integrator
 end
 
@@ -19,9 +30,7 @@ Steps the ODE component integrator.
 - `compInt::ODEComponentIntegrator`: The ODE component integrator to be stepped.
 """
 function CommonSolve.step!(compInt::ODEComponentIntegrator)
-    # Update compInt.integrator with the parameters from inputs
-    p = collect(values(compInt.inputs)) # Need to be smarter about this
-    compInt.integrator.p = p
+    compInt.setinputs!(compInt.integrator, collect(values(compInt.inputs)))
     u_modified!(compInt.integrator, true)
     CommonSolve.step!(compInt.integrator)
 end
