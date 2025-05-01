@@ -1,6 +1,7 @@
 @testitem "simple ODE" begin
     using DifferentialEquations
 
+    # TODO add excess parameters that arent used for inputs
     function f!(du, u, p, t)
         x, y = u
         du[1] = x - x * y
