@@ -18,10 +18,10 @@ function CommonSolve.init(prob::MermaidProblem, alg::AbstractMermaidSolver)
     # Initialize the solver
     integrators = Vector{ODEComponentIntegrator}()
     for c in prob.components
-        integrator = CommonSolve.init(c)
+        integrator = CommonSolve.init(c, prob.connectors)
         push!(integrators, integrator)
     end
-    return MermaidIntegrator(integrators, prob.max_t, 0.0, alg)
+    return MermaidIntegrator(integrators, prob.connectors, prob.max_t, 0.0, alg)
 end
 
 """
@@ -56,12 +56,12 @@ function CommonSolve.solve!(int::MermaidIntegrator)
     u = Dict()
     for i in int.integrators
         for key in keys(i.outputs)
-            u[i.component.name * "." * key] = []
+            u[key] = []
         end
     end
     for i in int.integrators
         for key in keys(i.outputs)
-            push!(u[i.component.name*"."*key], i.outputs[key])
+            push!(u[key], i.outputs[key])
         end
     end
     while int.currtime < int.maxt
@@ -69,7 +69,7 @@ function CommonSolve.solve!(int::MermaidIntegrator)
         push!(t, int.currtime)
         for i in int.integrators
             for key in keys(i.outputs)
-                push!(u[i.component.name * "." * key], i.outputs[key])
+                push!(u[key], i.outputs[key])
             end
         end
     end
@@ -81,19 +81,43 @@ function update_outputs!(compInt::ODEComponentIntegrator)
     s = compInt.integrator.u
     for output_key in keys(compInt.outputs)
         # Update the output data for the component
-        compInt.outputs[output_key] = s[compInt.component.output_indices[output_key]]
+        _, var_name = split(output_key, ".")
+        index = compInt.component.state_names[var_name]
+        # If the index is a MTK symbol then get the variable index
+        if !isa(index, Integer)
+            index = variable_index(compInt.component.model.f.sys, index)
+        end
+        compInt.outputs[output_key] = s[index]
     end
 end
 
-function update_inputs!(compInt::ComponentIntegrator, mermaidInt::MermaidIntegrator)
+function update_inputs!(mermaidInt::MermaidIntegrator)
     # Update the inputs of the ODE component based on the outputs of other components
-    for key in keys(compInt.inputs)
-        comp_name, variable_name = split(key, ".")
-        for int in mermaidInt.integrators
-            if int.component.name == comp_name
-                # Update the input data for the component
-                o = int.outputs
-                compInt.inputs[key] = o[variable_name]
+    for conn in mermaidInt.connectors
+        # Get the values of the connectors inputs
+        inputs = []
+        for input in conn.inputs
+            # Get the component name and variable name
+            comp_name, var_name = split(input, ".")
+            # Find the corresponding integrator
+            index = findfirst(i -> i.component.name == comp_name, mermaidInt.integrators)
+            if index !== nothing
+                integrator = mermaidInt.integrators[index]
+                # Get the value of the input from the integrator
+                push!(inputs, integrator.outputs[input])
+            end
+        end
+        outputs = conn.func(inputs...)
+        # Set the inputs of the corresponding integrators
+        for output in conn.outputs
+            # Get the component name and variable name
+            comp_name, var_name = split(output, ".")
+            # Find the corresponding integrator
+            index = findfirst(i -> i.component.name == comp_name, mermaidInt.integrators)
+            if index !== nothing
+                integrator = mermaidInt.integrators[index]
+                # Set the input value for the integrator
+                integrator.inputs[integrator.component.name * "." * var_name] = outputs
             end
         end
     end

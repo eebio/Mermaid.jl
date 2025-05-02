@@ -5,6 +5,7 @@ using OrdinaryDiffEqCore
 
 export AbstractComponent, AbstractTimeDependentComponent, AbstractTimeIndependentComponent
 export ODEComponent, MermaidProblem
+export Connector
 export AbstractMermaidSolver, MinimumTimeStepper
 export solve!, solve
 include("types.jl")

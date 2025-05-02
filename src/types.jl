@@ -1,5 +1,11 @@
 using OrdinaryDiffEqCore: ODEIntegrator
 
+@kwdef struct Connector
+    inputs::Vector{String}
+    outputs::Vector{String}
+    func::Function = identity
+end
+
 abstract type AbstractComponent end
 # Required fields:
 # - model: The model of the component
@@ -22,12 +28,10 @@ abstract type AbstractMermaidSolver end
 @kwdef struct ODEComponent <: AbstractTimeDependentComponent
     model::ODEProblem
     name::String = "ODE Component"
-    output_indices::Dict{String,Any} = NamedTuple{String,Any}()
-    input_names::Vector{String} = []
+    state_names::Dict{String,Any} = Dict{String,Any}() # Dictionary that maps state names (given as strings) to their corresponding indices in the state vector (or symbols for MTK)
     time_step::Float64 = 1.0
     alg = Rodas5()
     intkwargs::Tuple{Pair{Symbol,Any}} = ()
-    mtk_input_symbols::Dict = Dict()
 end
 
 abstract type ComponentIntegrator end
@@ -37,11 +41,11 @@ mutable struct ODEComponentIntegrator <: ComponentIntegrator
     component::ODEComponent
     outputs::Dict{String,Any}
     inputs::Dict{String,Any}
-    setinputs!
 end
 
 mutable struct MermaidIntegrator
     integrators::Vector
+    connectors::Vector{Connector} # Change name to connectors
     maxt::Float64
     currtime::Float64
     alg::AbstractMermaidSolver
@@ -49,6 +53,7 @@ end
 
 @kwdef struct MermaidProblem
     components::Vector
+    connectors::Vector{Connector}
     max_t::Float64 = 1.0
 end
 

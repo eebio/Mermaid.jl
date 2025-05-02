@@ -20,41 +20,51 @@ for tend in maxt
     plot(solODE, title="Lotka-Volterra ODE", xlabel="Time", ylabel="Population", label=["Prey ODE" "Predator ODE"])
     push!(odeTimes, @elapsed solve(prob, Euler(); adaptive=false, dt=0.002))
 
-    @parameters y
-    @variables x(t)
-    eqs = [D(x) ~ x - x * y]
+    eqs = [D(x) ~ x - x * y
+        D(y) ~ 0]
     @mtkbuild lv1 = ODESystem(eqs, t)
-    prob = ODEProblem(lv1, [x => 4.0], (0.0, tend), [y => 2.0])
+    prob = ODEProblem(lv1, [x => 4.0, y => 2.0], (0.0, tend))
 
     c1 = ODEComponent(
         model=prob,
         name="Prey",
-        input_names=["Predator.pop"],
-        output_indices=Dict("pop" => 1),
         time_step=0.002,
+        state_names=Dict("prey" => x, "predator" => y),
         alg=Euler(),
         intkwargs=(:adaptive => false,),
-        mtk_input_symbols=Dict("Predator.pop" => y),
     )
 
-    @parameters x
-    @variables y(t)
-    eqs = [D(y) ~ -y + x * y]
+    eqs = [D(x) ~ 0
+        D(y) ~ -y + x * y]
     @mtkbuild lv2 = ODESystem(eqs, t)
-    prob = ODEProblem(lv2, [y => 2.0], (0.0, tend), [x => 4.0])
+    prob = ODEProblem(lv2, [x => 4.0, y => 2.0], (0.0, tend))
 
-    c2 = ODEComponent(model=prob, name="Predator", time_step=0.002, output_indices=Dict("pop" => 1),
-        input_names=["Prey.pop"], alg=Euler(), intkwargs=(:adaptive => false,),
-        mtk_input_symbols=Dict("Prey.pop" => x))
+    c2 = ODEComponent(
+        model=prob,
+        name="Predator",
+        time_step=0.002,
+        state_names=Dict("prey" => x, "predator" => y),
+        alg=Euler(),
+        intkwargs=(:adaptive => false,),
+    )
 
-    mp = MermaidProblem(components=[c1, c2], max_t=tend)
+    conn1 = Connector(
+        inputs=["Predator.predator"],
+        outputs=["Prey.predator"],
+    )
+    conn2 = Connector(
+        inputs=["Prey.prey"],
+        outputs=["Predator.prey"],
+    )
+
+    mp = MermaidProblem(components=[c1, c2], connectors=[conn1, conn2], max_t=tend)
 
     using CommonSolve
     alg = MinimumTimeStepper()
     # Ensure the code is compiled
     global solMer = solve(mp, alg)
-    plot!(solMer.t, solMer.u["Prey.pop"], label="Prey Mermaid")
-    display(plot!(solMer.t, solMer.u["Predator.pop"], label="Predator Mermaid"))
+    plot!(solMer.t, solMer.u["Prey.prey"], label="Prey Mermaid")
+    display(plot!(solMer.t, solMer.u["Predator.predator"], label="Predator Mermaid"))
     push!(mermaidTimes, @elapsed solve(mp, alg))
 end
 

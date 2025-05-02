@@ -1,7 +1,6 @@
 @testitem "simple ODE" begin
     using DifferentialEquations
 
-    # TODO add excess parameters that arent used for inputs
     function f!(du, u, p, t)
         x, y = u
         du[1] = x - x * y
@@ -13,20 +12,23 @@
     prob = ODEProblem(f!, u0, tspan)
     solODE = solve(prob, Euler(); adaptive=false, dt=0.002)
 
-    function f1(x, p, t)
-        return x - x * p[1]
+    function f1!(du, u, p, t)
+        x, y = u
+        du[1] = x - x * y
+        du[2] = 0
     end
-    function f2(y, p, t)
-        return -y + p[1] * y
+    function f2!(du, u, p, t)
+        y, x = u
+        du[1] = -y + x * y
+        du[2] = 0
     end
-    prob1 = ODEProblem(f1, u0[1], tspan, [2.0]) # TODO Initial value for params is intentionally wrong
-    prob2 = ODEProblem(f2, u0[2], tspan, [4.0])
+    prob1 = ODEProblem(f1!, [u0[1],2.0], tspan) # TODO Initial value for params is intentionally wrong
+    prob2 = ODEProblem(f2!, [u0[2],4.0], tspan)
     c1 = ODEComponent(
         model=prob1,
         name="Prey",
-        input_names=["Predator.pop"],
-        output_indices=Dict("pop" => 1),
         time_step=0.002,
+        state_names=Dict("prey" => 1, "predator" => 2),
         alg=Euler(),
         intkwargs=(:adaptive => false,),
     )
@@ -35,13 +37,21 @@
         model=prob2,
         name="Predator",
         time_step=0.002,
-        input_names=["Prey.pop"],
-        output_indices=Dict("pop" => 1),
+        state_names=Dict("predator" => 1, "prey" => 2),
         alg=Euler(),
         intkwargs=(:adaptive => false,),
     )
 
-    mp = MermaidProblem(components=[c1, c2], max_t=10.0)
+    conn1 = Connector(
+        inputs=["Predator.predator"],
+        outputs=["Prey.predator"],
+    )
+    conn2 = Connector(
+        inputs=["Prey.prey"],
+        outputs=["Predator.prey"],
+    )
+
+    mp = MermaidProblem(components=[c1, c2], connectors=[conn1, conn2], max_t=10.0)
 
     using CommonSolve # TODO remove the need for this
     alg = MinimumTimeStepper()
@@ -50,8 +60,8 @@
     @test all(solMer.t .≈ solODE.t)
     preyODE = [solODE(t)[1] for t in solMer.t]
     predatorODE = [solODE(t)[2] for t in solMer.t]
-    @test all(solMer.u["Prey.pop"] .≈ preyODE)
-    @test all(solMer.u["Predator.pop"] .≈ predatorODE)
+    @test all(solMer.u["Prey.prey"] .≈ preyODE)
+    @test all(solMer.u["Predator.predator"] .≈ predatorODE)
 end
 
 @testitem "mtk" begin
@@ -66,41 +76,44 @@ end
 
     solODE = solve(prob, Euler(); adaptive=false, dt=0.002)
 
-    @parameters y
-    @variables x(t)
-    eqs = [D(x) ~ x - x * y]
+    eqs = [D(x) ~ x - x * y
+        D(y) ~ 0]
     @mtkbuild lv1 = ODESystem(eqs, t)
-    prob = ODEProblem(lv1, [x => 4.0], (0.0, 10.0), [y => 2.0])
+    prob = ODEProblem(lv1, [x => 4.0, y => 2.0], (0.0, 10.0))
 
     c1 = ODEComponent(
         model=prob,
         name="Prey",
-        input_names=["Predator.pop"],
-        output_indices=Dict("pop" => 1),
         time_step=0.002,
+        state_names=Dict("prey" => x, "predator" => y),
         alg=Euler(),
         intkwargs=(:adaptive => false,),
-        mtk_input_symbols=Dict("Predator.pop" => y),
     )
 
-    @parameters x
-    @variables y(t)
-    eqs = [D(y) ~ -y + x * y]
+    eqs = [D(x) ~ 0
+        D(y) ~ -y + x * y]
     @mtkbuild lv2 = ODESystem(eqs, t)
-    prob = ODEProblem(lv2, [y => 2.0], (0.0, 10.0), [x => 4.0])
+    prob = ODEProblem(lv2, [x => 4.0, y => 2.0], (0.0, 10.0))
 
     c2 = ODEComponent(
         model=prob,
         name="Predator",
         time_step=0.002,
-        input_names=["Prey.pop"],
-        output_indices=Dict("pop" => 1),
+        state_names=Dict("prey" => x, "predator" => y),
         alg=Euler(),
         intkwargs=(:adaptive => false,),
-        mtk_input_symbols=Dict("Prey.pop" => x),
     )
 
-    mp = MermaidProblem(components=[c1, c2], max_t=10.0)
+    conn1 = Connector(
+        inputs=["Predator.predator"],
+        outputs=["Prey.predator"],
+    )
+    conn2 = Connector(
+        inputs=["Prey.prey"],
+        outputs=["Predator.prey"],
+    )
+
+    mp = MermaidProblem(components=[c1, c2], connectors=[conn1, conn2], max_t=10.0)
 
     using CommonSolve
     alg = MinimumTimeStepper()
@@ -110,6 +123,6 @@ end
     @test all(solMer.t .≈ solODE.t)
     preyODE = [solODE(t)[1] for t in solMer.t]
     predatorODE = [solODE(t)[2] for t in solMer.t]
-    @test all(solMer.u["Prey.pop"] .≈ preyODE)
-    @test all(solMer.u["Predator.pop"] .≈ predatorODE)
+    @test all(solMer.u["Prey.prey"] .≈ preyODE)
+    @test all(solMer.u["Predator.predator"] .≈ predatorODE)
 end
