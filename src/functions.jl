@@ -16,7 +16,7 @@ Converts a MermaidProblem to a MermaidIntegrator.
 """
 function CommonSolve.init(prob::MermaidProblem, alg::AbstractMermaidSolver)
     # Initialize the solver
-    integrators = Vector{ODEComponentIntegrator}()
+    integrators = Vector{Any}()
     for c in prob.components
         integrator = CommonSolve.init(c, prob.connectors)
         push!(integrators, integrator)
@@ -76,7 +76,7 @@ function CommonSolve.solve!(int::MermaidIntegrator)
     return MermaidSolution(t, u)
 end
 
-function update_outputs!(compInt::ODEComponentIntegrator)
+function update_outputs!(compInt::ComponentIntegrator)
     # Update the outputs of the ODE component based on the current state
     s = compInt.integrator.u
     for output_key in keys(compInt.outputs)
@@ -107,7 +107,15 @@ function update_inputs!(mermaidInt::MermaidIntegrator)
                 push!(inputs, integrator.outputs[input])
             end
         end
-        outputs = conn.func(inputs...)
+        if isnothing(conn.func)
+            if length(inputs) == 1
+                outputs = inputs[1]
+            else
+                outputs = inputs
+            end
+        else
+            outputs = conn.func(inputs...)
+        end
         # Set the inputs of the corresponding integrators
         for output in conn.outputs
             # Get the component name and variable name

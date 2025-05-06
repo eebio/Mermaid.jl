@@ -1,38 +1,35 @@
 using CommonSolve
-using ModelingToolkit
-using SymbolicIndexingInterface
 
 # Predefined concrete types
-@kwdef struct ODEComponent <: AbstractTimeDependentComponent
+@kwdef struct PDEComponent <: AbstractTimeDependentComponent
     model::ODEProblem
-    name::String = "ODE Component"
+    name::String = "PDE Component"
     state_names::Dict{String,Any} = Dict{String,Any}() # Dictionary that maps state names (given as strings) to their corresponding indices in the state vector (or symbols for MTK)
     time_step::Float64 = 1.0
     alg = Rodas5()
     intkwargs::Tuple{Pair{Symbol,Any}} = ()
 end
 
-mutable struct ODEComponentIntegrator <: ComponentIntegrator
+mutable struct PDEComponentIntegrator <: ComponentIntegrator
     integrator::OrdinaryDiffEqCore.ODEIntegrator
-    component::ODEComponent
+    component::PDEComponent
     outputs::Dict{String,Any}
     inputs::Dict{String,Any}
 end
 
 """
-    init(c::ODEComponent)
+    init(c::PDEComponent)
 """
-function CommonSolve.init(c::ODEComponent, conns::Vector{Connector})
-    outputs = Dict{String, Any}() # Full variable name => Initial value from component
-    inputs = Dict{String, Any}() # Full variable name => Value (initially 0)
+function CommonSolve.init(c::PDEComponent, conns::Vector{Connector})
+    outputs = Dict{String,Any}() # Full variable name => Initial value from component
+    inputs = Dict{String,Any}() # Full variable name => Value (initially 0)
     for conn in conns
         # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
         for input in conn.inputs
-            if split(input,".")[1] != c.name
+            if split(input, ".")[1] != c.name
                 continue
             end
-            outputIndex = c.state_names[split(input,".")[2]]
-
+            outputIndex = c.state_names[split(input, ".")[2]]
             # If the index is a MTK symbol then get the variable index
             if !isa(outputIndex, Integer)
                 outputIndex = variable_index(c.model.f.sys, outputIndex)
@@ -40,27 +37,26 @@ function CommonSolve.init(c::ODEComponent, conns::Vector{Connector})
             outputs[input] = c.model.u0[outputIndex]
         end
         for output in conn.outputs
-            if split(output,".")[1] != c.name
+            if split(output, ".")[1] != c.name
                 continue
             end
             inputs[output] = 0
         end
     end
-
-    integrator = ODEComponentIntegrator(init(c.model, c.alg; dt=c.time_step, c.intkwargs...), c, outputs, inputs)
+    integrator = PDEComponentIntegrator(init(c.model, c.alg; dt=c.time_step, c.intkwargs...), c, outputs, inputs)
     return integrator
 end
 
 """
-    step!(compInt::ODEComponentIntegrator)
+    step!(compInt::PDEComponentIntegrator)
 
-Steps the ODE component integrator.
+Steps the PDE component integrator.
 # Arguments
-- `compInt::ODEComponentIntegrator`: The ODE component integrator to be stepped.
+- `compInt::PDEComponentIntegrator`: The PDE component integrator to be stepped.
 """
-function CommonSolve.step!(compInt::ODEComponentIntegrator)
+function CommonSolve.step!(compInt::PDEComponentIntegrator)
     for (key, value) in compInt.inputs
-        index = compInt.component.state_names[split(key,".")[2]]
+        index = compInt.component.state_names[split(key, ".")[2]]
         # If the index is a MTK symbol then get the variable index
         if !isa(index, Integer)
             index = variable_index(compInt.component.model.f.sys, index)
