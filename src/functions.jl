@@ -53,27 +53,13 @@ This handles all the message passing and calls step! on the MermaidIntegrator.
 function CommonSolve.solve!(int::MermaidIntegrator)
     t = [0.0]
     dt = minimum([i.component.time_step for i in int.integrators]) # Minimum isnt sufficient to guarantee we don't jump over anything
-    u = Dict()
-    for i in int.integrators
-        for key in keys(i.outputs)
-            u[key] = []
-        end
-    end
-    for i in int.integrators
-        for key in keys(i.outputs)
-            push!(u[key], i.outputs[key])
-        end
-    end
+    sol = MermaidSolution(int)
+    update_solution!(sol, int)
     while int.currtime < int.maxt
         CommonSolve.step!(int, dt)
-        push!(t, int.currtime)
-        for i in int.integrators
-            for key in keys(i.outputs)
-                push!(u[key], i.outputs[key])
-            end
-        end
+        update_solution!(sol, int)
     end
-    return MermaidSolution(t, u)
+    return sol
 end
 
 function update_outputs!(compInt::ComponentIntegrator)
@@ -127,6 +113,16 @@ function update_inputs!(mermaidInt::MermaidIntegrator)
                 # Set the input value for the integrator
                 integrator.inputs[integrator.component.name * "." * var_name] = outputs
             end
+        end
+    end
+end
+
+function update_solution!(sol::MermaidSolution, merInt::MermaidIntegrator)
+    # Update the solution with the current time and state
+    push!(sol.t, merInt.currtime)
+    for i in merInt.integrators
+        for key in keys(i.outputs)
+            push!(sol.u[key], i.outputs[key])
         end
     end
 end

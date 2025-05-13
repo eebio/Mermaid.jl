@@ -44,3 +44,13 @@ struct MermaidSolution
     t::Vector
     u::Dict
 end
+
+function MermaidSolution(int::MermaidIntegrator)
+    u = Dict()
+    for i in int.integrators
+        for key in keys(i.outputs)
+            u[key] = []
+        end
+    end
+    return MermaidSolution([], u)
+end
