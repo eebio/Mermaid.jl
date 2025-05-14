@@ -61,17 +61,3 @@ function CommonSolve.step!(compInt::PDEComponentIntegrator)
     u_modified!(compInt.integrator, true)
     CommonSolve.step!(compInt.integrator)
 end
-
-function getstate(compInt::ODEComponentIntegrator, key)
-    index = compInt.component.state_names[key]
-    return compInt.integrator[index]
-end
-
-function setstate!(compInt::ODEComponentIntegrator, key, value)
-    index = compInt.component.state_names[key]
-    compInt.integrator[index] = value
-end
-
-function gettime(compInt::ODEComponentIntegrator)
-    return compInt.integrator.t
-end
