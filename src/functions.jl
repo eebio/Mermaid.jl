@@ -14,14 +14,14 @@ Converts a MermaidProblem to a MermaidIntegrator.
 # Returns
 - `MermaidIntegrator`: The initialized integrator for the problem.
 """
-function CommonSolve.init(prob::MermaidProblem, alg::AbstractMermaidSolver)
+function CommonSolve.init(prob::MermaidProblem, alg::AbstractMermaidSolver; save_vars=[])
     # Initialize the solver
     integrators = Vector{Any}()
     for c in prob.components
         integrator = CommonSolve.init(c, prob.connectors)
         push!(integrators, integrator)
     end
-    return MermaidIntegrator(integrators, prob.connectors, prob.max_t, 0.0, alg)
+    return MermaidIntegrator(integrators, prob.connectors, prob.max_t, 0.0, alg, save_vars)
 end
 
 """
@@ -114,8 +114,11 @@ function update_solution!(sol::MermaidSolution, merInt::MermaidIntegrator)
     # Update the solution with the current time and state
     push!(sol.t, merInt.currtime)
     for i in merInt.integrators
-        for key in keys(i.outputs)
-            push!(sol.u[key], i.outputs[key])
+        for key in keys(i.component.state_names)
+            fullname = join([i.component.name, key], ".")
+            if fullname in keys(sol.u)
+                push!(sol.u[join([i.component.name, key],".")], getstate(i, key))
+            end
         end
     end
 end

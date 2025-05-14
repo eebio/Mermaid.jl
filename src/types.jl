@@ -32,6 +32,7 @@ mutable struct MermaidIntegrator
     maxt::Float64
     currtime::Float64
     alg::AbstractMermaidSolver
+    save_vars::Vector{String}
 end
 
 @kwdef struct MermaidProblem
@@ -48,8 +49,11 @@ end
 function MermaidSolution(int::MermaidIntegrator)
     u = Dict()
     for i in int.integrators
-        for key in keys(i.outputs)
-            u[key] = []
+        for key in keys(i.component.state_names)
+            fullname = join([i.component.name, key], ".")
+            if length(int.save_vars) == 0 || fullname in int.save_vars
+                u[fullname] = []
+            end
         end
     end
     return MermaidSolution([], u)
