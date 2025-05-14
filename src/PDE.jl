@@ -64,20 +64,12 @@ end
 
 function getstate(compInt::ODEComponentIntegrator, key)
     index = compInt.component.state_names[key]
-    if isa(index, Integer) || isa(index, Num)
-        return compInt.integrator[index]
-    else
-        throw(ArgumentError("Invalid index $index of type $(typeof(index))"))
-    end
+    return compInt.integrator[index]
 end
 
 function setstate!(compInt::ODEComponentIntegrator, key, value)
     index = compInt.component.state_names[key]
-    if isa(index, Integer) || isa(index, Num)
-        compInt.integrator[index] = value
-    else
-        throw(ArgumentError("Invalid index $index of type $(typeof(index))"))
-    end
+    compInt.integrator[index] = value
 end
 
 function gettime(compInt::ODEComponentIntegrator)
