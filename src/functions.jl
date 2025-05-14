@@ -63,17 +63,10 @@ function CommonSolve.solve!(int::MermaidIntegrator)
 end
 
 function update_outputs!(compInt::ComponentIntegrator)
-    # Update the outputs of the ODE component based on the current state
-    s = compInt.integrator.u
+    # Update the outputs of the component based on the current state
     for output_key in keys(compInt.outputs)
-        # Update the output data for the component
         _, var_name = split(output_key, ".")
-        index = compInt.component.state_names[var_name]
-        # If the index is a MTK symbol then get the variable index
-        if !isa(index, Integer)
-            index = variable_index(compInt.component.model.f.sys, index)
-        end
-        compInt.outputs[output_key] = s[index]
+        compInt.outputs[output_key] = getstate(compInt, var_name)
     end
 end
 

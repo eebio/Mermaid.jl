@@ -8,7 +8,7 @@ function (m::MinimumTimeStepper)(merInt::MermaidIntegrator, dt::Float64)
     update_inputs!(merInt)
     # Step the integrator
     for int in merInt.integrators
-        while int.integrator.t + int.component.time_step <= merInt.currtime
+        while gettime(int) + int.component.time_step <= merInt.currtime
             # Step the integrator
             CommonSolve.step!(int)
         end

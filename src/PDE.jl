@@ -56,13 +56,30 @@ Steps the PDE component integrator.
 """
 function CommonSolve.step!(compInt::PDEComponentIntegrator)
     for (key, value) in compInt.inputs
-        index = compInt.component.state_names[split(key, ".")[2]]
-        # If the index is a MTK symbol then get the variable index
-        if !isa(index, Integer)
-            index = variable_index(compInt.component.model.f.sys, index)
-        end
-        compInt.integrator.u[index] = value
+        setstate!(compInt, split(key, ".")[2], value)
     end
     u_modified!(compInt.integrator, true)
     CommonSolve.step!(compInt.integrator)
+end
+
+function getstate(compInt::ODEComponentIntegrator, key)
+    index = compInt.component.state_names[key]
+    if isa(index, Integer) || isa(index, Num)
+        return compInt.integrator[index]
+    else
+        throw(ArgumentError("Invalid index $index of type $(typeof(index))"))
+    end
+end
+
+function setstate!(compInt::ODEComponentIntegrator, key, value)
+    index = compInt.component.state_names[key]
+    if isa(index, Integer) || isa(index, Num)
+        compInt.integrator[index] = value
+    else
+        throw(ArgumentError("Invalid index $index of type $(typeof(index))"))
+    end
+end
+
+function gettime(compInt::ODEComponentIntegrator)
+    return compInt.integrator.t
 end
