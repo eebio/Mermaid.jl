@@ -97,17 +97,12 @@ c2 = ODEComponent(
     intkwargs=(:adaptive => false,),
 )
 
-conn1 = Connector(
+conn = Connector(
     inputs=["G.g"],
     outputs=["PDE.g[2]", "PDE.g[3]", "PDE.g[4]", "PDE.g[5]", "PDE.g[6]", "PDE.g[7]", "PDE.g[8]", "PDE.g[9]", "PDE.g[10]"],
 )
 
-conn2 = Connector(
-    inputs=["PDE.u[2]", "PDE.u[3]", "PDE.u[4]", "PDE.u[5]", "PDE.u[6]", "PDE.u[7]", "PDE.u[8]", "PDE.u[9]", "PDE.u[10]"],
-    outputs=[],
-)
-
-mp = MermaidProblem(components=[c1, c2], connectors=[conn1, conn2], max_t=1.0)
+mp = MermaidProblem(components=[c1, c2], connectors=[conn], max_t=1.0)
 
 sol = solve(mp, MinimumTimeStepper())
 
