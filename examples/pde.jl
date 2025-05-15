@@ -67,15 +67,16 @@ discretization = MOLFiniteDifference([x => dx], t)
 # Convert the PDE problem into an ODE problem
 prob = discretize(pdesys, discretization)
 
+using SymbolicIndexingInterface
+function var_index(s)
+    return s => variable_index(prob, ModelingToolkit.parse_variable(prob.f.sys, s))
+end
+
 c1 = PDEComponent(
     model=prob,
     name="PDE",
     state_names=Dict(
-        "u[2]" => 1, "u[3]" => 2, "u[4]" => 3, "u[5]" => 4, "u[6]" => 5,
-        "u[7]" => 6, "u[8]" => 7, "u[9]" => 8, "u[10]" => 9,
-        "g[2]" => 10, "g[3]" => 11, "g[4]" => 12,
-     "g[5]" => 13, "g[6]" => 14, "g[7]" => 15, "g[8]" => 16, "g[9]" => 17,
-      "g[10]" => 18), # Use hardcoded state indexes for now (12:22)
+        [var_index(s) for s in [["u[$i]" for i in 2:10]... ["g[$i]" for i in 2:10]...]]),
     time_step=0.0001,
     alg=Euler(),
     intkwargs=(:adaptive => false,),
