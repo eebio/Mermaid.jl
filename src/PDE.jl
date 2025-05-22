@@ -59,7 +59,7 @@ function CommonSolve.step!(compInt::PDEComponentIntegrator)
         setstate!(compInt, split(key, ".")[2], value)
     end
     u_modified!(compInt.integrator, true)
-    CommonSolve.step!(compInt.integrator)
+    CommonSolve.step!(compInt.integrator, compInt.component.time_step, true)
 end
 
 function getstate(compInt::PDEComponentIntegrator, key)
