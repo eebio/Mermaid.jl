@@ -9,7 +9,7 @@ using SymbolicIndexingInterface
     state_names::Dict{String,Any} = Dict{String,Any}() # Dictionary that maps state names (given as strings) to their corresponding indices in the state vector (or symbols for MTK)
     time_step::Float64 = 1.0
     alg = Rodas5()
-    intkwargs::Tuple{Pair{Symbol,Any}} = ()
+    intkwargs::Tuple = ()
 end
 
 mutable struct ODEComponentIntegrator <: ComponentIntegrator
