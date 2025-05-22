@@ -93,7 +93,7 @@
         outputs=["PDE.g[2]", "PDE.g[3]", "PDE.g[4]", "PDE.g[5]", "PDE.g[6]", "PDE.g[7]", "PDE.g[8]", "PDE.g[9]", "PDE.g[10]"],
     )
 
-    mp = MermaidProblem(components=[c1, c2], connectors=[conn1], max_t=1.0)
+    mp = MermaidProblem(components=[c1, c2], connectors=[conn], max_t=1.0)
     sol = solve(mp, MinimumTimeStepper())
 
     finalsol = [0, sol.u["PDE.u[2]"][end], sol.u["PDE.u[3]"][end], sol.u["PDE.u[4]"][end], sol.u["PDE.u[5]"][end], sol.u["PDE.u[6]"][end], sol.u["PDE.u[7]"][end], sol.u["PDE.u[8]"][end], sol.u["PDE.u[9]"][end], sol.u["PDE.u[10]"][end], 0]
