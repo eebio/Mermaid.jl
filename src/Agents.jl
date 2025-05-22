@@ -13,31 +13,28 @@ end
 mutable struct AgentsComponentIntegrator <: ComponentIntegrator
     integrator::StandardABM
     component::AgentsComponent
-    outputs::Dict{String,Any}
-    inputs::Dict{String,Any}
+    outputs::Dict{ConnectedVariable,Any}
+    inputs::Dict{ConnectedVariable,Any}
 end
 
 """
     init(c::AgentsComponent)
 """
 function CommonSolve.init(c::AgentsComponent, conns::Vector{Connector})
-    outputs = Dict{String,Any}() # Full variable name => Initial value from component
-    inputs = Dict{String,Any}() # Full variable name => Value (initially 0)
+    outputs = Dict{ConnectedVariable,Any}() # Full variable name => Initial value from component
+    inputs = Dict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
     for conn in conns
         # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
         for input in conn.inputs
-            if split(input, ".")[1] != c.name
-                continue
+            if input.component == c.name
+                outputProperty = c.state_names[split(input, ".")[2]]
+                outputs[input] = getproperty(c.model, outputProperty)
             end
-            outputProperty = c.state_names[split(input, ".")[2]]
-
-            outputs[input] = getproperty(c.model, outputProperty)
         end
         for output in conn.outputs
-            if split(output, ".")[1] != c.name
-                continue
+            if output.component == c.name
+                inputs[output] = 0
             end
-            inputs[output] = 0
         end
     end
 
@@ -54,18 +51,18 @@ Steps the Agents.jl component integrator.
 """
 function CommonSolve.step!(compInt::AgentsComponentIntegrator)
     for (key, value) in compInt.inputs
-        setstate!(compInt, split(key, ".")[2], value)
+        setstate!(compInt, key, value)
     end
     step!(compInt.integrator)
 end
 
-function getstate(compInt::AgentsComponentIntegrator, state_name::AbstractString)
-    index = compInt.component.state_names[state_name]
+function getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
+    index = compInt.component.state_names[key.variable]
     return getproperty(compInt.integrator, index)
 end
 
-function setstate!(compInt::AgentsComponentIntegrator, state_name::AbstractString, value)
-    index = compInt.component.state_names[state_name]
+function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
+    index = compInt.component.state_names[key.variable]
     setproperty!(compInt.integrator, index, value)
 end
 

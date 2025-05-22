@@ -13,34 +13,33 @@ end
 mutable struct PDEComponentIntegrator <: ComponentIntegrator
     integrator::OrdinaryDiffEqCore.ODEIntegrator
     component::PDEComponent
-    outputs::Dict{String,Any}
-    inputs::Dict{String,Any}
+    outputs::Dict{ConnectedVariable,Any}
+    inputs::Dict{ConnectedVariable,Any}
 end
 
 """
     init(c::PDEComponent)
 """
 function CommonSolve.init(c::PDEComponent, conns::Vector{Connector})
-    outputs = Dict{String,Any}() # Full variable name => Initial value from component
-    inputs = Dict{String,Any}() # Full variable name => Value (initially 0)
+    outputs = Dict{ConnectedVariable,Any}() # Full variable name => Initial value from component
+    inputs = Dict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
     for conn in conns
         # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
         for input in conn.inputs
-            if split(input, ".")[1] != c.name
-                continue
+            if input.component == c.name
+                outputIndex = c.state_names[input.variable]
+                # If the index is a MTK symbol then get the variable index
+                if !isa(outputIndex, Integer)
+                    outputIndex = variable_index(c.model.f.sys, outputIndex)
+                end
+                # TODO I think we can allow variable indexes here, for if each element of the state is a vector
+                outputs[input] = c.model.u0[outputIndex]
             end
-            outputIndex = c.state_names[split(input, ".")[2]]
-            # If the index is a MTK symbol then get the variable index
-            if !isa(outputIndex, Integer)
-                outputIndex = variable_index(c.model.f.sys, outputIndex)
-            end
-            outputs[input] = c.model.u0[outputIndex]
         end
         for output in conn.outputs
-            if split(output, ".")[1] != c.name
-                continue
+            if output.component == c.name
+                inputs[output] = 0
             end
-            inputs[output] = 0
         end
     end
     integrator = PDEComponentIntegrator(init(c.model, c.alg; dt=c.time_step, c.intkwargs...), c, outputs, inputs)
@@ -56,19 +55,19 @@ Steps the PDE component integrator.
 """
 function CommonSolve.step!(compInt::PDEComponentIntegrator)
     for (key, value) in compInt.inputs
-        setstate!(compInt, split(key, ".")[2], value)
+        setstate!(compInt, key, value)
     end
     u_modified!(compInt.integrator, true)
     CommonSolve.step!(compInt.integrator, compInt.component.time_step, true)
 end
 
 function getstate(compInt::PDEComponentIntegrator, key)
-    index = compInt.component.state_names[key]
+    index = compInt.component.state_names[key.variable]
     return compInt.integrator[index]
 end
 
 function setstate!(compInt::PDEComponentIntegrator, key, value)
-    index = compInt.component.state_names[key]
+    index = compInt.component.state_names[key.variable]
     compInt.integrator[index] = value
 end
 

@@ -69,14 +69,15 @@ prob = discretize(pdesys, discretization)
 
 using SymbolicIndexingInterface
 function var_index(s)
-    return s => variable_index(prob, ModelingToolkit.parse_variable(prob.f.sys, s))
+    fullname = "$(s[1])[$(s[2:end])]"
+    return s => variable_index(prob, ModelingToolkit.parse_variable(prob.f.sys, fullname))
 end
 
 c1 = PDEComponent(
     model=prob,
     name="PDE",
     state_names=Dict(
-        [var_index(s) for s in [["u[$i]" for i in 2:10]... ["g[$i]" for i in 2:10]...]]),
+        [var_index(s) for s in [["u$i" for i in 2:10]... ["g$i" for i in 2:10]...]]),
     time_step=0.0001,
     alg=Euler(),
     intkwargs=(:adaptive => false,),
@@ -99,7 +100,7 @@ c2 = ODEComponent(
 
 conn = Connector(
     inputs=["G.g"],
-    outputs=["PDE.g[2]", "PDE.g[3]", "PDE.g[4]", "PDE.g[5]", "PDE.g[6]", "PDE.g[7]", "PDE.g[8]", "PDE.g[9]", "PDE.g[10]"],
+    outputs=["PDE.g2", "PDE.g3", "PDE.g4", "PDE.g5", "PDE.g6", "PDE.g7", "PDE.g8", "PDE.g9", "PDE.g10"],
 )
 
 mp = MermaidProblem(components=[c1, c2], connectors=[conn], max_t=1.0)
@@ -109,6 +110,6 @@ sol = solve(mp, MinimumTimeStepper())
 # TODO putting incorrect names in connectors just skips then but should error
 # TODO expand variable saving options: saveat, save_everystep, save_first, save_last, save_idx(s?),...
 # TODO array connector (way of specifying a range of names easily)
-finalsol = [0, sol.u["PDE.u[2]"][end], sol.u["PDE.u[3]"][end], sol.u["PDE.u[4]"][end], sol.u["PDE.u[5]"][end], sol.u["PDE.u[6]"][end], sol.u["PDE.u[7]"][end], sol.u["PDE.u[8]"][end], sol.u["PDE.u[9]"][end], sol.u["PDE.u[10]"][end], 0]
+finalsol = [0, sol.u["PDE.u2"][end-1], sol.u["PDE.u3"][end-1], sol.u["PDE.u4"][end-1], sol.u["PDE.u5"][end-1], sol.u["PDE.u6"][end-1], sol.u["PDE.u7"][end-1], sol.u["PDE.u8"][end-1], sol.u["PDE.u9"][end-1], sol.u["PDE.u10"][end-1], 0]
 plot(finalsol, label="Mermaid")
 plot!(solPDE[u(t,x)][end,:], label="MOL", linestyle=:dash)

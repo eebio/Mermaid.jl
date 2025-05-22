@@ -65,8 +65,7 @@ end
 function update_outputs!(compInt::ComponentIntegrator)
     # Update the outputs of the component based on the current state
     for output_key in keys(compInt.outputs)
-        _, var_name = split(output_key, ".")
-        compInt.outputs[output_key] = getstate(compInt, var_name)
+        compInt.outputs[output_key] = getstate(compInt, output_key)
     end
 end
 
@@ -76,10 +75,8 @@ function update_inputs!(mermaidInt::MermaidIntegrator)
         # Get the values of the connectors inputs
         inputs = []
         for input in conn.inputs
-            # Get the component name and variable name
-            comp_name, var_name = split(input, ".")
             # Find the corresponding integrator
-            index = findfirst(i -> i.component.name == comp_name, mermaidInt.integrators)
+            index = findfirst(i -> i.component.name == input.component, mermaidInt.integrators)
             if index !== nothing
                 integrator = mermaidInt.integrators[index]
                 # Get the value of the input from the integrator
@@ -97,14 +94,12 @@ function update_inputs!(mermaidInt::MermaidIntegrator)
         end
         # Set the inputs of the corresponding integrators
         for output in conn.outputs
-            # Get the component name and variable name
-            comp_name, var_name = split(output, ".")
             # Find the corresponding integrator
-            index = findfirst(i -> i.component.name == comp_name, mermaidInt.integrators)
+            index = findfirst(i -> i.component.name == output.component, mermaidInt.integrators)
             if index !== nothing
                 integrator = mermaidInt.integrators[index]
                 # Set the input value for the integrator
-                integrator.inputs[integrator.component.name * "." * var_name] = outputs
+                integrator.inputs[output] = outputs
             end
         end
     end
@@ -112,13 +107,40 @@ end
 
 function update_solution!(sol::MermaidSolution, merInt::MermaidIntegrator)
     # Update the solution with the current time and state
+    # TODO this still uses the old style of variable names
     push!(sol.t, merInt.currtime)
     for i in merInt.integrators
         for key in keys(i.component.state_names)
             fullname = join([i.component.name, key], ".")
             if fullname in keys(sol.u)
-                push!(sol.u[join([i.component.name, key],".")], getstate(i, key))
+                push!(sol.u[join([i.component.name, key], ".")], getstate(i, parsevariable(join([i.component.name, key], "."))))
             end
         end
     end
+end
+
+function parsevariable(name)
+    # Parse the variable name to extract its parts
+    component, variable = split(name, ".")
+    # Is there a variable index
+    if contains(variable, "[")
+        variable, index = split(variable, "[")
+        # Strip the final "]"
+        index = strip(index, ']')
+        # Is the index a range
+        if contains(index, ":")
+            # Extract the range
+            start, stop = split(range, ":")
+            start = parse(Int, start)
+            stop = parse(Int, stop)
+            index = start:stop
+        else
+            # Index is just an integer
+            index = parse(Int, index)
+        end
+    else
+        # No index
+        index = nothing
+    end
+    return ConnectedVariable(component, variable, index)
 end

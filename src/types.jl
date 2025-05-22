@@ -1,9 +1,25 @@
 using OrdinaryDiffEqCore: ODEIntegrator
 
-@kwdef struct Connector
-    inputs::Vector{String}
-    outputs::Vector{String}
-    func = nothing
+struct ConnectedVariable
+    component::String
+    variable::String
+    variableindex::Union{Int,Nothing,UnitRange{Int}}
+end
+
+function ConnectedVariable(name::AbstractString)
+    return parsevariable(name)
+end
+
+struct Connector
+    inputs::Vector{ConnectedVariable}
+    outputs::Vector{ConnectedVariable}
+    func::Union{Nothing,Function}
+end
+
+function Connector(;inputs::Vector{T}, outputs::Vector{S}, func = nothing) where T <: AbstractString where S <: AbstractString
+    inputs = [ConnectedVariable(i) for i in inputs]
+    outputs = [ConnectedVariable(o) for o in outputs]
+    return Connector(inputs, outputs, func)
 end
 
 abstract type AbstractComponent end
@@ -28,7 +44,7 @@ abstract type ComponentIntegrator end
 
 mutable struct MermaidIntegrator
     integrators::Vector
-    connectors::Vector{Connector} # Change name to connectors
+    connectors::Vector{Connector}
     maxt::Float64
     currtime::Float64
     alg::AbstractMermaidSolver
@@ -48,6 +64,7 @@ end
 
 function MermaidSolution(int::MermaidIntegrator)
     u = Dict()
+    # TODO this still uses the old style of variable names
     for i in int.integrators
         for key in keys(i.component.state_names)
             fullname = join([i.component.name, key], ".")
