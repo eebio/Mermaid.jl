@@ -62,6 +62,25 @@ function CommonSolve.solve!(int::MermaidIntegrator)
     return sol
 end
 
+function getstate(merInt::MermaidIntegrator, key)
+    # Get the state of the component based on the key
+    for integrator in merInt.integrators
+        if integrator.component.name == key.component
+            return getstate(integrator, key)
+        end
+    end
+    return nothing
+end
+
+function setstate!(merInt::MermaidIntegrator, key, value)
+    # Set the state of the component based on the key
+    for integrator in merInt.integrators
+        if integrator.component.name == key.component
+            setstate!(integrator, key, value)
+        end
+    end
+end
+
 function update_outputs!(compInt::ComponentIntegrator)
     # Update the outputs of the component based on the current state
     for output_key in keys(compInt.outputs)
@@ -107,15 +126,9 @@ end
 
 function update_solution!(sol::MermaidSolution, merInt::MermaidIntegrator)
     # Update the solution with the current time and state
-    # TODO this still uses the old style of variable names
     push!(sol.t, merInt.currtime)
-    for i in merInt.integrators
-        for key in keys(i.component.state_names)
-            fullname = join([i.component.name, key], ".")
-            if fullname in keys(sol.u)
-                push!(sol.u[join([i.component.name, key], ".")], getstate(i, parsevariable(join([i.component.name, key], "."))))
-            end
-        end
+    for key in keys(sol.u)
+        push!(sol.u[key], getstate(merInt, key))
     end
 end
 
@@ -142,5 +155,5 @@ function parsevariable(name)
         # No index
         index = nothing
     end
-    return ConnectedVariable(component, variable, index)
+    return ConnectedVariable(component, variable, index, name)
 end

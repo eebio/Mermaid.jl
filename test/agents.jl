@@ -72,7 +72,7 @@
     intMer = init(mp, alg)
     solMer = solve!(intMer)
 
-    @test solMer.u["ode.happy"][1:end-1] == solMer.u["Schelling.min_to_be_happy"][2:end]
+    @test solMer["ode.happy"][1:end-1] == solMer["Schelling.min_to_be_happy"][2:end]
 
     intMer = init(mp, alg)
     for _ in 1:10

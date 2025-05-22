@@ -60,8 +60,8 @@
     @test all(solMer.t .≈ solODE.t)
     preyODE = [solODE(t)[1] for t in solMer.t]
     predatorODE = [solODE(t)[2] for t in solMer.t]
-    @test all(solMer.u["Prey.prey"] .≈ preyODE)
-    @test all(solMer.u["Predator.predator"] .≈ predatorODE)
+    @test all(solMer["Prey.prey"] .≈ preyODE)
+    @test all(solMer["Predator.predator"] .≈ predatorODE)
 end
 
 @testitem "mtk" begin
@@ -123,6 +123,6 @@ end
     @test all(solMer.t .≈ solODE.t)
     preyODE = [solODE(t)[1] for t in solMer.t]
     predatorODE = [solODE(t)[2] for t in solMer.t]
-    @test all(solMer.u["Prey.prey"] .≈ preyODE)
-    @test all(solMer.u["Predator.predator"] .≈ predatorODE)
+    @test all(solMer["Prey.prey"] .≈ preyODE)
+    @test all(solMer["Predator.predator"] .≈ predatorODE)
 end

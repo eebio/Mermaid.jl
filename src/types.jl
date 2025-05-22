@@ -4,6 +4,7 @@ struct ConnectedVariable
     component::String
     variable::String
     variableindex::Union{Int,Nothing,UnitRange{Int}}
+    fullname::String
 end
 
 function ConnectedVariable(name::AbstractString)
@@ -64,14 +65,18 @@ end
 
 function MermaidSolution(int::MermaidIntegrator)
     u = Dict()
-    # TODO this still uses the old style of variable names
+    # TODO: This is still lacking, if int.save_vars is comp.u[5] but state_names only describes comp.u, this won't work
     for i in int.integrators
         for key in keys(i.component.state_names)
             fullname = join([i.component.name, key], ".")
             if length(int.save_vars) == 0 || fullname in int.save_vars
-                u[fullname] = []
+                u[parsevariable(fullname)] = []
             end
         end
     end
     return MermaidSolution([], u)
+end
+
+function Base.getindex(sol::MermaidSolution, var::AbstractString)
+    return sol.u[parsevariable(var)]
 end

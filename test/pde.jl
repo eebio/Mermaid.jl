@@ -98,6 +98,6 @@
     sol = solve(mp, MinimumTimeStepper())
 
     # TODO mermaid takes an extra step because DiffEq step has floating point issues
-    finalsol = [0, sol.u["PDE.u2"][end-1], sol.u["PDE.u3"][end-1], sol.u["PDE.u4"][end-1], sol.u["PDE.u5"][end-1], sol.u["PDE.u6"][end-1], sol.u["PDE.u7"][end-1], sol.u["PDE.u8"][end-1], sol.u["PDE.u9"][end-1], sol.u["PDE.u10"][end-1], 0]
+    finalsol = [0, sol["PDE.u2"][end-1], sol["PDE.u3"][end-1], sol["PDE.u4"][end-1], sol["PDE.u5"][end-1], sol["PDE.u6"][end-1], sol["PDE.u7"][end-1], sol["PDE.u8"][end-1], sol["PDE.u9"][end-1], sol["PDE.u10"][end-1], 0]
     @test all(isapprox.(finalsol, solPDE[u(t, x)][end, :], atol=1e-8))
 end
