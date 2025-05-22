@@ -31,7 +31,6 @@ function CommonSolve.init(c::AgentsComponent, conns::Vector{Connector})
             end
             outputProperty = c.state_names[split(input, ".")[2]]
 
-            # TODO change for agents
             outputs[input] = getproperty(c.model, outputProperty)
         end
         for output in conn.outputs
@@ -55,20 +54,19 @@ Steps the Agents.jl component integrator.
 """
 function CommonSolve.step!(compInt::AgentsComponentIntegrator)
     for (key, value) in compInt.inputs
-        index = compInt.component.state_names[split(key, ".")[2]]
-        setproperty(compInt.integrator.model, index, value)
+        setstate!(compInt, split(key, ".")[2], value)
     end
     step!(compInt.integrator)
 end
 
-function getstate(compInt::AgentsComponentIntegrator, state_name::String)
+function getstate(compInt::AgentsComponentIntegrator, state_name::AbstractString)
     index = compInt.component.state_names[state_name]
-    return getproperty(compInt.integrator.model, index)
+    return getproperty(compInt.integrator, index)
 end
 
-function setstate!(compInt::AgentsComponentIntegrator, state_name::String, value)
+function setstate!(compInt::AgentsComponentIntegrator, state_name::AbstractString, value)
     index = compInt.component.state_names[state_name]
-    setproperty(compInt.integrator.model, index, value)
+    setproperty!(compInt.integrator, index, value)
 end
 
 function gettime(compInt::AgentsComponentIntegrator)
