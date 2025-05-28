@@ -62,13 +62,26 @@ function CommonSolve.step!(compInt::PDEComponentIntegrator)
 end
 
 function getstate(compInt::PDEComponentIntegrator, key)
-    index = compInt.component.state_names[key.variable]
-    return compInt.integrator[index]
+    if isnothing(key.variableindex)
+        # No index for variable
+        index = compInt.component.state_names[key.variable]
+        return compInt.integrator[index]
+    else
+        index = compInt.component.state_names[key.variable]
+        return compInt.integrator[index][key.variableindex]
+    end
 end
 
 function setstate!(compInt::PDEComponentIntegrator, key, value)
-    index = compInt.component.state_names[key.variable]
-    compInt.integrator[index] = value
+    if isnothing(key.variableindex)
+        # No index for variable
+        index = compInt.component.state_names[key.variable]
+        compInt.integrator[index] = value
+    else key.variableindex isa AbstractVector
+        # Single index for one variable
+        index = compInt.component.state_names[key.variable]
+        compInt.integrator.u[(index)[key.variableindex]] .= value
+    end
 end
 
 function gettime(compInt::PDEComponentIntegrator)

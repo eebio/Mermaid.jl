@@ -60,15 +60,13 @@
 
     using SymbolicIndexingInterface
     function var_index(s)
-        fullname = "$(s[1])[$(s[2:end])]"
-        return s => variable_index(prob, ModelingToolkit.parse_variable(prob.f.sys, fullname))
+        return s => variable_index(prob, ModelingToolkit.parse_variable(prob.f.sys, s))
     end
 
     c1 = PDEComponent(
         model=prob,
         name="PDE",
-        state_names=Dict(
-            [var_index(s) for s in [["u$i" for i in 2:10]... ["g$i" for i in 2:10]...]]),
+        state_names=Dict("u" => [2:9..., 1], "g" => [11:18..., 10]), # TODO this needs to use the symbolic indexing
         time_step=0.0001,
         alg=Euler(),
         intkwargs=(:adaptive => false,),
@@ -91,13 +89,12 @@
 
     conn = Connector(
         inputs=["G.g"],
-        outputs=["PDE.g2", "PDE.g3", "PDE.g4", "PDE.g5", "PDE.g6", "PDE.g7", "PDE.g8", "PDE.g9", "PDE.g10"],
+        outputs=["PDE.g[1:9]"],
     )
 
     mp = MermaidProblem(components=[c1, c2], connectors=[conn], max_t=1.0)
     sol = solve(mp, MinimumTimeStepper())
-
     # TODO mermaid takes an extra step because DiffEq step has floating point issues
-    finalsol = [0, sol["PDE.u2"][end-1], sol["PDE.u3"][end-1], sol["PDE.u4"][end-1], sol["PDE.u5"][end-1], sol["PDE.u6"][end-1], sol["PDE.u7"][end-1], sol["PDE.u8"][end-1], sol["PDE.u9"][end-1], sol["PDE.u10"][end-1], 0]
+    finalsol = [0, sol["PDE.u"][end-1]..., 0]
     @test all(isapprox.(finalsol, solPDE[u(t, x)][end, :], atol=1e-8))
 end

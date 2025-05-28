@@ -57,13 +57,41 @@ function CommonSolve.step!(compInt::AgentsComponentIntegrator)
 end
 
 function getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
-    index = compInt.component.state_names[key.variable]
-    return getproperty(compInt.integrator, index)
+    if isnothing(key.variableindex)
+        # No index for agent, so model-level property
+        index = compInt.component.state_names[key.variable]
+        return getproperty(compInt.integrator, index)
+    elseif key.variableindex isa AbstractVector
+        # Range of indexes for agents
+        for i in key.variableindex
+            # Index for agent, so get the agent property
+            index = compInt.component.state_names[key.variable]
+            return getproperty(compInt.integrator[i], index)
+        end
+    else
+        # Single index for one agent
+        index = compInt.component.state_names[key.variable]
+        return getproperty(compInt.integrator[key.variableindex], index)
+    end
 end
 
 function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
-    index = compInt.component.state_names[key.variable]
-    setproperty!(compInt.integrator, index, value)
+    if isnothing(key.variableindex)
+        # No index for agent, so model-level property
+        index = compInt.component.state_names[key.variable]
+        setproperty!(compInt.integrator, index, value)
+    elseif key.variableindex isa AbstractVector
+        # Range of indexes for agents
+        for i in key.variableindex
+            # Index for agent, so set the agent property
+            index = compInt.component.state_names[key.variable]
+            setproperty!(compInt.integrator[i], index, value)
+        end
+    else
+        # Single index for one agent
+        index = compInt.component.state_names[key.variable]
+        setproperty!(compInt.integrator[key.variableindex], index, value)
+    end
 end
 
 function gettime(compInt::AgentsComponentIntegrator)

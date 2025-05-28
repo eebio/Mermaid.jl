@@ -77,6 +77,7 @@ function setstate!(merInt::MermaidIntegrator, key, value)
     for integrator in merInt.integrators
         if integrator.component.name == key.component
             setstate!(integrator, key, value)
+            return nothing
         end
     end
 end
@@ -143,7 +144,7 @@ function parsevariable(name)
         # Is the index a range
         if contains(index, ":")
             # Extract the range
-            start, stop = split(range, ":")
+            start, stop = split(index, ":")
             start = parse(Int, start)
             stop = parse(Int, stop)
             index = start:stop
