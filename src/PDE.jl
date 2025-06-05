@@ -1,6 +1,5 @@
 using CommonSolve
 
-# Predefined concrete types
 @kwdef struct PDEComponent <: AbstractTimeDependentComponent
     model::ODEProblem
     name::String = "PDE Component"
@@ -17,9 +16,6 @@ mutable struct PDEComponentIntegrator <: ComponentIntegrator
     inputs::Dict{ConnectedVariable,Any}
 end
 
-"""
-    init(c::PDEComponent)
-"""
 function CommonSolve.init(c::PDEComponent, conns::Vector{Connector})
     outputs = Dict{ConnectedVariable,Any}() # Full variable name => Initial value from component
     inputs = Dict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
@@ -46,13 +42,6 @@ function CommonSolve.init(c::PDEComponent, conns::Vector{Connector})
     return integrator
 end
 
-"""
-    step!(compInt::PDEComponentIntegrator)
-
-Steps the PDE component integrator.
-# Arguments
-- `compInt::PDEComponentIntegrator`: The PDE component integrator to be stepped.
-"""
 function CommonSolve.step!(compInt::PDEComponentIntegrator)
     for (key, value) in compInt.inputs
         setstate!(compInt, key, value)

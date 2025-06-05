@@ -2,7 +2,17 @@ using CommonSolve
 using Agents
 using SymbolicIndexingInterface
 
-# Predefined concrete types
+"""
+    AgentsComponent <: AbstractTimeDependentComponent
+
+A component that represents an agent-based model (ABM) using the Agents.jl package.
+
+# Fields
+- `model::StandardABM`: The agent-based model to be solved.
+- `name::String="Agents Component"`: The name of the component.
+- `state_names::Dict{String,Any} = Dict{String,Any}()`: A dictionary mapping ConnectedVariable names (as strings) to their corresponding properties in the agent model.
+- `time_step::Float64=1.0`: The time step for the component (not the ABM solver timestep), i.e. how frequently should the inputs and outputs be updated.
+"""
 @kwdef struct AgentsComponent <: AbstractTimeDependentComponent
     model::StandardABM
     name::String = "Agents Component"
@@ -10,6 +20,17 @@ using SymbolicIndexingInterface
     time_step::Float64 = 1.0 # TODO setup handling for time_step
 end
 
+"""
+    AgentsComponentIntegrator <: ComponentIntegrator
+
+A mutable struct that integrates an [AgentsComponent](@ref) using the Agents.jl package.
+
+# Fields
+- `integrator::StandardABM`: The agent-based model integrator.
+- `component::AgentsComponent`: The AgentsComponent being integrated.
+- `outputs::Dict{ConnectedVariable,Any}`: A dictionary mapping [ConnectedVariable](@ref) names to their initial values from the component.
+- `inputs::Dict{ConnectedVariable,Any}`: A dictionary mapping [ConnectedVariable](@ref) names to their current values (initially 0).
+"""
 mutable struct AgentsComponentIntegrator <: ComponentIntegrator
     integrator::StandardABM
     component::AgentsComponent
@@ -18,7 +39,16 @@ mutable struct AgentsComponentIntegrator <: ComponentIntegrator
 end
 
 """
-    init(c::AgentsComponent)
+    init(c::AgentsComponent, conns::Vector{Connector})
+
+Initializes an [AgentsComponentIntegrator](@ref) for the given [AgentsComponent](@ref) and its connections.
+
+# Arguments
+- `c::AgentsComponent`: The [AgentsComponent](@ref) to be integrated.
+- `conns::Vector{Connector}`: The [Connectors](@ref Connector) that define the inputs and outputs of the component.
+
+# Returns
+- `AgentsComponentIntegrator`: The initialized integrator for the Agents.jl component.
 """
 function CommonSolve.init(c::AgentsComponent, conns::Vector{Connector})
     outputs = Dict{ConnectedVariable,Any}() # Full variable name => Initial value from component
@@ -45,9 +75,10 @@ end
 """
     step!(compInt::AgentsComponentIntegrator)
 
-Steps the Agents.jl component integrator.
+Sets the state based on the current inputs and steps the [AgentsComponentIntegrator](@ref) in time one step.
+
 # Arguments
-- `compInt::AgentsComponentIntegrator`: The Agents.jl component integrator to be stepped.
+- `compInt::AgentsComponentIntegrator`: The component integrator to be stepped. Its internal state will be mutated.
 """
 function CommonSolve.step!(compInt::AgentsComponentIntegrator)
     for (key, value) in compInt.inputs
@@ -56,6 +87,18 @@ function CommonSolve.step!(compInt::AgentsComponentIntegrator)
     step!(compInt.integrator)
 end
 
+"""
+    getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
+
+Retrieves the state of a specific variable from the [AgentsComponentIntegrator](@ref).
+
+# Arguments
+- `compInt::AgentsComponentIntegrator`: The component integrator containing the agent-based model.
+- `key::ConnectedVariable`: The [ConnectedVariable](@ref) specifying which variable's state to retrieve.
+
+# Returns
+- The current state of the variable specified by `key`, which can be a model-level property or an agent-specific property.
+"""
 function getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
     if isnothing(key.variableindex)
         # No index for agent, so model-level property
@@ -75,6 +118,16 @@ function getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
     end
 end
 
+"""
+    setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
+
+Sets the state of a specific variable in the [AgentsComponentIntegrator](@ref).
+
+# Arguments
+- `compInt::AgentsComponentIntegrator`: The component integrator containing the agent-based model.
+- `key::ConnectedVariable`: The [ConnectedVariable](@ref) specifying which variable's state to set.
+- `value`: The value to assign to the specified variable's state.
+"""
 function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
     if isnothing(key.variableindex)
         # No index for agent, so model-level property
@@ -94,6 +147,17 @@ function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, v
     end
 end
 
+"""
+    gettime(compInt::AgentsComponentIntegrator)
+
+Returns the simulation time of the [AgentsComponentIntegrator](@ref) at the current state.
+
+# Arguments
+- `compInt::AgentsComponentIntegrator`: The component integrator for which to retrieve the current time.
+
+# Returns
+- `time`: The current simulation time.
+"""
 function gettime(compInt::AgentsComponentIntegrator)
     return abmtime(compInt.integrator)
 end
