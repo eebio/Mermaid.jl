@@ -10,7 +10,7 @@ A component that represents an agent-based model (ABM) using the Agents.jl packa
 # Fields
 - `model::StandardABM`: The agent-based model to be solved.
 - `name::String="Agents Component"`: The name of the component.
-- `state_names::Dict{String,Any} = Dict{String,Any}()`: A dictionary mapping ConnectedVariable names (as strings) to their corresponding properties in the agent model.
+- `state_names::Dict{String,Any} = Dict{String,Any}()`: A dictionary mapping ConnectedVariable names (as strings) to their corresponding properties in the agent model. The properties differentiate between `:model` properties and `:agent` properties.
 - `time_step::Float64=1.0`: The time step for the component (not the ABM solver timestep), i.e. how frequently should the inputs and outputs be updated.
 """
 @kwdef struct AgentsComponent <: AbstractTimeDependentComponent
@@ -57,8 +57,14 @@ function CommonSolve.init(c::AgentsComponent, conns::Vector{Connector})
         # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
         for input in conn.inputs
             if input.component == c.name
-                outputProperty = c.state_names[split(input, ".")[2]]
-                outputs[input] = getproperty(c.model, outputProperty)
+                outputProperty = c.state_names[input.variable]
+                if hasproperty(c.model, outputProperty)
+                    # If the property is a model-level property, get it directly
+                    outputs[input] = getproperty(c.model, outputProperty)
+                else
+                    # Otherwise, assume it's an agent property and get it for all agents
+                    outputs[input] = [getproperty(c.model[i], outputProperty) for i in 1:nagents(c.model)]
+                end
             end
         end
         for output in conn.outputs
@@ -100,21 +106,22 @@ Retrieves the state of a specific variable from the [AgentsComponentIntegrator](
 - The current state of the variable specified by `key`, which can be a model-level property or an agent-specific property.
 """
 function getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
+    index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
-        # No index for agent, so model-level property
-        index = compInt.component.state_names[key.variable]
-        return getproperty(compInt.integrator, index)
-    elseif key.variableindex isa AbstractVector
-        # Range of indexes for agents
-        for i in key.variableindex
-            # Index for agent, so get the agent property
-            index = compInt.component.state_names[key.variable]
-            return getproperty(compInt.integrator[i], index)
-        end
+        # If model level property exists, return it directly
+        hasproperty(compInt.integrator, index) && return getproperty(compInt.integrator, index)
+        # Otherwise, assume it's an agent property and return it for all agents
+        return [getproperty(i, index) for i in allagents(compInt.integrator)]
     else
-        # Single index for one agent
-        index = compInt.component.state_names[key.variable]
-        return getproperty(compInt.integrator[key.variableindex], index)
+        # If model level property exists, return it after indexing
+        hasproperty(compInt.integrator, index) && return getproperty(compInt.integrator, index)[key.variableindex]
+        # Otherwise, assume it's an agent property and return it for all agents in the specified range
+        out = [getproperty(compInt.integrator[i], index) for i in key.variableindex]
+        if length(out) == 1
+            return out[1] # If only one agent, return the single value
+        else
+            return out # Otherwise, return the vector of values
+        end
     end
 end
 
@@ -129,22 +136,29 @@ Sets the state of a specific variable in the [AgentsComponentIntegrator](@ref).
 - `value`: The value to assign to the specified variable's state.
 """
 function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
+    index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
-        # No index for agent, so model-level property
-        index = compInt.component.state_names[key.variable]
-        setproperty!(compInt.integrator, index, value)
-    elseif key.variableindex isa AbstractVector
-        # Range of indexes for agents
-        for i in key.variableindex
-            # Index for agent, so set the agent property
-            index = compInt.component.state_names[key.variable]
-            setproperty!(compInt.integrator[i], index, value)
+        # If model level property exists, return it directly
+        if hasproperty(compInt.integrator, index)
+            setproperty!(compInt.integrator, index, value)
+        else
+            # Otherwise, assume it's an agent property and set it for all agents
+            for i in allagents(compInt.integrator)
+                setproperty!(i, index, value)
+            end
         end
     else
-        # Single index for one agent
-        index = compInt.component.state_names[key.variable]
-        setproperty!(compInt.integrator[key.variableindex], index, value)
+        # If model level property exists, return it after indexing
+        if hasproperty(compInt.integrator, index)
+            setproperty!(compInt.integrator, index, value[key.variableindex])
+        else
+            # Otherwise, assume it's an agent property and set it for all agents in the specified range
+            for i in key.variableindex
+                setproperty!(compInt.integrator[i], index, value[i])
+            end
+        end
     end
+    return nothing
 end
 
 """

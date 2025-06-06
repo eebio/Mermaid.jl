@@ -16,6 +16,7 @@ include("types.jl")
 include("functions.jl")
 include("DiffEq.jl")
 include("PDE.jl")
+include("Duplicated.jl")
 include("Agents.jl")
 include("solvers.jl")
 

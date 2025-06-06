@@ -180,21 +180,3 @@ Get the solution array for a variable from a [MermaidSolution](@ref).
 function Base.getindex(sol::MermaidSolution, var::AbstractString)
     return sol.u[parsevariable(var)]
 end
-
-"""
-    DuplicatedComponent <: AbstractComponent
-
-Represents a component that is duplicated in the simulation, allowing a single component to have multiple states.
-
-# Fields
-- `component::AbstractTimeDependentComponent`: The original component to be duplicated.
-- `instances::Union{Int,Nothing}`: Number of instances of the component. If `nothing`, then the number is variable and determined by the simulation.
-- `name::String`: Name of the duplicated component.
-- `states::Vector`: Vector of states for the duplicated component, where each state corresponds to a particular instance.
-"""
-@kwdef struct DuplicatedComponent <: AbstractTimeDependentComponent
-    component::AbstractTimeDependentComponent
-    instances::Union{Int,Nothing}=nothing
-    name::String=component.name
-    states::Vector
-end

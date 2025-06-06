@@ -70,11 +70,24 @@ function getstate(compInt::ODEComponentIntegrator, key)
     return compInt.integrator[index]
 end
 
+function getstate(compInt::ODEComponentIntegrator)
+    return compInt.integrator.u
+end
+
 function setstate!(compInt::ODEComponentIntegrator, key, value)
     index = compInt.component.state_names[key.variable]
     compInt.integrator[index] = value
 end
 
+function setstate!(compInt::ODEComponentIntegrator, value)
+    compInt.integrator.u = value
+end
+
 function gettime(compInt::ODEComponentIntegrator)
     return compInt.integrator.t
+end
+
+function settime!(compInt::ODEComponentIntegrator, t)
+    u_modified!(compInt.integrator, true)
+    compInt.integrator.t = t
 end
