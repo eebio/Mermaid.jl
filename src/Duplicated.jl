@@ -31,17 +31,24 @@ end
 function CommonSolve.init(c::DuplicatedComponent, conns::Vector{Connector})
     integrator = init(c.component, conns)
     states = deepcopy(c.initial_states)
-    inputs = deepcopy(integrator.inputs)
-    outputs = deepcopy(integrator.outputs)
-    # Values in inputs will be 0, but should be duplicated for each instance
-    for key in keys(inputs)
-        inputs[key] = zeros(c.instances)
+
+    outputs = Dict{ConnectedVariable,Any}() # Full variable name => Initial value from component
+    inputs = Dict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
+    for conn in conns
+        # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
+        for input in conn.inputs
+            if input.component == c.name
+                outputs[input] = zeros(c.instances)
+            end
+        end
+        for output in conn.outputs
+            if output.component == c.name
+                inputs[output] = zeros(c.instances)
+            end
+        end
     end
+
     # Values in outputs will be set based on the current state, but should instead match initial_states
-    # Preallocate
-    for key in keys(outputs)
-        outputs[key] = zeros(c.instances)
-    end
     for i in 1:c.instances
         # Set the state according to initial_states
         setstate!(integrator, states[i])
@@ -89,8 +96,8 @@ function getstate(compInt::DuplicatedComponentIntegrator, key)
         index = key.duplicatedindex
     end
     for i in index
-        # TODO I don't think this works, surely this doesnt change compInt.integrator?
-        newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
+        setstate!(compInt.integrator, compInt.states[i])
+        newkey = ConnectedVariable(key.component, key.variable, key.variableindex, nothing)
         out[i] = getstate(compInt.integrator, newkey)
     end
     return out[index]
@@ -101,7 +108,7 @@ function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
         setstate!(compInt.integrator, compInt.states[i])
         newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
         setstate!(compInt.integrator, newkey, value[i])
-        states[i] = getstate(compInt.integrator, newkey)
+        compInt.states[i] = getstate(compInt.integrator)
     end
 end
 
