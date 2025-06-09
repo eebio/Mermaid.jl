@@ -178,5 +178,12 @@ Get the solution array for a variable from a [MermaidSolution](@ref).
 - The solution array for the specified variable.
 """
 function Base.getindex(sol::MermaidSolution, var::AbstractString)
-    return sol.u[parsevariable(var)]
+    var = parsevariable(var)
+    if haskey(sol.u, var)
+        return sol.u[var]
+    else
+        # See if we have a key without an index
+        var_no_index = ConnectedVariable(var.component, var.variable, nothing, var.component * "." * var.variable)
+        return [i[var.variableindex] for i in sol.u[var_no_index]]
+    end
 end
