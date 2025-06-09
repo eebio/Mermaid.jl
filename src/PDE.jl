@@ -61,6 +61,11 @@ function getstate(compInt::PDEComponentIntegrator, key)
     end
 end
 
+function getstate(compInt::PDEComponentIntegrator)
+    # Return the full state vector
+    return compInt.integrator.u
+end
+
 function setstate!(compInt::PDEComponentIntegrator, key, value)
     if isnothing(key.variableindex)
         # No index for variable
@@ -73,6 +78,16 @@ function setstate!(compInt::PDEComponentIntegrator, key, value)
     end
 end
 
+function setstate!(compInt::PDEComponentIntegrator, value)
+    # Set the full state vector
+    compInt.integrator.u = value
+end
+
 function gettime(compInt::PDEComponentIntegrator)
     return compInt.integrator.t
+end
+
+function settime!(compInt::PDEComponentIntegrator, t)
+    u_modified!(compInt.integrator, true)
+    compInt.integrator.t = t
 end
