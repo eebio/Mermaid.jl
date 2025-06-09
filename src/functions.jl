@@ -206,20 +206,30 @@ function parsevariable(name)
         variable, index = split(variable, "[")
         # Strip the final "]"
         index = strip(index, ']')
-        # Is the index a range
-        if contains(index, ":")
-            # Extract the range
-            start, stop = split(index, ":")
-            start = parse(Int, start)
-            stop = parse(Int, stop)
-            index = start:stop
-        else
-            # Index is just an integer
-            index = parse(Int, index)
-        end
+        # This will parse "1:5" to a UnitRange{Int} or "3" to an Int
+        index = eval(Meta.parse(index))
     else
         # No index
         index = nothing
     end
-    return ConnectedVariable(component, variable, index, name)
+    # Is there a duplicated index
+    if contains(component, "[")
+        component, dupindex = split(component, "[")
+        # Strip the final "]"
+        dupindex = strip(dupindex, ']')
+        # This will parse "1:5" to a UnitRange{Int} or "3" to an Int
+        dupindex = eval(Meta.parse(dupindex))
+    else
+        dupindex = nothing
+    end
+    return ConnectedVariable(component, variable, index, dupindex)
+end
+
+function fullname(var::ConnectedVariable)
+    # Construct the full name of the variable
+    comp = var.component
+    dupindex = isnothing(var.dupindex) ? "" : "[" * string(var.dupindex) * "]"
+    variable = var.variable
+    index = isnothing(var.index) ? "" : "[" * string(var.index) * "]"
+    return comp * dupindex * "." * variable * index
 end

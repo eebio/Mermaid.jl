@@ -8,14 +8,14 @@ Points to a variable that is connected between components.
 # Fields
 - `component::String`: Name of the component.
 - `variable::String`: Name of the variable.
-- `variableindex::Union{Int,Nothing,UnitRange{Int}}`: Index or range for the variable, if applicable.
-- `fullname::String`: Full name of the variable (e.g., "component.variable" or "component.variable[index]").
+- `variableindex::Union{Nothing,AbstractVector{Int},Int}`: Index or range for the variable, if applicable.
+- `duplicatedindex::Union{Nothing,AbstractVector{Int},Int}`: Index for duplicated components, if applicable.
 """
 struct ConnectedVariable
     component::String
     variable::String
-    variableindex::Union{Int,Nothing,UnitRange{Int}}
-    fullname::String
+    variableindex::Union{Nothing,AbstractVector{Int},Int}
+    duplicatedindex::Union{Nothing,AbstractVector{Int},Int}
 end
 
 """
@@ -183,7 +183,7 @@ function Base.getindex(sol::MermaidSolution, var::AbstractString)
         return sol.u[var]
     else
         # See if we have a key without an index
-        var_no_index = ConnectedVariable(var.component, var.variable, nothing, var.component * "." * var.variable)
+        var_no_index = ConnectedVariable(var.component, var.variable, nothing, nothing) # TODO I'm not sure how the duplicatedindex data is stored in the solution
         return [i[var.variableindex] for i in sol.u[var_no_index]]
     end
 end

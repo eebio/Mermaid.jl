@@ -46,7 +46,7 @@ function CommonSolve.init(c::DuplicatedComponent, conns::Vector{Connector})
         # Set the state according to initial_states
         setstate!(integrator, states[i])
         for key in keys(outputs)
-            newkey = ConnectedVariable(key.component, key.variable, nothing, join(split(key.fullname,"[")[1:end-1], "["))
+            newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
             outputs[key][i] = getstate(integrator, newkey)
         end
     end
@@ -66,14 +66,14 @@ function CommonSolve.step!(compInt::DuplicatedComponentIntegrator)
         setstate!(compInt.integrator, compInt.states[i])
         # Set the inputs for this instance
         for (key, value) in compInt.inputs
-            newkey = ConnectedVariable(key.component, key.variable, nothing, join(split(key.fullname,"[")[1:end-1], "[") * "[$i]")
+            newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
             setstate!(compInt.integrator, newkey, value[i])
         end
         # Step the integrator for this instance
         step!(compInt.integrator)
         # Get the outputs for this instance
         for key in keys(compInt.outputs)
-            newkey = ConnectedVariable(key.component, key.variable, nothing, join(split(key.fullname,"[")[1:end-1], "[") * "[$i]")
+            newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
             compInt.outputs[key][i] = getstate(compInt.integrator, newkey)
         end
         # Store the state for this instance
@@ -83,17 +83,23 @@ end
 
 function getstate(compInt::DuplicatedComponentIntegrator, key)
     out = Vector{Any}(nothing, compInt.component.instances)
-    for i in 1:compInt.component.instances
-        newkey = ConnectedVariable(key.component, key.variable, nothing, join(split(key.fullname,"[")[1:end-1], "[") * "[$i]")
+    if isnothing(key.duplicatedindex)
+        index = 1:compInt.component.instances
+    else
+        index = key.duplicatedindex
+    end
+    for i in index
+        # TODO I don't think this works, surely this doesnt change compInt.integrator?
+        newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
         out[i] = getstate(compInt.integrator, newkey)
     end
-    return out
+    return out[index]
 end
 
 function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
-    for i in key.variableindexes
+    for i in key.duplicatedindex
         setstate!(compInt.integrator, compInt.states[i])
-        newkey = ConnectedVariable(key.component, key.variable, nothing, join(split(key.fullname,"[")[1:end-1], "[") * "[$i]")
+        newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
         setstate!(compInt.integrator, newkey, value[i])
         states[i] = getstate(compInt.integrator, newkey)
     end
