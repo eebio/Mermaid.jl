@@ -109,12 +109,12 @@ function getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
     index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
         # If model level property exists, return it directly
-        haskey(abmproperties(compInt.integrator), index) && return getproperty(compInt.integrator, index)
+        !isnothing(abmproperties(compInt.integrator)) && haskey(abmproperties(compInt.integrator), index) && return getproperty(compInt.integrator, index)
         # Otherwise, assume it's an agent property and return it for all agents
         return [getproperty(i, index) for i in allagents(compInt.integrator)]
     else
         # If model level property exists, return it after indexing
-        haskey(abmproperties(compInt.integrator), index) && return getproperty(compInt.integrator, index)[key.variableindex]
+        !isnothing(abmproperties(compInt.integrator)) && haskey(abmproperties(compInt.integrator), index) && return getproperty(compInt.integrator, index)[key.variableindex]
         # Otherwise, assume it's an agent property and return it for all agents in the specified range
         out = [getproperty(compInt.integrator[i], index) for i in key.variableindex]
         if length(out) == 1
@@ -139,7 +139,7 @@ function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, v
     index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
         # If model level property exists, return it directly
-        if haskey(abmproperties(compInt.integrator), index)
+        if !isnothing(abmproperties(compInt.integrator)) && haskey(abmproperties(compInt.integrator), index)
             setindex!(abmproperties(compInt.integrator), value, index)
         else
             # Otherwise, assume it's an agent property and set it for all agents
@@ -149,7 +149,7 @@ function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, v
         end
     else
         # If model level property exists, return it after indexing
-        if haskey(abmproperties(compInt.integrator), index)
+        if !isnothing(abmproperties(compInt.integrator)) && haskey(abmproperties(compInt.integrator), index)
             setindex!(abmproperties(compInt.integrator), value, index)
         else
             # Otherwise, assume it's an agent property and set it for all agents in the specified range
