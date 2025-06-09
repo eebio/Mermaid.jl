@@ -143,8 +143,8 @@ function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, v
             setindex!(abmproperties(compInt.integrator), value, index)
         else
             # Otherwise, assume it's an agent property and set it for all agents
-            for i in allagents(compInt.integrator)
-                setproperty!(i, index, value)
+            for (i, agent) in enumerate(allagents(compInt.integrator))
+                setproperty!(agent, index, value[i])
             end
         end
     else
