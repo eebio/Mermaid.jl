@@ -28,10 +28,10 @@ We see that we need to define an `ODEProblem` to use in the component, so let's 
 using DifferentialEquations
 function tree!(du, u, p, t)
     x, y = u
-    du[1] = x - x * y
-    du[2] = 0
+    du[1] = 0
+    du[2] = y*(1-y/10.0)-x*y
 end
-u0 = [4.0,2.0]
+u0 = [4.0, 2.0]
 tspan = (0.0, 10.0)
 prob = ODEProblem(tree!, u0, tspan)
 ```
@@ -59,11 +59,11 @@ Let's have a look at how to define a [DuplicatedComponent](@ref).
 DuplicatedComponent
 ```
 
-```julia
+```@example tutorial
 dup_comp = DuplicatedComponent(
     component=comp1,
     instances=640,
-    states=repeat([u0], 640)
+    initial_states=[copy(u0) for _ in 1:640]
 )
 ```
 
@@ -78,7 +78,7 @@ AgentsComponent
 We can see that, again, we need to define the model (this time a `StandardABM` from `Agents.jl`), a `name` and a `state_names`.
 
 ```@example tutorial
-using Agents, Random
+using Agents, Random, Statistics
 @agent struct Tree(GridAgent{2})
     heat::Float64 # Heat is averaged across neighbors, passed to ODE model
     life::Float64 # Life is informed by ODE model
@@ -96,7 +96,11 @@ function forest_fire(; density=0.4, griddims=(40, 40), seed=2)
 end
 
 function tree_step!(tree, forest)
-    tree.heat = mean([getproperty(neighbor, :heat) for neighbor in nearby_agents(tree, forest, 1)])
+    nearbyheat = mean([getproperty(neighbor, :heat) for neighbor in nearby_agents(tree, forest, 1)])
+    if isnan(nearbyheat)
+        nearbyheat = 0.0
+    end
+    tree.heat = tree.heat * 0.9 + nearbyheat * 0.1
     if rand(abmrng(forest)) < 1e-4 # Random chance of fire
         tree.heat = 10.0
     end
@@ -107,6 +111,9 @@ function tree_step!(tree, forest)
     else
         # Tree not on fire so heat disappates
         tree.heat -= 0.1
+    end
+    if tree.heat < 0.0
+        tree.heat = 0.0
     end
 end
 
@@ -127,9 +134,9 @@ We can now set up the connections between the variables in the two components.
 Connector
 ```
 
-```julia
-conn1 = Connection(inputs=["forest.heat[1:640]"], outputs=["tree[1:640].heat"])
-conn2 = Connection(inputs=["tree[i]."], outputs=[""])
+```@example tutorial
+conn1 = Connector(inputs=["forest.heat[1:640]"], outputs=["tree[1:640].heat"])
+conn2 = Connector(inputs=["tree[1:640].life"], outputs=["forest.life[1:640]"])
 ```
 
 ## Solving the hybrid model
@@ -141,8 +148,8 @@ We can then solve this using the `CommonSolve` interface.
 MermaidProblem
 ```
 
-```julia
-mp = MermaidProblem(components = [comp1, dup_comp2], connectors = [conn1, conn2])
+```@example tutorial
+mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn1, conn2], max_t=10.0)
 alg = MinimumTimeStepper()
 sol = solve(mp, alg)
 ```
@@ -156,8 +163,9 @@ This stores all variables given in `state_names` at each timepoint.
 MermaidSolution
 ```
 
-```julia
+```@example tutorial
 using Plots
 
-plot(sol.t, sol["forest.life[1]"])
+plot(sol.t, sol["forest.life[1]"], color=:green, label="Life")
+plot!(sol.t, sol["forest.heat[1]"], color=:red, label="Heat")
 ```
