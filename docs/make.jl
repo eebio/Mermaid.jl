@@ -19,3 +19,7 @@ PAGES = [
 
 makedocs(sitename="Mermaid.jl", remotes=nothing, modules=[CommonSolve, Mermaid], checkdocs = :exports,
     pages = PAGES, plugins = [links])
+
+deploydocs(
+    repo = "github.com/mjowen/Mermaid.jl",
+)
