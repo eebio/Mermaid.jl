@@ -17,7 +17,7 @@ PAGES = [
     "API" => "API.md",
 ]
 
-makedocs(sitename="Mermaid.jl", remotes=nothing, modules=[CommonSolve, Mermaid], checkdocs = :exports,
+makedocs(sitename="Mermaid.jl", repo=Remotes.GitHub("mjowen", "Mermaid.jl"), modules=[CommonSolve, Mermaid], checkdocs = :exports,
     pages = PAGES, plugins = [links])
 
 deploydocs(
