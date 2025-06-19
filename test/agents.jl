@@ -37,8 +37,6 @@
         add_agent_single!(model; group=n < 300 / 2 ? 1 : 2)
     end
 
-    using Mermaid
-
     c1 = AgentsComponent(
         model=model,
         name="Schelling",
@@ -93,4 +91,90 @@
     @test all(pos3 == pos4)
     # And all agents are happy
     @test all([intMer.integrators[1].integrator[i].mood for i in 1:300])
+end
+
+@testitem "state control" begin
+    using Agents, DifferentialEquations
+
+    space = GridSpace((20, 20))
+
+    @agent struct Schelling(GridAgent{2})
+        mood::Bool = false
+        group::Int
+    end
+
+    function schelling_step!(agent, model)
+        minhappy = model.min_to_be_happy
+        count_neighbors_same_group = 0
+        for neighbor in nearby_agents(agent, model)
+            if agent.group == neighbor.group
+                count_neighbors_same_group += 1
+            end
+        end
+        if count_neighbors_same_group ≥ minhappy
+            agent.mood = true
+        else
+            agent.mood = false
+            move_agent_single!(agent, model)
+        end
+        return
+    end
+
+    properties = Dict(:min_to_be_happy => 3.0)
+
+    model = StandardABM(
+        Schelling,
+        space;
+        (agent_step!)=schelling_step!, properties
+    )
+
+    for n in 1:300
+        add_agent_single!(model; group=n < 300 / 2 ? 1 : 2)
+    end
+
+    c1 = AgentsComponent(
+        model=model,
+        name="Schelling",
+        state_names=Dict("min_to_be_happy" => :min_to_be_happy, "mood" => :mood, "group" => :group),
+        time_step=1.0,
+    )
+
+    conn1 = Connector(
+        inputs=["Schelling.min_to_be_happy"],
+        outputs=["other.min_to_be_happy"],
+    )
+    conn2 = Connector(
+        inputs=["other.min_to_be_happy"],
+        outputs=["Schelling.group[1:300]"],
+    )
+
+    integrator = init(c1, [conn1, conn2])
+
+    # Check initial state
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 3.0
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) == [n < 300 / 2 ? 1 : 2 for n in allids(integrator.integrator)]
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) == [false for _ in allids(integrator.integrator)]
+    @test_broken Mermaid.getstate(integrator) == []
+    # Check setting state
+    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.min_to_be_happy"), 5.0)
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 5.0
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) == [n < 300 / 2 ? 1 : 2 for n in allids(integrator.integrator)]
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) == [false for _ in allids(integrator.integrator)]
+
+    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.group[1:3]"), [3, 4, 5])
+    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.mood[2:3]"), [true, true])
+    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.mood[300]"), true)
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 5.0
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) == [n ∈ [1,2,3] ? n+2 : (n < 300 / 2 ? 1 : 2) for n in allids(integrator.integrator)]
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) == [n ∈ [2,3, 300] ? true : false for n in allids(integrator.integrator)]
+
+    # Check time control (can't set time in Agents.jl)
+    @test Mermaid.gettime(integrator) == 0.0
+    step!(integrator)
+    @test Mermaid.gettime(integrator) == 1.0
+
+
+    # Step means the state has changed
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) ≠ [3, 4, 5, [n < 300 / 2 ? 1 : 2 for n in 4:300]...]
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) ≠ [false, true, true, [false for _ in 4:300]..., true]
 end
