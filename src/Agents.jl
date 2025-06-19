@@ -58,7 +58,7 @@ function CommonSolve.init(c::AgentsComponent, conns::Vector{Connector})
         for input in conn.inputs
             if input.component == c.name
                 outputProperty = c.state_names[input.variable]
-                if hasproperty(c.model, outputProperty)
+                if !isnothing(abmproperties(c.model)) && haskey(abmproperties(c.model), outputProperty)
                     # If the property is a model-level property, get it directly
                     outputs[input] = getproperty(c.model, outputProperty)
                 else
@@ -153,8 +153,10 @@ function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, v
             setindex!(abmproperties(compInt.integrator), value, index)
         else
             # Otherwise, assume it's an agent property and set it for all agents in the specified range
+            k = 1
             for i in key.variableindex
-                setproperty!(compInt.integrator[i], index, value[i])
+                setproperty!(compInt.integrator[i], index, value[k])
+                k += 1
             end
         end
     end
