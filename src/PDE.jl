@@ -25,7 +25,7 @@ function CommonSolve.init(c::PDEComponent, conns::Vector{Connector})
             if input.component == c.name
                 outputIndex = c.state_names[input.variable]
                 # If the index is a MTK symbol then get the variable index
-                if !isa(outputIndex, Integer)
+                if isa(outputIndex, Num) || isa(outputIndex, Symbolics.Arr)
                     outputIndex = variable_index(c.model.f.sys, outputIndex)
                 end
                 # TODO I think we can allow variable indexes here, for if each element of the state is a vector
@@ -74,7 +74,13 @@ function setstate!(compInt::PDEComponentIntegrator, key, value)
     else key.variableindex isa AbstractVector
         # Single index for one variable
         index = compInt.component.state_names[key.variable]
-        compInt.integrator.u[(index)[key.variableindex]] .= value
+        if length(index[key.variableindex]) == 1
+            # If the index is a single value, set it directly
+            compInt.integrator.u[(index)[key.variableindex][1]] = value
+        else
+            # If the index is a vector, set the corresponding values
+            compInt.integrator.u[(index)[key.variableindex]] .= value
+        end
     end
 end
 
