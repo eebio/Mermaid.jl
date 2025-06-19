@@ -228,8 +228,8 @@ end
 function fullname(var::ConnectedVariable)
     # Construct the full name of the variable
     comp = var.component
-    dupindex = isnothing(var.dupindex) ? "" : "[" * string(var.dupindex) * "]"
+    dupindex = isnothing(var.duplicatedindex) ? "" : "[" * string(var.duplicatedindex) * "]"
     variable = var.variable
-    index = isnothing(var.index) ? "" : "[" * string(var.index) * "]"
+    index = isnothing(var.variableindex) ? "" : "[" * string(var.variableindex) * "]"
     return comp * dupindex * "." * variable * index
 end
