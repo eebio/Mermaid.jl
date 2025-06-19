@@ -69,7 +69,7 @@ function CommonSolve.init(c::AgentsComponent, conns::Vector{Connector})
         end
         for output in conn.outputs
             if output.component == c.name
-                inputs[output] = 0
+                inputs[output] = isnothing(output.variableindex) ? 0 : [0 for _ in output.variableindex]
             end
         end
     end
