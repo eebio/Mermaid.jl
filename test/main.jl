@@ -153,4 +153,16 @@ end
     Mermaid.update_inputs!(integrator)
     @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == 8.0
     @test integrator.integrators[1].inputs[ConnectedVariable("Prey.prey")] == 8.0
+
+    # Multiple inputs, no function, so vector outputs
+    conn1 = Connector(
+        inputs=["Predator.predator", "Predator.prey"],
+        outputs=["Prey.predator"],
+    )
+    mp = MermaidProblem(components=[c1, c2], connectors=[conn1], max_t=10.0)
+    integrator = init(mp, MinimumTimeStepper())
+    Mermaid.setstate!(integrator, ConnectedVariable("Predator.predator"), 2.0)
+    Mermaid.setstate!(integrator, ConnectedVariable("Predator.prey"), 4.0)
+    Mermaid.update_inputs!(integrator)
+    @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == [2.0, 4.0]
 end
