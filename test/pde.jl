@@ -175,4 +175,14 @@ end
     # Step means the state has changed
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) ≠ [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g")) ≠ [0.0, 0.1, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+
+    # Test error on symbolic indexing
+    c1 = PDEComponent(
+        model=prob,
+        name="PDE",
+        state_names=Dict("u" => u, "g" => g),
+        time_step=0.01,
+        alg=Tsit5(),
+    )
+    @test_throws ArgumentError integrator = init(c1, [conn1, conn2])
 end

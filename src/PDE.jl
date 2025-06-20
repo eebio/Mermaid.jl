@@ -26,8 +26,8 @@ function CommonSolve.init(c::PDEComponent, conns::Vector{Connector})
             if input.component == c.name
                 outputIndex = c.state_names[input.variable]
                 # If the index is a MTK symbol then get the variable index
-                    outputIndex = variable_index(c.model.f.sys, outputIndex)
                 if symbolic_type(outputIndex) != NotSymbolic()
+                    throw(ArgumentError("Symbolic indexing for PDEComponent is not supported."))
                 end
                 # TODO I think we can allow variable indexes here, for if each element of the state is a vector
                 outputs[input] = c.model.u0[outputIndex]
