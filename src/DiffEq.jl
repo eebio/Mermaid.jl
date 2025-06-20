@@ -39,7 +39,7 @@ function CommonSolve.init(c::ODEComponent, conns::Vector{Connector})
             if input.component == c.name
                 outputIndex = c.state_names[input.variable]
                 # If the index is a MTK symbol then get the variable index
-                if isa(outputIndex, Num) || isa(outputIndex, Symbolics.Arr)
+                if symbolic_type(outputIndex) != NotSymbolic()
                     outputIndex = variable_index(c.model.f.sys, outputIndex)
                 end
                 # TODO I think we can allow variable indexes here, for if each element of the state is a vector
