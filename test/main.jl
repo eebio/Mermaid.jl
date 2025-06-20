@@ -60,3 +60,97 @@ end
     @test sol["Schelling.list_property"] == [[1, 2, 3] for _ in sol.t]
     @test sol["Schelling.list_property[2:3]"] == [[2, 3] for _ in sol.t]
 end
+
+@testitem "mermaid integrator" begin
+    using DifferentialEquations
+
+    function f1!(du, u, p, t)
+        x, y = u
+        du[1] = x - x * y
+        du[2] = 0
+    end
+    function f2!(du, u, p, t)
+        y, x = u
+        du[1] = -y + x * y
+        du[2] = 0
+    end
+    u0 = [4.0, 2.0]
+    tspan = (0.0, 10.0)
+    prob1 = ODEProblem(f1!, [u0[1], 2.0], tspan) # TODO Initial value for params is intentionally wrong
+    prob2 = ODEProblem(f2!, [u0[2], 4.0], tspan)
+    c1 = ODEComponent(
+        model=prob1,
+        name="Prey",
+        time_step=0.002,
+        state_names=Dict("prey" => 1, "predator" => 2),
+        alg=Euler(),
+        intkwargs=(:adaptive => false,),
+    )
+
+    c2 = ODEComponent(
+        model=prob2,
+        name="Predator",
+        time_step=0.002,
+        state_names=Dict("predator" => 1, "prey" => 2),
+        alg=Euler(),
+        intkwargs=(:adaptive => false,),
+    )
+
+    conn1 = Connector(
+        inputs=["Predator.predator"],
+        outputs=["Prey.predator"],
+    )
+    conn2 = Connector(
+        inputs=["Prey.prey"],
+        outputs=["Predator.prey"],
+    )
+
+    mp = MermaidProblem(components=[c1, c2], connectors=[conn1, conn2], max_t=10.0)
+    integrator = init(mp, MinimumTimeStepper())
+
+    # State control
+    @test Mermaid.getstate(integrator, ConnectedVariable("Prey.prey")) == 4.0
+    @test Mermaid.getstate(integrator, ConnectedVariable("Predator.predator")) == 2.0
+    Mermaid.setstate!(integrator, ConnectedVariable("Prey.prey"), 5.0)
+    @test Mermaid.getstate(integrator, ConnectedVariable("Prey.prey")) == 5.0
+    @test Mermaid.getstate(integrator, ConnectedVariable("Predator.predator")) == 2.0
+    @test Mermaid.getstate(integrator.integrators[1], ConnectedVariable("Prey.prey")) == 5.0
+    step!(integrator, 0.01)
+    @test Mermaid.getstate(integrator, ConnectedVariable("Prey.prey")) ≠ 5.0
+    @test Mermaid.getstate(integrator, ConnectedVariable("Predator.predator")) ≠ 2.0
+
+    # update_inputs!
+    integrator = init(mp, MinimumTimeStepper())
+    Mermaid.update_inputs!(integrator)
+    @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == 2.0
+    @test integrator.integrators[2].inputs[ConnectedVariable("Predator.prey")] == 4.0
+    conn1 = Connector(
+        inputs=["Predator.predator"],
+        outputs=["Prey.predator"],
+        func=x->x*4,
+    )
+    conn2 = Connector(
+        inputs=["Prey.prey"],
+        outputs=["Predator.prey"],
+        func=x->x/1.5,
+    )
+
+    mp = MermaidProblem(components=[c1, c2], connectors=[conn1, conn2], max_t=10.0)
+    integrator = init(mp, MinimumTimeStepper())
+    Mermaid.update_inputs!(integrator)
+    @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == 8.0
+    @test integrator.integrators[2].inputs[ConnectedVariable("Predator.prey")] == 4.0/1.5
+    conn1 = Connector(
+        inputs=["Predator.predator", "Predator.prey"],
+        outputs=["Prey.predator", "Prey.prey"],
+        func=(x,y) -> x*y,
+    )
+
+    mp = MermaidProblem(components=[c1, c2], connectors=[conn1], max_t=10.0)
+    integrator = init(mp, MinimumTimeStepper())
+    Mermaid.setstate!(integrator, ConnectedVariable("Predator.predator"), 2.0)
+    Mermaid.setstate!(integrator, ConnectedVariable("Predator.prey"), 4.0)
+    Mermaid.update_inputs!(integrator)
+    @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == 8.0
+    @test integrator.integrators[1].inputs[ConnectedVariable("Prey.prey")] == 8.0
+end

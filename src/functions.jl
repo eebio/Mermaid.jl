@@ -79,7 +79,6 @@ function getstate(merInt::MermaidIntegrator, key::ConnectedVariable)
             return getstate(integrator, key)
         end
     end
-    return nothing
 end
 
 """
