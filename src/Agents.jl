@@ -150,7 +150,11 @@ function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, v
     else
         # If model level property exists, return it after indexing
         if !isnothing(abmproperties(compInt.integrator)) && haskey(abmproperties(compInt.integrator), index)
-            setindex!(abmproperties(compInt.integrator), value, index)
+            k = 1
+            for i in key.variableindex
+                abmproperties(compInt.integrator)[index][i] = value[k]
+                k += 1
+            end
         else
             # Otherwise, assume it's an agent property and set it for all agents in the specified range
             k = 1

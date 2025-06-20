@@ -120,7 +120,7 @@ end
         return
     end
 
-    properties = Dict(:min_to_be_happy => 3.0)
+    properties = Dict(:min_to_be_happy => 3.0, :list_property => [1, 2, 3])
 
     model = StandardABM(
         Schelling,
@@ -135,7 +135,7 @@ end
     c1 = AgentsComponent(
         model=model,
         name="Schelling",
-        state_names=Dict("min_to_be_happy" => :min_to_be_happy, "mood" => :mood, "group" => :group),
+        state_names=Dict("min_to_be_happy" => :min_to_be_happy, "list_property" => :list_property,"mood" => :mood, "group" => :group),
         time_step=1.0,
     )
 
@@ -167,14 +167,23 @@ end
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 5.0
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) == [n ∈ [1,2,3] ? n+2 : (n < 300 / 2 ? 1 : 2) for n in allids(integrator.integrator)]
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) == [n ∈ [2,3, 300] ? true : false for n in allids(integrator.integrator)]
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood[300]")) == true
 
     # Check time control (can't set time in Agents.jl)
     @test Mermaid.gettime(integrator) == 0.0
     step!(integrator)
     @test Mermaid.gettime(integrator) == 1.0
 
-
     # Step means the state has changed
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) ≠ [3, 4, 5, [n < 300 / 2 ? 1 : 2 for n in 4:300]...]
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) ≠ [false, true, true, [false for _ in 4:300]..., true]
+
+    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.mood"), [true for _ in allids(integrator.integrator)])
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) == [true for _ in allids(integrator.integrator)]
+    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.list_property"), [4, 5, 6])
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property")) == [4, 5, 6]
+    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.list_property[1:2]"), [7, 8])
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property[1]")) == 7
+    @show Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property"))
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property[1:3]")) == [7, 8, 6]
 end
