@@ -184,6 +184,5 @@ end
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property")) == [4, 5, 6]
     Mermaid.setstate!(integrator, ConnectedVariable("Schelling.list_property[1:2]"), [7, 8])
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property[1]")) == 7
-    @show Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property"))
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property[1:3]")) == [7, 8, 6]
 end
