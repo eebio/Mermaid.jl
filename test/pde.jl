@@ -153,6 +153,9 @@ end
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) == [sin(pi * x) for x in 0.1:0.1:0.9]
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g")) == [0.5 for _ in 0.1:0.1:0.9]
     @test Mermaid.getstate(integrator) == [[sin(pi * x) for x in [0.9, 0.1:0.1:0.8...]]...; [0.5 for _ in [0.9, 0.1:0.1:0.8...]]]
+    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u[1]")) == sin(pi * 0.1)
+    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g[1:3]")) == [0.5, 0.5, 0.5]
+    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u[2:4]")) == [sin(pi * 0.2), sin(pi * 0.3), sin(pi * 0.4)]
     # Check setting state
     Mermaid.setstate!(integrator, ConnectedVariable("PDE.u"), [1.0 for _ in 0.1:0.1:0.9])
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) == [1.0 for _ in 0.1:0.1:0.9]
@@ -175,6 +178,11 @@ end
     # Step means the state has changed
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) ≠ [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g")) ≠ [0.0, 0.1, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+
+    # Global setstate!
+    Mermaid.setstate!(integrator, [-1.0 for _ in 1:18])
+    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) == [-1.0 for _ in 0.1:0.1:0.9]
+    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g")) == [-1.0 for _ in 0.1:0.1:0.9]
 
     # Test error on symbolic indexing
     c1 = PDEComponent(
