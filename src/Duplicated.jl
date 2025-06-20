@@ -67,15 +67,15 @@ end
 
 function CommonSolve.step!(compInt::DuplicatedComponentIntegrator)
     t = gettime(compInt)
+    # Set the inputs for all states
+    for (key, value) in compInt.inputs
+        setstate!(compInt, key, value)
+    end
     for i in 1:compInt.component.instances
         # Set the time for this instance
         settime!(compInt.integrator, t)
+        # Set the instances state
         setstate!(compInt.integrator, compInt.states[i])
-        # Set the inputs for this instance
-        for (key, value) in compInt.inputs
-            newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
-            setstate!(compInt.integrator, newkey, value[i])
-        end
         # Step the integrator for this instance
         step!(compInt.integrator)
         # Get the outputs for this instance
