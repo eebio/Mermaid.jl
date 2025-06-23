@@ -76,6 +76,10 @@ end
     @test sol(2.75)["Schelling.min_to_be_happy"] ≈ (sol.u[Mermaid.parsevariable("Schelling.min_to_be_happy")][3] + 3*sol.u[Mermaid.parsevariable("Schelling.min_to_be_happy")][4]) / 4
     @test sol(2)["Schelling.min_to_be_happy"] == 3.0
     @test sol(3)["Schelling.min_to_be_happy"] ≠ 3.0
+
+    # Test error handling
+    @test_throws BoundsError sol[1000]
+    @test_throws "Time " sol(1000)
 end
 
 @testitem "mermaid integrator" begin
