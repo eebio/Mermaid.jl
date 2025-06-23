@@ -135,7 +135,7 @@ end
         model=model,
         name="Schelling",
         state_names=Dict("min_to_be_happy" => :min_to_be_happy, "list_property" => :list_property,"mood" => :mood, "group" => :group),
-        time_step=1.0,
+        time_step=0.2,
     )
 
     conn1 = Connector(
@@ -171,7 +171,7 @@ end
     # Check time control (can't set time in Agents.jl)
     @test Mermaid.gettime(integrator) == 0.0
     step!(integrator)
-    @test Mermaid.gettime(integrator) == 1.0
+    @test Mermaid.gettime(integrator) == 0.2
 
     # Step means the state has changed
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) ≠ [3, 4, 5, [n < 300 / 2 ? 1 : 2 for n in 4:300]...]

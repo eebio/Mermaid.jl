@@ -17,7 +17,7 @@ A component that represents an agent-based model (ABM) using the Agents.jl packa
     model::StandardABM
     name::String = "Agents Component"
     state_names::Dict{String,Any} = Dict{String,Any}() # Naming model properties
-    time_step::Float64 = 1.0 # TODO setup handling for time_step
+    time_step::Float64 = 1.0
 end
 
 """
@@ -179,5 +179,5 @@ Returns the simulation time of the [AgentsComponentIntegrator](@ref) at the curr
 - `time`: The current simulation time.
 """
 function gettime(compInt::AgentsComponentIntegrator)
-    return abmtime(compInt.integrator)
+    return abmtime(compInt.integrator)*compInt.component.time_step
 end
