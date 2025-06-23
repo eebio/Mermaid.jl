@@ -94,8 +94,7 @@
 
     mp = MermaidProblem(components=[c1, c2], connectors=[conn], max_t=1.0)
     sol = solve(mp, MinimumTimeStepper())
-    # TODO mermaid takes an extra step because DiffEq step has floating point issues
-    finalsol = [0, sol["PDE.u"][end-1]..., 0]
+    finalsol = [0, sol(1)["PDE.u"]..., 0]
     @test all(isapprox.(finalsol, solPDE[u(t, x)][end, :], atol=1e-8))
 end
 
