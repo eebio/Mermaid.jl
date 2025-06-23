@@ -65,7 +65,6 @@
 
     mp = MermaidProblem(components=[c1, c2], connectors=[conn], max_t=100.0)
 
-    using CommonSolve
     alg = MinimumTimeStepper()
     intMer = init(mp, alg)
     solMer = solve!(intMer)

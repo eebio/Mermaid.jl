@@ -53,7 +53,6 @@
 
     mp = MermaidProblem(components=[c1, c2], connectors=[conn1, conn2], max_t=10.0)
 
-    using CommonSolve # TODO remove the need for this
     alg = MinimumTimeStepper()
     solMer = solve(mp, alg)
 

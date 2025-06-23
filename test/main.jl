@@ -53,7 +53,6 @@ end
 
     mp = MermaidProblem(components=[c1], connectors=[], max_t=10.0)
 
-    using CommonSolve
     alg = MinimumTimeStepper()
     sol = solve(mp, alg)
     @test sol["Schelling.min_to_be_happy"] == [3.0 for _ in sol.t]

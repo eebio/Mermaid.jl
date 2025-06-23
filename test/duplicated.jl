@@ -1,6 +1,5 @@
 @testitem "duplicated component" begin
     using DifferentialEquations
-    using CommonSolve
     using Statistics
 
     function tree!(du, u, p, t)
