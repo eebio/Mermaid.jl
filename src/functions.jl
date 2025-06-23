@@ -232,3 +232,89 @@ function fullname(var::ConnectedVariable)
     index = isnothing(var.variableindex) ? "" : "[" * string(var.variableindex) * "]"
     return comp * dupindex * "." * variable * index
 end
+
+"""
+    Base.getindex(sol::MermaidSolution, var::AbstractString)
+
+Get the solution array for a variable from a [MermaidSolution](@ref).
+
+# Arguments
+- `sol::MermaidSolution`: The solution object.
+- `var::AbstractString`: The variable name.
+
+# Returns
+- The solution array for the specified variable.
+"""
+function Base.getindex(sol::MermaidSolution, var::AbstractString)
+    var = parsevariable(var)
+    return Base.getindex(sol, var)
+end
+
+"""
+    Base.getindex(sol::MermaidSolution, var::ConnectedVariable)
+
+Get the solution array for a variable from a [MermaidSolution](@ref).
+
+# Arguments
+- `sol::MermaidSolution`: The solution object.
+- `var::ConnectedVariable`: The variable name.
+
+# Returns
+- The solution array for the specified variable.
+"""
+function Base.getindex(sol::MermaidSolution, var::ConnectedVariable)
+    if haskey(sol.u, var)
+        return sol.u[var]
+    else
+        # See if we have a key without an index
+        var_no_index = ConnectedVariable(var.component, var.variable, nothing, nothing) # TODO I'm not sure how the duplicatedindex data is stored in the solution
+        return [i[var.variableindex] for i in sol.u[var_no_index]]
+    end
+end
+
+"""
+    Base.getindex(sol::MermaidSolution, index::Int)
+
+Get the solution array for a variable from a [MermaidSolution](@ref) at time sol.t[index].
+
+# Arguments
+- `sol::MermaidSolution`: The solution object.
+- `index::Int`: The time index of the variable.
+
+# Returns
+- The solution array for the specified index.
+"""
+function Base.getindex(sol::MermaidSolution, index::Int)
+    if index < 1 || index > length(sol.t)
+        throw(BoundsError(sol.t, index))
+    end
+    return MermaidSolution([sol.t[index]], Dict([var => sol.u[var][index] for var in keys(sol.u)]))
+end
+
+"""
+(sol::MermaidSolution)(t::Real)
+
+Interpolates the solution at a given time `t` using linear interpolation.
+
+# Arguments
+- `sol::MermaidSolution`: The solution object containing time points and state histories.
+- `t::Real`: The time at which to interpolate the solution.
+
+# Returns
+- `MermaidSolution`: A new [MermaidSolution](@ref) object containing the interpolated time and state.
+"""
+function (sol::MermaidSolution)(t::Real)
+    if t < sol.t[1] || t > sol.t[end]
+        throw("Time $t is out of bounds for the solution range [$(sol.t[1]), $(sol.t[end])].")
+    end
+    lb = findlast(x -> x <= t, sol.t)
+    ub = findfirst(x -> x >= t, sol.t)
+    if lb == ub
+        return sol[lb]
+    end
+    change = (t-sol.t[lb])/(sol.t[ub]-sol.t[lb])
+    return MermaidSolution(
+        [sol.t[lb] + change * (sol.t[ub] - sol.t[lb])],
+        Dict([var => sol.u[var][lb] .+ change * (sol.u[var][ub] .- sol.u[var][lb]) for var in keys(sol.u)])
+    )
+end

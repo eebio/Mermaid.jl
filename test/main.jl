@@ -58,6 +58,24 @@ end
     @test sol["Schelling.min_to_be_happy"] == [3.0 for _ in sol.t]
     @test sol["Schelling.list_property"] == [[1, 2, 3] for _ in sol.t]
     @test sol["Schelling.list_property[2:3]"] == [[2, 3] for _ in sol.t]
+    @test sol["Schelling.mood"] == sol[Mermaid.parsevariable("Schelling.mood")]
+
+    # Test indexing
+    @test sol[2].t[1] == sol.t[2]
+    @test length(sol[2].t) == 1
+    @test (sol[2].u)[Mermaid.parsevariable("Schelling.min_to_be_happy")] == sol["Schelling.min_to_be_happy"][2]
+    @test sol[2] isa MermaidSolution
+    @test keys(sol[2].u) == keys(sol.u)
+
+    # Test interpolation
+    @test sol(2) isa MermaidSolution
+    @test sol(2).t[1] == 2.0
+    sol.u[Mermaid.parsevariable("Schelling.min_to_be_happy")][4] = rand()
+    @test sol(2.75).t[1] == 2.75
+    @test length(sol(2.75).t) == 1
+    @test sol(2.75)["Schelling.min_to_be_happy"] ≈ (sol.u[Mermaid.parsevariable("Schelling.min_to_be_happy")][3] + 3*sol.u[Mermaid.parsevariable("Schelling.min_to_be_happy")][4]) / 4
+    @test sol(2)["Schelling.min_to_be_happy"] == 3.0
+    @test sol(3)["Schelling.min_to_be_happy"] ≠ 3.0
 end
 
 @testitem "mermaid integrator" begin
