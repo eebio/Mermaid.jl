@@ -181,3 +181,36 @@ Returns the simulation time of the [AgentsComponentIntegrator](@ref) at the curr
 function gettime(compInt::AgentsComponentIntegrator)
     return abmtime(compInt.integrator)*compInt.component.time_step
 end
+
+"""
+    getstate(compInt::AgentsComponentIntegrator)
+
+Returns the current state of the [AgentsComponentIntegrator](@ref).
+
+# Arguments
+- `compInt::AgentsComponentIntegrator`: The component integrator for which to retrieve the current state.
+
+# Returns
+- `state::StandardABM`: The current state of the agent-based model being integrated.
+"""
+function getstate(compInt::AgentsComponentIntegrator)
+    return compInt.integrator
+end
+
+"""
+    setstate!(compInt::AgentsComponentIntegrator, state::StandardABM)
+
+Sets the state of the [AgentsComponentIntegrator](@ref) to a new state.
+
+# Arguments
+- `compInt::AgentsComponentIntegrator`: The component integrator to be updated.
+- `state::StandardABM`: The new state to set for the component integrator.
+"""
+function setstate!(compInt::AgentsComponentIntegrator, state::StandardABM)
+    compInt.integrator = state
+end
+
+function settime!(compInt::AgentsComponentIntegrator, time::Float64)
+    # Agents.jl does not support setting time directly, but the time is stored within the state of the integrator.
+    return nothing
+end

@@ -192,5 +192,5 @@ end
         time_step=0.01,
         alg=Tsit5(),
     )
-    @test_throws ArgumentError integrator = init(c1, [conn1, conn2])
+    @test_throws ArgumentError init(c1, [conn1, conn2])
 end
