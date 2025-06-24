@@ -186,4 +186,12 @@ end
     Mermaid.setstate!(integrator, ConnectedVariable("Predator.prey"), 4.0)
     Mermaid.update_inputs!(integrator)
     @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == [2.0, 4.0]
+
+    # Incorrect connectors
+    conn1 = Connector(
+        inputs=["Predator.predator"],
+        outputs=["Prey.predator_but_spelled_wrong"],
+    )
+    mp = MermaidProblem(components=[c1, c2], connectors=[conn1], max_t=10.0)
+    @test_throws KeyError solve(mp, MinimumTimeStepper())
 end

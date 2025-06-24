@@ -106,7 +106,6 @@ sol = solve(mp, MinimumTimeStepper())
 @show sol["PDE.u"][end-1]
 @show solPDE[u(t, x)][end, :]
 
-# TODO putting incorrect names in connectors just skips then but should error
 # TODO expand variable saving options: saveat, save_everystep, save_first, save_last, save_idx(s?),...
 finalsol = [0, sol["PDE.u"][end-1]..., 0]
 plot(finalsol, label="Mermaid")
