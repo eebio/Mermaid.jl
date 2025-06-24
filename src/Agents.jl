@@ -189,12 +189,17 @@ Returns the current state of the [AgentsComponentIntegrator](@ref).
 
 # Arguments
 - `compInt::AgentsComponentIntegrator`: The component integrator for which to retrieve the current state.
+- `copy::Bool=false`: If true, returns a deep copy of the state.
 
 # Returns
 - `state::StandardABM`: The current state of the agent-based model being integrated.
 """
-function getstate(compInt::AgentsComponentIntegrator)
-    return compInt.integrator
+function getstate(compInt::AgentsComponentIntegrator, copy::Bool=false)
+    if copy
+        return deepcopy(compInt.integrator)
+    else
+        return compInt.integrator
+    end
 end
 
 """
