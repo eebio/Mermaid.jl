@@ -153,7 +153,6 @@ end
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 3.0
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) == [n < 300 / 2 ? 1 : 2 for n in allids(integrator.integrator)]
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) == [false for _ in allids(integrator.integrator)]
-    @test_broken Mermaid.getstate(integrator) == []
     # Check setting state
     Mermaid.setstate!(integrator, ConnectedVariable("Schelling.min_to_be_happy"), 5.0)
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 5.0
@@ -184,4 +183,13 @@ end
     Mermaid.setstate!(integrator, ConnectedVariable("Schelling.list_property[1:2]"), [7, 8])
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property[1]")) == 7
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property[1:3]")) == [7, 8, 6]
+
+    # getstate and setstate! for duplicated AgentsComponent
+    @test Mermaid.getstate(integrator) isa StandardABM
+    @test Mermaid.gettime(integrator) == 0.2
+    state = Mermaid.getstate(integrator)
+    step!(integrator)
+    @test Mermaid.gettime(integrator) == 0.4
+    Mermaid.setstate!(integrator, state)
+    @test Mermaid.gettime(integrator) == 0.2
 end
