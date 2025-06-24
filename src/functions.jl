@@ -318,3 +318,35 @@ function (sol::MermaidSolution)(t::Real)
         Dict([var => sol.u[var][lb] .+ change * (sol.u[var][ub] .- sol.u[var][lb]) for var in keys(sol.u)])
     )
 end
+
+"""
+    inputsandoutputs(integrator::ComponentIntegrator, conns::Vector{Connector}, compName::AbstractString)
+
+Generates the inputs and outputs of a component integrator based on its connections.
+
+# Arguments
+- `integrator::ComponentIntegrator`: The component integrator whose inputs and outputs are to be extracted.
+- `conns::Vector{Connector}`: The connectors that define the inputs and outputs of the component.
+
+# Returns
+- `outputs::Dict{ConnectedVariable,Any}`: A dictionary mapping [ConnectedVariable](@ref) names to their initial values from the component.
+- `inputs::Dict{ConnectedVariable,Any}`: A dictionary mapping [ConnectedVariable](@ref) names to their current values (initially 0).
+"""
+function inputsandoutputs(integrator::ComponentIntegrator, conns::Vector{Connector})
+    outputs = Dict{ConnectedVariable,Any}() # Full variable name => Initial value from component
+    inputs = Dict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
+    for conn in conns
+        # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
+        for input in conn.inputs
+            if input.component == integrator.component.name
+                outputs[input] = getstate(integrator, input)
+            end
+        end
+        for output in conn.outputs
+            if output.component == integrator.component.name
+                inputs[output] = isnothing(output.variableindex) ? 0 : [0 for _ in output.variableindex]
+            end
+        end
+    end
+    return inputs, outputs
+end

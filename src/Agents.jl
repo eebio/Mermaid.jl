@@ -31,11 +31,11 @@ A mutable struct that integrates an [AgentsComponent](@ref) using the Agents.jl 
 - `outputs::Dict{ConnectedVariable,Any}`: A dictionary mapping [ConnectedVariable](@ref) names to their initial values from the component.
 - `inputs::Dict{ConnectedVariable,Any}`: A dictionary mapping [ConnectedVariable](@ref) names to their current values (initially 0).
 """
-mutable struct AgentsComponentIntegrator <: ComponentIntegrator
+@kwdef mutable struct AgentsComponentIntegrator <: ComponentIntegrator
     integrator::StandardABM
     component::AgentsComponent
-    outputs::Dict{ConnectedVariable,Any}
-    inputs::Dict{ConnectedVariable,Any}
+    outputs::Dict{ConnectedVariable,Any} = Dict{ConnectedVariable,Any}()
+    inputs::Dict{ConnectedVariable,Any} = Dict{ConnectedVariable,Any}()
 end
 
 """
@@ -51,30 +51,10 @@ Initializes an [AgentsComponentIntegrator](@ref) for the given [AgentsComponent]
 - `AgentsComponentIntegrator`: The initialized integrator for the Agents.jl component.
 """
 function CommonSolve.init(c::AgentsComponent, conns::Vector{Connector})
-    outputs = Dict{ConnectedVariable,Any}() # Full variable name => Initial value from component
-    inputs = Dict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
-    for conn in conns
-        # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
-        for input in conn.inputs
-            if input.component == c.name
-                outputProperty = c.state_names[input.variable]
-                if !isnothing(abmproperties(c.model)) && haskey(abmproperties(c.model), outputProperty)
-                    # If the property is a model-level property, get it directly
-                    outputs[input] = getproperty(c.model, outputProperty)
-                else
-                    # Otherwise, assume it's an agent property and get it for all agents
-                    outputs[input] = [getproperty(c.model[i], outputProperty) for i in 1:nagents(c.model)]
-                end
-            end
-        end
-        for output in conn.outputs
-            if output.component == c.name
-                inputs[output] = isnothing(output.variableindex) ? 0 : [0 for _ in output.variableindex]
-            end
-        end
-    end
-
-    integrator = AgentsComponentIntegrator(deepcopy(c.model), c, outputs, inputs)
+    integrator = AgentsComponentIntegrator(integrator = deepcopy(c.model), component = c)
+    inputs, outputs = inputsandoutputs(integrator, conns)
+    integrator.inputs = inputs
+    integrator.outputs = outputs
     return integrator
 end
 

@@ -12,6 +12,7 @@ export Connector, ConnectedVariable, MermaidProblem
 export AbstractMermaidSolver, MinimumTimeStepper
 export MermaidSolution
 export solve!, solve
+export inputsandoutputs
 include("types.jl")
 include("functions.jl")
 include("DiffEq.jl")

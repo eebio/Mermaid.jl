@@ -10,36 +10,18 @@ using SymbolicIndexingInterface
     intkwargs::Tuple = ()
 end
 
-mutable struct PDEComponentIntegrator <: ComponentIntegrator
+@kwdef mutable struct PDEComponentIntegrator <: ComponentIntegrator
     integrator::OrdinaryDiffEqCore.ODEIntegrator
     component::PDEComponent
-    outputs::Dict{ConnectedVariable,Any}
-    inputs::Dict{ConnectedVariable,Any}
+    outputs::Dict{ConnectedVariable,Any} = Dict{ConnectedVariable,Any}()
+    inputs::Dict{ConnectedVariable,Any} = Dict{ConnectedVariable,Any}()
 end
 
 function CommonSolve.init(c::PDEComponent, conns::Vector{Connector})
-    outputs = Dict{ConnectedVariable,Any}() # Full variable name => Initial value from component
-    inputs = Dict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
-    for conn in conns
-        # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
-        for input in conn.inputs
-            if input.component == c.name
-                outputIndex = c.state_names[input.variable]
-                # If the index is a MTK symbol then get the variable index
-                if symbolic_type(outputIndex) != NotSymbolic()
-                    throw(ArgumentError("Symbolic indexing for PDEComponent is not supported."))
-                end
-                # TODO I think we can allow variable indexes here, for if each element of the state is a vector
-                outputs[input] = c.model.u0[outputIndex]
-            end
-        end
-        for output in conn.outputs
-            if output.component == c.name
-                inputs[output] = 0
-            end
-        end
-    end
-    integrator = PDEComponentIntegrator(init(c.model, c.alg; dt=c.time_step, c.intkwargs...), c, outputs, inputs)
+    integrator = PDEComponentIntegrator(integrator = init(c.model, c.alg; dt=c.time_step, c.intkwargs...), component = c)
+    inputs, outputs = inputsandoutputs(integrator, conns)
+    integrator.inputs = inputs
+    integrator.outputs = outputs
     return integrator
 end
 
