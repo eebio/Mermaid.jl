@@ -153,13 +153,16 @@ Construct a [MermaidSolution](@ref) from a [MermaidIntegrator](@ref).
 """
 function MermaidSolution(int::MermaidIntegrator)
     u = Dict()
-    # TODO: This is still lacking, if int.save_vars is comp.u[5] but state_names only describes comp.u, this won't work
-    for i in int.integrators
-        for key in keys(i.component.state_names)
-            fullname = join([i.component.name, key], ".")
-            if length(int.save_vars) == 0 || fullname in int.save_vars
+    if length(int.save_vars) == 0
+        for i in int.integrators
+            for key in keys(i.component.state_names)
+                fullname = join([i.component.name, key], ".")
                 u[parsevariable(fullname)] = []
             end
+        end
+    else
+        for var in int.save_vars
+            u[parsevariable(var)] = []
         end
     end
     return MermaidSolution([], u)

@@ -32,7 +32,7 @@ end
         return
     end
 
-    properties = Dict(:min_to_be_happy => 3.0, :list_property => [1, 2, 3])
+    properties = Dict(:min_to_be_happy => 3.0, :list_property => [1, 2, 3, 4, 5])
 
     model = StandardABM(
         Schelling,
@@ -56,7 +56,7 @@ end
     alg = MinimumTimeStepper()
     sol = solve(mp, alg)
     @test sol["Schelling.min_to_be_happy"] == [3.0 for _ in sol.t]
-    @test sol["Schelling.list_property"] == [[1, 2, 3] for _ in sol.t]
+    @test sol["Schelling.list_property"] == [[1, 2, 3, 4, 5] for _ in sol.t]
     @test sol["Schelling.list_property[2:3]"] == [[2, 3] for _ in sol.t]
     @test sol["Schelling.mood"] == sol[Mermaid.parsevariable("Schelling.mood")]
 
@@ -80,6 +80,19 @@ end
     # Test error handling
     @test_throws BoundsError sol[1000]
     @test_throws "Time " sol(1000)
+
+    # save_vars
+    mp = MermaidProblem(components=[c1], connectors=[], max_t=10.0)
+    sol = solve(mp, alg; save_vars=["Schelling.min_to_be_happy", "Schelling.list_property[2:4]"])
+    @test sol["Schelling.min_to_be_happy"] == [3.0 for _ in sol.t]
+    @test_throws KeyError sol["Schelling.mood"]
+    @test issetequal(keys(sol.u), Mermaid.parsevariable.(["Schelling.min_to_be_happy", "Schelling.list_property[2:4]"]))
+    @test sol["Schelling.list_property[2:3]"] == [[2, 3] for _ in sol.t]
+    @test sol["Schelling.list_property[2]"] == [2 for _ in sol.t]
+    @test sol["Schelling.list_property[3]"] == [3 for _ in sol.t]
+    @test sol["Schelling.list_property[2:4]"] == [[2, 3, 4] for _ in sol.t]
+    @test_throws KeyError sol["Schelling.list_property[1:5]"]
+    @test_throws KeyError sol["Schelling.list_property"]
 end
 
 @testitem "mermaid integrator" begin

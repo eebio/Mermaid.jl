@@ -268,8 +268,23 @@ function Base.getindex(sol::MermaidSolution, var::ConnectedVariable)
     else
         # See if we have a key without an index
         var_no_index = ConnectedVariable(var.component, var.variable, nothing, nothing) # TODO I'm not sure how the duplicatedindex data is stored in the solution
-        return [i[var.variableindex] for i in sol.u[var_no_index]]
+        if haskey(sol.u, var_no_index)
+            return [i[var.variableindex] for i in sol.u[var_no_index]]
+        end
+        for key in keys(sol.u)
+            if !isnothing(key.variableindex) && !isnothing(var.variableindex)
+                if key.variable == var.variable && key.component == var.component && issubset(var.variableindex, key.variableindex)
+                    if length(var.variableindex) == 1
+                        # If the variableindex is a single value, return the corresponding value
+                        return [i[findfirst(x->x==var.variableindex[1], key.variableindex)] for i in sol.u[key]]
+                    else
+                        return [[i[findfirst(x->x==v, key.variableindex)] for v in var.variableindex] for i in sol.u[key]]
+                    end
+                end
+            end
+        end
     end
+    throw(KeyError(var))
 end
 
 """
