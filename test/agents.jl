@@ -195,4 +195,8 @@ end
     @test Mermaid.gettime(integrator) == 0.2
     Mermaid.setstate!(integrator, state2)
     @test Mermaid.gettime(integrator) == 0.4
+
+    # Settime does nothing since Agents.jl does not support setting time directly but rather stores it within the state
+    Mermaid.settime!(integrator, 1.0)
+    @test Mermaid.gettime(integrator) == 0.4
 end
