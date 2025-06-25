@@ -86,6 +86,9 @@ Retrieves the state of a specific variable from the [AgentsComponentIntegrator](
 - The current state of the variable specified by `key`, which can be a model-level property or an agent-specific property.
 """
 function getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
+    if key.variable == "#model"
+        return getstate(compInt, true)
+    end
     index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
         # If model level property exists, return it directly
@@ -116,6 +119,10 @@ Sets the state of a specific variable in the [AgentsComponentIntegrator](@ref).
 - `value`: The value to assign to the specified variable's state.
 """
 function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
+    if key.variable == "#model"
+        setstate!(compInt, value)
+        return nothing
+    end
     index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
         # If model level property exists, return it directly
@@ -201,5 +208,5 @@ function settime!(compInt::AgentsComponentIntegrator, time::Float64)
 end
 
 function variables(component::AgentsComponent)
-    return keys(component.state_names)
+    return union(keys(component.state_names), ["#model"])
 end

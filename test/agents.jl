@@ -149,7 +149,7 @@ end
 
     integrator = init(c1, [conn1, conn2])
 
-    @test issetequal(Mermaid.variables(integrator), ["min_to_be_happy", "group", "mood", "list_property"])
+    @test issetequal(Mermaid.variables(integrator), ["min_to_be_happy", "group", "mood", "list_property", "#model"])
 
     # Check initial state
     @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 3.0
@@ -188,17 +188,25 @@ end
 
     # getstate and setstate! for duplicated AgentsComponent
     @test Mermaid.getstate(integrator) isa StandardABM
-    @test Mermaid.gettime(integrator) == 0.2
+    @test Mermaid.gettime(integrator) ≈ 0.2
     state = Mermaid.getstate(integrator, true) # Get a copy of the state
     state2 = Mermaid.getstate(integrator) # Default is don't copy, just return reference
     step!(integrator)
-    @test Mermaid.gettime(integrator) == 0.4
+    @test Mermaid.gettime(integrator) ≈ 0.4
     Mermaid.setstate!(integrator, state)
-    @test Mermaid.gettime(integrator) == 0.2
+    @test Mermaid.gettime(integrator) ≈ 0.2
     Mermaid.setstate!(integrator, state2)
-    @test Mermaid.gettime(integrator) == 0.4
+    @test Mermaid.gettime(integrator) ≈ 0.4
 
     # Settime does nothing since Agents.jl does not support setting time directly but rather stores it within the state
     Mermaid.settime!(integrator, 1.0)
-    @test Mermaid.gettime(integrator) == 0.4
+    @test Mermaid.gettime(integrator) ≈ 0.4
+
+    # Same thing but with the #model variable
+    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.#model")) isa StandardABM
+    state = Mermaid.getstate(integrator, ConnectedVariable("Schelling.#model"))
+    step!(integrator)
+    @test Mermaid.gettime(integrator) ≈ 0.6
+    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.#model"), state)
+    @test Mermaid.gettime(integrator) ≈ 0.4
 end

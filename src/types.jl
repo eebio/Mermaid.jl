@@ -156,6 +156,9 @@ function MermaidSolution(int::MermaidIntegrator)
     if length(int.save_vars) == 0
         for i in int.integrators
             for key in variables(i)
+                if contains(key, "#")
+                    continue
+                end
                 fullname = join([i.component.name, key], ".")
                 u[parsevariable(fullname)] = []
             end
