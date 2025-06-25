@@ -365,3 +365,5 @@ function inputsandoutputs(integrator::ComponentIntegrator, conns::Vector{Connect
     end
     return inputs, outputs
 end
+
+variables(integrator::ComponentIntegrator) = variables(integrator.component)

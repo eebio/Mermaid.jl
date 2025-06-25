@@ -157,6 +157,8 @@ end
     )
     integrator = init(c1, [conn1, conn2])
 
+    @test issetequal(Mermaid.variables(integrator), ["prey", "predator"])
+
     # Check initial state
     @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 4.0
     @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 2.0

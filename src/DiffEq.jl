@@ -72,3 +72,7 @@ function settime!(compInt::ODEComponentIntegrator, t)
     u_modified!(compInt.integrator, true)
     compInt.integrator.t = t
 end
+
+function variables(component::ODEComponent)
+    return keys(component.state_names)
+end

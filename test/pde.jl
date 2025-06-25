@@ -148,6 +148,8 @@ end
     )
     integrator = init(c1, [conn1, conn2])
 
+    @test issetequal(Mermaid.variables(integrator), ["u", "g"])
+
     # Check initial state
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) == [sin(pi * x) for x in 0.1:0.1:0.9]
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g")) == [0.5 for _ in 0.1:0.1:0.9]

@@ -199,3 +199,7 @@ function settime!(compInt::AgentsComponentIntegrator, time::Float64)
     # Agents.jl does not support setting time directly, but the time is stored within the state of the integrator.
     return nothing
 end
+
+function variables(component::AgentsComponent)
+    return keys(component.state_names)
+end

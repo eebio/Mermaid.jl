@@ -115,3 +115,7 @@ end
 function gettime(compInt::DuplicatedComponentIntegrator)
     return gettime(compInt.integrator)
 end
+
+function variables(component::DuplicatedComponent)
+    return variables(component.component)
+end
