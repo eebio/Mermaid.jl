@@ -155,7 +155,7 @@ function MermaidSolution(int::MermaidIntegrator)
     u = Dict()
     if length(int.save_vars) == 0
         for i in int.integrators
-            for key in keys(i.component.state_names)
+            for key in variables(i)
                 fullname = join([i.component.name, key], ".")
                 u[parsevariable(fullname)] = []
             end
