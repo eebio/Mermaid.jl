@@ -95,4 +95,3 @@ alg = MinimumTimeStepper()
 sol = solve(mp, alg)
 
 save("examples/outputs/forest_fire.mp4", io)
-# TODO plot agents during solve
