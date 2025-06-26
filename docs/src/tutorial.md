@@ -29,10 +29,10 @@ using DifferentialEquations
 function tree!(du, u, p, t)
     x, y = u
     du[1] = 0
-    du[2] = y*(1-y/10.0)-x*y
+    du[2] = (y*(1-y/10.0)-x*y)/10
 end
 u0 = [4.0, 2.0]
-tspan = (0.0, 10.0)
+tspan = (0.0, 150.0)
 prob = ODEProblem(tree!, u0, tspan)
 ```
 
@@ -105,12 +105,12 @@ function tree_step!(tree, forest)
         tree.heat = 10.0
     end
     # Simulate tree life cycle
-    if tree.heat > 1.0 && tree.life > 0
+    if tree.heat > 1.0 && tree.life > 1.0
         # Tree on fire
         tree.heat += 1.0
     else
         # Tree not on fire so heat disappates
-        tree.heat -= 0.1
+        tree.heat -= 0.05
     end
     if tree.heat < 0.0
         tree.heat = 0.0
@@ -149,7 +149,7 @@ MermaidProblem
 ```
 
 ```@example tutorial
-mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn1, conn2], max_t=10.0)
+mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn1, conn2], max_t=tspan[2])
 alg = MinimumTimeStepper()
 sol = solve(mp, alg)
 ```
@@ -169,3 +169,40 @@ using Plots
 plot(sol.t, sol["forest.life[1]"], color=:green, label="Life")
 plot!(sol.t, sol["forest.heat[1]"], color=:red, label="Heat")
 ```
+
+## Advanced Visualisations
+
+While we can plot the variables from the ODE component easily, the Agent-based model is a bit more challenging.
+But default, we only store the variables given in state\_names in the solution.
+This can be changed by providing `save_vars=["forest.#model"]` to `solve`, in which case the full Agent-based model state will be visable in the solution at all timepoints.
+However, this can be wasteful if we know we only want an animation of the model (which can be generated during simulation).
+
+We will set up a [Connector](@ref) which takes an input of the model's current state, and instead of a transformation, we will use a function which adds the current state to a video.
+
+```@example tutorial
+using Makie
+using CairoMakie
+
+groupcolor(tree) = tree.heat > 1 ? :red : :green
+groupmarker(a) = a.life > 1 ? :utriangle : :circle
+fig, ax = abmplot(forest; agent_color=groupcolor, agent_marker=groupmarker, agent_size=10)
+io = VideoStream(fig)
+function plot_input(model)
+    empty!(ax)
+    abmplot!(ax, model; agent_color=groupcolor, agent_marker=groupmarker, agent_size=10)
+    recordframe!(io)
+end
+
+conn3 = Connector(
+    inputs=["forest.#model"],
+    outputs=Vector{String}(),
+    func=(model) -> plot_input(model)
+)
+
+mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn1, conn2, conn3], max_t=tspan[2])
+sol = solve(mp, alg)
+
+save("forest_fire.mp4", io)
+```
+
+![An animation of the forest fire simulation](forest_fire.mp4)
