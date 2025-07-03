@@ -1,3 +1,8 @@
+"""
+    MinimumTimeStepper()
+
+A solver that steps the integrators in a `MermaidIntegrator` at the minimum time step of all components.
+"""
 struct MinimumTimeStepper <: AbstractMermaidSolver
 end
 

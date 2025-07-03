@@ -27,9 +27,9 @@ We see that we need to define an `ODEProblem` to use in the component, so let's 
 ```@example tutorial
 using DifferentialEquations
 function tree!(du, u, p, t)
-    x, y = u
+    heat, life = u
     du[1] = 0
-    du[2] = (y*(1-y/10.0)-x*y)/10
+    du[2] = (life*(1-life/10.0)-heat*life)/10
 end
 u0 = [4.0, 2.0]
 tspan = (0.0, 150.0)
