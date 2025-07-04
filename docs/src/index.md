@@ -40,4 +40,5 @@ using Pkg; Pkg.add("Mermaid")
 * [integration with ModelingToolkit.jl](@ref "ModelingToolkit Integration").
 
 **Q: Is Mermaid the right tool for me?**
+
 **A:** That depends on what type of hybrid simulation you are looking to run. Luckily, you can check out [Is Mermaid right for me?](@ref) and find out.
