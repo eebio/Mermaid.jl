@@ -88,6 +88,8 @@ Retrieves the state of a specific variable from the [AgentsComponentIntegrator](
 function getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
     if key.variable == "#model"
         return getstate(compInt, true)
+    elseif key.variable == "#ids"
+        return collect(allids(compInt.integrator))
     end
     index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
@@ -119,6 +121,7 @@ Sets the state of a specific variable in the [AgentsComponentIntegrator](@ref).
 - `value`: The value to assign to the specified variable's state.
 """
 function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
+    # TODO add ids exception? Is there a way to specify the id when creating an agent
     if key.variable == "#model"
         setstate!(compInt, value)
         return nothing

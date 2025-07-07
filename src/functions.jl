@@ -20,7 +20,9 @@ function CommonSolve.init(prob::MermaidProblem, alg::AbstractMermaidSolver; save
         integrator = CommonSolve.init(c, prob.connectors)
         push!(integrators, integrator)
     end
-    return MermaidIntegrator(integrators, prob.connectors, prob.max_t, 0.0, alg, save_vars)
+    # Sort connectors so that the ones with # in outputs are first
+    connectors = sort(prob.connectors; by=x->any([contains(conn.variable, "#") for conn in x.outputs]), rev=true)
+    return MermaidIntegrator(integrators, connectors, prob.max_t, 0.0, alg, save_vars)
 end
 
 """
