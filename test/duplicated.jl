@@ -142,6 +142,9 @@ end
     alg = MinimumTimeStepper()
 
     int = init(mp, alg)
+    # Check #ids will be applied first
+    @test int.connectors[1].inputs == [ConnectedVariable("dummyabm.#ids")]
+    @test collect(keys(int.integrators[1].inputs))[1] == ConnectedVariable("decay.#ids")
     step!(int, 1.0)
     # Add new agent and check that the number of duplicated states matches the number of agents at each step
     add_agent!(int.integrators[2].integrator; val2=1.0, val=0.0)

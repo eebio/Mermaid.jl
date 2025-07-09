@@ -22,8 +22,8 @@ end
 mutable struct DuplicatedComponentIntegrator <: ComponentIntegrator
     integrator::ComponentIntegrator
     component::DuplicatedComponent
-    outputs::Dict{ConnectedVariable,Any}
-    inputs::Dict{ConnectedVariable,Any}
+    outputs::OrderedDict{ConnectedVariable,Any}
+    inputs::OrderedDict{ConnectedVariable,Any}
     states::Vector
     ids::Union{Vector,Nothing}
 end
@@ -33,8 +33,8 @@ function CommonSolve.init(c::DuplicatedComponent, conns::Vector{Connector})
     states = deepcopy(c.initial_states)
     ids = isnothing(c.instances) ? [] : 1:c.instances
 
-    outputs = Dict{ConnectedVariable,Any}() # Full variable name => Initial value from component
-    inputs = Dict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
+    outputs = OrderedDict{ConnectedVariable,Any}() # Full variable name => Initial value from component
+    inputs = OrderedDict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
     for conn in conns
         # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
         for input in conn.inputs

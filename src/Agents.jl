@@ -32,8 +32,8 @@ A mutable struct that integrates an [AgentsComponent](@ref) using the Agents.jl 
 @kwdef mutable struct AgentsComponentIntegrator <: ComponentIntegrator
     integrator::StandardABM
     component::AgentsComponent
-    outputs::Dict{ConnectedVariable,Any} = Dict{ConnectedVariable,Any}()
-    inputs::Dict{ConnectedVariable,Any} = Dict{ConnectedVariable,Any}()
+    outputs::OrderedDict{ConnectedVariable,Any} = OrderedDict{ConnectedVariable,Any}()
+    inputs::OrderedDict{ConnectedVariable,Any} = OrderedDict{ConnectedVariable,Any}()
 end
 
 """

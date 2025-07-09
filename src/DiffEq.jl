@@ -27,8 +27,8 @@ end
 @kwdef mutable struct ODEComponentIntegrator <: ComponentIntegrator
     integrator::OrdinaryDiffEqCore.ODEIntegrator
     component::ODEComponent
-    outputs::Dict{ConnectedVariable,Any} = Dict{ConnectedVariable,Any}()
-    inputs::Dict{ConnectedVariable,Any} = Dict{ConnectedVariable,Any}()
+    outputs::OrderedDict{ConnectedVariable,Any} = OrderedDict{ConnectedVariable,Any}()
+    inputs::OrderedDict{ConnectedVariable,Any} = OrderedDict{ConnectedVariable,Any}()
 end
 
 function CommonSolve.init(c::ODEComponent, conns::Vector{Connector})

@@ -14,14 +14,14 @@ Creates a [MermaidIntegrator](@ref) from a [MermaidProblem](@ref).
 - `MermaidIntegrator`: The initialized integrator for the problem.
 """
 function CommonSolve.init(prob::MermaidProblem, alg::AbstractMermaidSolver; save_vars=[])
+    # Sort connectors so that the ones with # in outputs are first
+    connectors = sort(prob.connectors; by=x -> any([contains(conn.variable, "#") for conn in x.outputs]), rev=true)
     # Initialize the solver
     integrators = Vector{Any}()
     for c in prob.components
-        integrator = CommonSolve.init(c, prob.connectors)
+        integrator = CommonSolve.init(c, connectors)
         push!(integrators, integrator)
     end
-    # Sort connectors so that the ones with # in outputs are first
-    connectors = sort(prob.connectors; by=x->any([contains(conn.variable, "#") for conn in x.outputs]), rev=true)
     return MermaidIntegrator(integrators, connectors, prob.max_t, 0.0, alg, save_vars)
 end
 
@@ -346,12 +346,12 @@ Generates the inputs and outputs of a component integrator based on its connecti
 - `conns::Vector{Connector}`: The connectors that define the inputs and outputs of the component.
 
 # Returns
-- `outputs::Dict{ConnectedVariable,Any}`: A dictionary mapping [ConnectedVariable](@ref) names to their initial values from the component.
-- `inputs::Dict{ConnectedVariable,Any}`: A dictionary mapping [ConnectedVariable](@ref) names to their current values (initially 0).
+- `outputs::OrderedDict{ConnectedVariable,Any}`: An ordered dictionary mapping [ConnectedVariable](@ref) names to their initial values from the component.
+- `inputs::OrderedDict{ConnectedVariable,Any}`: An ordered dictionary mapping [ConnectedVariable](@ref) names to their current values (initially 0).
 """
 function inputsandoutputs(integrator::ComponentIntegrator, conns::Vector{Connector})
-    outputs = Dict{ConnectedVariable,Any}() # Full variable name => Initial value from component
-    inputs = Dict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
+    outputs = OrderedDict{ConnectedVariable,Any}() # Full variable name => Initial value from component
+    inputs = OrderedDict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
     for conn in conns
         # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
         for input in conn.inputs
