@@ -2,8 +2,6 @@ module Mermaid
 @doc read(joinpath(dirname(@__DIR__), "README.md"), String) Mermaid
 
 using CommonSolve
-using DifferentialEquations
-using OrdinaryDiffEqCore
 
 export AbstractComponent, AbstractTimeDependentComponent, AbstractTimeIndependentComponent
 export ODEComponent, PDEComponent, AgentsComponent

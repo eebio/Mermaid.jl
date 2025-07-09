@@ -1,5 +1,3 @@
-using CommonSolve
-
 """
     DuplicatedComponent <: AbstractComponent
 

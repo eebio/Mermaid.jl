@@ -1,5 +1,6 @@
-using CommonSolve
 using ModelingToolkit
+using DifferentialEquations
+using OrdinaryDiffEqCore
 using SymbolicIndexingInterface
 
 """

@@ -1,6 +1,4 @@
-using CommonSolve
 using Agents
-using SymbolicIndexingInterface
 
 """
     AgentsComponent <: AbstractTimeDependentComponent
