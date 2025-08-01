@@ -63,13 +63,9 @@
 # comp1 = DEComponent(model=sde, name="Repressilator", state_names=Dict{String,Any}("gfp" => repressilator.gfp))
 
 using Agents, StaticArrays
-@enum CellType begin
-    Red
-    Blue
-    Orange
-end
+
 @agent struct Cell(ContinuousAgent{2,Float64})
-    const color::CellType
+    gfp::Float64
     const birth::Float64
     death::Float64 = Inf
 end
@@ -83,19 +79,19 @@ DT.number_type(::Type{Vector{Cell}}) = Float64
 DT.is_point2(::Cell) = true
 
 spring_constant(p, q) = 20.0 # μ
-heterotypic_spring_constant(p, q) = p.color == q.color ? 1.0 : 0.1 # μₕₑₜ
+heterotypic_spring_constant(p, q) = 1.0 # μₕₑₜ
 drag_coefficient(p) = 1 / 2 # η
 mature_cell_spring_rest_length(p, q) = 1.0 # s
 expansion_rate(p, q) = 0.05 * mature_cell_spring_rest_length(p, q) # ε
 perturbation(p) = 0.01 # ξ
 cutoff_distance(p, q) = 1.5 # ℓₘₐₓ
-intrinsic_proliferation_rate(p) = p.color == Red ? 0.4 : p.color == Blue ? 0.5 : 0.8 # β
+intrinsic_proliferation_rate(p) = 0.4 # β
 carrying_capacity_density(p) = 100.0^2 # K
 min_division_age(p) = 1.0 # tₘᵢₙ
-max_division_age(p) = p.color == Red ? 15.0 : p.color == Blue ? 20.0 : 3.0 # tₘₐₓ
-max_age(p) = p.color == Red ? 10.0 : p.color == Blue ? 10.0 : 3.0 # dₘₐₓ
-death_rate(p) = p.color == Red ? 0.001 : p.color == Blue ? 0.00005 : 0.0001 # psick
-mutation_probability(p) = p.color == Red ? 0.3 : p.color == Blue ? 0.5 : 0.05 # pₘᵤₜ
+max_division_age(p) = 15.0 # tₘₐₓ
+max_age(p) = 10.0 # dₘₐₓ
+death_rate(p) = 0.001 # psick
+mutation_probability(p) = 0.3 # pₘᵤₜ
 min_area(p) = 1e-2 # Aₘᵢₙ
 
 using LinearAlgebra
@@ -255,14 +251,7 @@ end
 function place_daughter_cell!(model, i, t)
     parent = model[i]
     daughter = sample_voronoi_cell(model.tessellation, i) # this is an SVector, not a Cell
-    u = rand()
-    clr = parent.color
-    if u < mutation_probability(parent)
-        newclr = clr == Red ? Blue : clr == Blue ? Orange : Red
-    else
-        newclr = clr
-    end
-    add_agent!(daughter, model; color=newclr, birth=t, vel=SVector(0.0, 0.0))
+    add_agent!(daughter, model; birth=t, gfp = parent.gfp, vel=SVector(0.0, 0.0)) # HERE we want the cell to be nearby, not sure this does it? maybe daughter is a nearby position
     return daughter
 end
 function proliferate_cells!(model, t)
@@ -320,7 +309,7 @@ function initialize_cell_model(;
         r = radius * sqrt(rand())
         pos = cent + SVector(r * cos(θ), r * sin(θ))
         cell = Cell(; id=i, pos=pos,
-            color=Red, birth=0.0, vel=SVector(0.0, 0.0))
+            birth=0.0, gfp = rand(), vel=SVector(0.0, 0.0))
     end
     positions = [cell.pos for cell in cells]
 
@@ -344,24 +333,12 @@ function initialize_cell_model(;
 
     # Add the agents
     for (id, pos) in pairs(positions)
-        add_agent!(pos, model; color=Red, birth=0.0, vel=SVector(0.0, 0.0))
+        add_agent!(pos, model; birth=0.0, gfp=rand(), vel=SVector(0.0, 0.0))
     end
 
     return model
 end
 
-function count_cell_type(model, type)
-    stepn = abmtime(model)
-    t = stepn * model.dt
-    n = 0
-    for i in each_solid_vertex(model.triangulation)
-        n += model[i].color == type
-    end
-    return n
-end
-count_red(model) = count_cell_type(model, Red)
-count_blue(model) = count_cell_type(model, Blue)
-count_orange(model) = count_cell_type(model, Orange)
 count_total(model) = num_solid_vertices(model.triangulation)
 
 using StatsBase
@@ -399,7 +376,7 @@ end
 finalT = 50.0
 model = initialize_cell_model()
 nsteps = Int(finalT / model.dt)
-mdata = [count_red, count_blue, count_orange, count_total,
+mdata = [count_total,
     average_cell_area, average_cell_diameter, average_spring_length]
 agent_df, model_df = run!(model, nsteps; mdata);
 
@@ -407,9 +384,6 @@ using CairoMakie
 time = 0:model.dt:finalT
 fig = Figure(fontsize=24)
 ax = Axis(fig[1, 1], xlabel="Time", ylabel="Count", width=600, height=400)
-lines!(ax, time, model_df[!, :count_red], color=:red, label="Red", linewidth=3)
-lines!(ax, time, model_df[!, :count_blue], color=:blue, label="Blue", linewidth=3)
-lines!(ax, time, model_df[!, :count_orange], color=:orange, label="Orange", linewidth=3)
 lines!(ax, time, model_df[!, :count_total], color=:black, label="Total", linewidth=3)
 axislegend(ax, position=:lt)
 ax = Axis(fig[1, 2], xlabel="Time", ylabel="Average", width=600, height=400)
@@ -425,16 +399,13 @@ voronoi_marker = (model, cell) -> begin
     verts = get_polygon_coordinates(model.tessellation, id)
     return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
 end
-voronoi_color(cell) = cell.color == Red ? :red : cell.color == Blue ? :blue : :orange
+voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp)
 model = initialize_cell_model() # reinitialise the model for the animation
 fig, ax, amobs = abmplot(model, agent_marker=cell -> voronoi_marker(model, cell), agent_color=voronoi_color,
     agentsplotkwargs=(strokewidth=1,), figure=(; size=(1600, 800), fontsize=34), mdata=mdata,
     axis=(; width=800, height=800), when=10)
 current_time = Observable(0.0)
 t = Observable([0.0])
-nred = Observable(amobs.mdf[][!, :count_red])
-nblue = Observable(amobs.mdf[][!, :count_blue])
-norange = Observable(amobs.mdf[][!, :count_orange])
 ntotal = Observable(amobs.mdf[][!, :count_total])
 avg_area = Observable(amobs.mdf[][!, :average_cell_area])
 avg_diam = Observable(amobs.mdf[][!, :average_cell_diameter])
@@ -442,9 +413,6 @@ avg_spring = Observable(amobs.mdf[][!, :average_spring_length])
 plot_layout = fig[:, end+1] = GridLayout()
 count_layout = plot_layout[1, 1] = GridLayout()
 ax_count = Axis(count_layout[1, 1], xlabel="Time", ylabel="Count", width=600, height=400)
-lines!(ax_count, t, nred, color=:red, label="Red", linewidth=3)
-lines!(ax_count, t, nblue, color=:blue, label="Blue", linewidth=3)
-lines!(ax_count, t, norange, color=:orange, label="Orange", linewidth=3)
 lines!(ax_count, t, ntotal, color=:black, label="Total", linewidth=3)
 vlines!(ax_count, current_time, color=:grey, linestyle=:dash, linewidth=3)
 xlims!(ax_count, 0, finalT)
@@ -462,9 +430,6 @@ resize_to_layout!(fig)
 on(amobs.mdf) do mdf
     current_time[] = abmtime(amobs.model[]) * model.dt
     t.val = mdf[!, :time] .* model.dt
-    nred[] = mdf[!, :count_red]
-    nblue[] = mdf[!, :count_blue]
-    norange[] = mdf[!, :count_orange]
     ntotal[] = mdf[!, :count_total]
     avg_area[] = mdf[!, :average_cell_area]
     avg_diam[] = mdf[!, :average_cell_diameter]
