@@ -11,7 +11,7 @@
     tspan = (0.0, 10.0)
     prob = ODEProblem(tree!, u0, tspan)
 
-    comp1 = ODEComponent(
+    comp1 = DEComponent(
         model=prob,
         name="tree",
         state_names=Dict("heat" => 1, "life" => 2),
@@ -90,7 +90,7 @@ end
     u0 = [1.0, 0.5]
     tspan = (0.0, 2.0)
     prob = ODEProblem(coupled!, u0, tspan)
-    comp1 = ODEComponent(
+    comp1 = DEComponent(
         model=prob,
         name="decay",
         state_names=Dict("val" => 1, "val2" => 2),
