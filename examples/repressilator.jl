@@ -97,16 +97,8 @@ min_area(p) = 1e-2 # Aₘᵢₙ
 using LinearAlgebra
 spring_constant(model, i::Int, j::Int, t) = spring_constant(model, model[i], model[j], t)
 function spring_constant(model, p, q, t)
-    δ = norm(p.pos - q.pos)
-    s = rest_length(model, p, q, t)
     μ = spring_constant(p, q)
-    t < 1 && return μ # no adhesion for the initial population
-    μₕₑₜ = heterotypic_spring_constant(p, q)
-    if δ > s
-        return μₕₑₜ * μ
-    else
-        return μ
-    end
+    return μ # no adhesion for the initial population
 end
 
 rest_length(model, i::Int, j::Int, t) = rest_length(model, model[i], model[j]..., t)
