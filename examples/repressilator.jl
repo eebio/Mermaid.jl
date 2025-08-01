@@ -81,9 +81,9 @@ DT.is_point2(::Cell) = true
 spring_constant(p, q) = 20.0 # μ
 heterotypic_spring_constant(p, q) = 1.0 # μₕₑₜ
 drag_coefficient(p) = 1 / 2 # η
-mature_cell_spring_rest_length(p, q) = 1.0 # s
+mature_cell_spring_rest_length(p, q) = 0.4 # s
 expansion_rate(p, q) = 0.05 * mature_cell_spring_rest_length(p, q) # ε
-perturbation(p) = 0.01 # ξ
+perturbation(p) = 0.01*0 # ξ
 cutoff_distance(p, q) = 1.5 # ℓₘₐₓ
 intrinsic_proliferation_rate(p) = 0.4 # β
 carrying_capacity_density(p) = 100.0^2 # K
@@ -290,7 +290,7 @@ end
 
 using Random
 function initialize_cell_model(;
-    ninit=50,
+    ninit=10,
     radius=2.0,
     dt=0.01,
     sides=SVector(20.0, 20.0))
