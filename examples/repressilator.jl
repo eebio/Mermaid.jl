@@ -270,7 +270,8 @@ function cull_cell!(model, i, t)
     sick = rand() < model.dt * death_rate(p)
     xmax, ymax = spacesize(model)
     x, y = p.pos
-    outside = x < 0 || x > xmax || y < 0 || y > ymax
+    distance_to_origin = norm(p.pos-SVector(xmax / 2, ymax / 2)) # distance to the center of the space
+    outside = distance_to_origin > 0.5 * min(xmax, ymax)
     if elder || sick || outside
         push!(model.dead_cells, i)
         p.death = t
