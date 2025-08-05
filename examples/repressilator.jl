@@ -83,7 +83,6 @@ heterotypic_spring_constant(p, q) = 1.0 # μₕₑₜ
 drag_coefficient(p) = 1 / 2 # η
 mature_cell_spring_rest_length(p, q) = 0.4 # s
 expansion_rate(p, q) = 0.05 * mature_cell_spring_rest_length(p, q) # ε
-perturbation(p) = 0.01*0 # ξ
 cutoff_distance(p, q) = 1.5 # ℓₘₐₓ
 intrinsic_proliferation_rate(p) = 0.4 # β
 carrying_capacity_density(p) = 100.0^2 # K
@@ -135,20 +134,12 @@ function force(model, p, q, t)
     rᵢⱼ = q.pos - p.pos
     return μ * (norm(rᵢⱼ) - s) * rᵢⱼ / norm(rᵢⱼ)
 end
-function random_force(model, i)
-    p = model[i]
-    ξ = perturbation(p)
-    η₁, η₂ = randn(), randn()
-    Δt = model.dt
-    return sqrt(2ξ / Δt) * SVector(η₁, η₂)
-end
 function force(model, i::Int, t)
     F = SVector(0.0, 0.0)
-    for j in get_neighbours(model.triangulation, i)
+    for j in get_neighbours(model.triangulation, i) # TODO Does this include dead cells?
         DT.is_ghost_vertex(j) && continue
         F = F + force(model, i, j, t)
     end
-    F = F + random_force(model, i)
     return F
 end
 
