@@ -346,21 +346,9 @@ model = initialize_cell_model()
 nsteps = Int(finalT / model.dt)
 mdata = [count_total,
     average_cell_area, average_cell_diameter, average_spring_length]
-agent_df, model_df = run!(model, nsteps; mdata);
 
 using CairoMakie
 time = 0:model.dt:finalT
-fig = Figure(fontsize=24)
-ax = Axis(fig[1, 1], xlabel="Time", ylabel="Count", width=600, height=400)
-lines!(ax, time, model_df[!, :count_total], color=:black, label="Total", linewidth=3)
-axislegend(ax, position=:lt)
-ax = Axis(fig[1, 2], xlabel="Time", ylabel="Average", width=600, height=400)
-lines!(ax, time, model_df[!, :average_cell_area], color=:black, label="Cell area", linewidth=3)
-lines!(ax, time, model_df[!, :average_cell_diameter], color=:magenta, label="Cell diameter", linewidth=3)
-lines!(ax, time, model_df[!, :average_spring_length], color=:red, label="Spring length", linewidth=3)
-axislegend(ax, position=:rb)
-resize_to_layout!(fig)
-fig
 
 voronoi_marker = (model, cell) -> begin
     verts = get_polygon_coordinates(model.tessellation, cell.index)
