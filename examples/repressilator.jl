@@ -206,13 +206,13 @@ function place_daughter_cell!(model, i, t)
     return daughter
 end
 function proliferate_cells!(model, t)
-    id = random_id(model)
-    Gᵢ = proliferation_rate(model, id, t)
-    u = rand()
-    event = u < Gᵢ * model.dt * nagents(model)
-    !event && return false
-    i = random_id(model)
-    place_daughter_cell!(model, i, t)
+    for p in collect(allagents(model))
+        Gᵢ = proliferation_rate(model, p.id, t)
+        u = rand()
+        if u < Gᵢ * model.dt
+            place_daughter_cell!(model, p.id, t)
+        end
+    end
     return true
 end
 
