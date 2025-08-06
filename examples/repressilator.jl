@@ -151,21 +151,10 @@ function update_velocities!(model, t)
     end
     return model
 end
-function new_position(model, i, t)
-    xᵢ = model[i]
-    vel = xᵢ.vel
-    r = xᵢ.pos + model.dt * vel
-    x, y = r
-    xmax, ymax = spacesize(model)
-    if x < 0 || x > xmax || y < 0 || y > ymax
-        r = xᵢ.pos
-    end
-    return r
-end
 function update_positions!(model, t)
     update_velocities!(model, t)
     for i in each_solid_vertex(model.triangulation)
-        model[i].pos = new_position(model, i, t)
+        move_agent!(model[i], model, model.dt)
     end
     return model
 end
