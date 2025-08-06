@@ -246,17 +246,8 @@ function model_step!(model)
 end
 
 function set_indexes(model)
-    for a in allagents(model)
-        a.index = typemin(Int) # reset the index
-        for p in DT.each_solid_vertex(model.triangulation)
-            if all(a.pos .== get_point(model.triangulation, p))
-                a.index = p
-                break
-            end
-        end
-        if a.index == typemin(Int)
-            error("Agent $(a.id) with position $(a.pos) not found in triangulation.")
-        end
+    for (i, p) in enumerate(model.triangulation.points)
+        p.index = i
     end
 end
 
