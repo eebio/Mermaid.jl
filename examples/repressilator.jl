@@ -159,30 +159,6 @@ function update_positions!(model, t)
     return model
 end
 
-function proliferation_probability(model, t)
-    Δt = model.dt
-    probs = zeros(nagents(model)) # Technically nagents is not the number of alive agents, but with the way we are handling agents this is correct
-    for i in allids(model)
-        if !DT.has_vertex(model.triangulation, i) || i in model.dead_cells
-            i > 1 && (probs[i] = probs[i-1])
-            continue
-        end
-        Gᵢ = proliferation_rate(model, i, t)
-        if i > 1
-            probs[i] = probs[i-1] + Gᵢ * Δt
-        else
-            probs[i] = Gᵢ * Δt
-        end
-    end
-    return probs
-end
-function select_proliferative_cell(model, probs)
-    E = probs[end]
-    u = rand() * E
-    i = searchsortedlast(probs, u) + 1 # searchsortedlast instead of searchsortedfirst since we skip over some agents in probs
-    return i
-end
-
 function sample_triangle(tri::Triangulation, T)
     i, j, k = triangle_vertices(T)
     p, q, r = get_point(tri, i, j, k)
@@ -227,12 +203,13 @@ function place_daughter_cell!(model, i, t)
     return daughter
 end
 function proliferate_cells!(model, t)
-    probs = proliferation_probability(model, t)
+    id = random_id(model)
+    Gᵢ = proliferation_rate(model, id, t)
     u = rand()
-    event = u < probs[end]
+    event = u < Gᵢ * model.dt * nagents(model)
     !event && return false
-    i = select_proliferative_cell(model, probs)
-    daughter = place_daughter_cell!(model, i, t)
+    i = random_id(model)
+    place_daughter_cell!(model, i, t)
     return true
 end
 
