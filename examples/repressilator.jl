@@ -68,6 +68,7 @@ using Agents, StaticArrays
     gfp::Float64
     const birth::Float64
     death::Float64 = Inf
+    index::Int = typemin(Int)
 end
 
 using DelaunayTriangulation
@@ -123,7 +124,6 @@ function proliferation_rate(model, i::Int, t)
     return max(0.0, β * (1 - 1 / (K * Aᵢ)))
 end
 
-force(model, i::Int, j::Int, t) = force(model, model[i], model[j], t)
 function force(model, p, q, t)
     δ = norm(p.pos - q.pos)
     if δ > cutoff_distance(p, q)
@@ -134,16 +134,18 @@ function force(model, p, q, t)
     rᵢⱼ = q.pos - p.pos
     return μ * (norm(rᵢⱼ) - s) * rᵢⱼ / norm(rᵢⱼ)
 end
-function force(model, i::Int, t)
+function force(model, p::Cell, t)
     F = SVector(0.0, 0.0)
-    for j in get_neighbours(model.triangulation, i) # TODO Does this include dead cells?
+    for j in get_neighbours(model.triangulation, p.index)
         DT.is_ghost_vertex(j) && continue
-        F = F + force(model, i, j, t)
+        # Find the agent with index j
+        other_cell = first(filter(p -> p.index == j, collect(allagents(model))))
+        F = F + force(model, p, other_cell, t)
     end
     return F
 end
 
-velocity(model, i, t) = force(model, i, t) / drag_coefficient(model[i])
+velocity(model, p::Cell, t) = force(model, p, t) / drag_coefficient(p)
 
 function update_velocities!(model, t)
     for p in allagents(model)
@@ -233,12 +235,28 @@ end
 function model_step!(model)
     stepn = abmtime(model)
     t = stepn * model.dt
+    update_positions!(model, t)
     cull_cells!(model, t)
     proliferate_cells!(model, t)
-    update_positions!(model, t)
     model.triangulation = retriangulate(model.triangulation, collect(allagents(model)))
     model.tessellation = voronoi(model.triangulation, clip=true)
+    set_indexes(model)
     return model
+end
+
+function set_indexes(model)
+    for a in allagents(model)
+        a.index = typemin(Int) # reset the index
+        for p in DT.each_solid_vertex(model.triangulation)
+            if all(a.pos .== get_point(model.triangulation, p))
+                a.index = p
+                break
+            end
+        end
+        if a.index == typemin(Int)
+            error("Agent $(a.id) with position $(a.pos) not found in triangulation.")
+        end
+    end
 end
 
 using Random
@@ -279,7 +297,7 @@ function initialize_cell_model(;
 
     # Add the agents
     for (id, pos) in pairs(positions)
-        add_agent!(pos, model; birth=0.0, gfp=rand(), vel=SVector(0.0, 0.0))
+        add_agent!(pos, model; birth=0.0, gfp=rand(), vel=SVector(0.0, 0.0), index=id)
     end
 
     return model
