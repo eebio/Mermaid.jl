@@ -263,7 +263,7 @@ function model_step!(model)
     cull_cells!(model, t)
     proliferate_cells!(model, t)
     update_positions!(model, t)
-    model.triangulation = retriangulate(model.triangulation, allagents(model); skip_points=model.dead_cells)
+    model.triangulation = retriangulate(model.triangulation, collect(allagents(model)))
     model.tessellation = voronoi(model.triangulation, clip=true)
     return model
 end
