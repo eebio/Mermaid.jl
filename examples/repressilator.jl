@@ -146,15 +146,15 @@ end
 velocity(model, i, t) = force(model, i, t) / drag_coefficient(model[i])
 
 function update_velocities!(model, t)
-    for i in each_solid_vertex(model.triangulation)
-        model[i].vel = velocity(model, i, t)
+    for p in allagents(model)
+        p.vel = velocity(model, p, t)
     end
     return model
 end
 function update_positions!(model, t)
     update_velocities!(model, t)
-    for i in each_solid_vertex(model.triangulation)
-        move_agent!(model[i], model, model.dt)
+    for p in allagents(model)
+        move_agent!(p, model, model.dt)
     end
     return model
 end
