@@ -113,12 +113,12 @@ function proliferation_rate(model, i::Int, t)
     age = t - p.birth
     tₘᵢₙ = min_division_age(p)
     tₘₐₓ = max_division_age(p)
-    A = get_area(model.tessellation, i)
+    A = get_area(model.tessellation, p.index)
     if age ≤ tₘᵢₙ || age ≥ tₘₐₓ || A < min_area(p)
         return 0.0
     end
     vorn = model.tessellation
-    Aᵢ = get_area(vorn, i)
+    Aᵢ = get_area(vorn, p.index)
     β = intrinsic_proliferation_rate(p)
     K = carrying_capacity_density(p)
     return max(0.0, β * (1 - 1 / (K * Aᵢ)))
@@ -139,11 +139,12 @@ function force(model, p::Cell, t)
     for j in get_neighbours(model.triangulation, p.index)
         DT.is_ghost_vertex(j) && continue
         # Find the agent with index j
-        other_cell = first(filter(p -> p.index == j, collect(allagents(model))))
-        F = F + force(model, p, other_cell, t)
+        F = F + force(model, p, tri2agent(model, j), t)
     end
     return F
 end
+
+tri2agent(model, p::Int) = first(filter(a -> a.index == p, collect(allagents(model))))
 
 velocity(model, p::Cell, t) = force(model, p, t) / drag_coefficient(p)
 
@@ -200,7 +201,7 @@ end
 
 function place_daughter_cell!(model, i, t)
     parent = model[i]
-    daughter = sample_voronoi_cell(model.tessellation, i) # this is an SVector, not a Cell
+    daughter = sample_voronoi_cell(model.tessellation, parent.index) # this is an SVector, not a Cell
     add_agent!(daughter, model; birth=t, gfp = parent.gfp, vel=SVector(0.0, 0.0)) # HERE we want the cell to be nearby, not sure this does it? maybe daughter is a nearby position
     return daughter
 end
@@ -332,7 +333,10 @@ function average_cell_diameter(model)
     return mean_diam
 end
 function average_spring_length(model)
-    spring_itr = (norm(model[i].pos - model[j].pos) for (i, j) in each_solid_edge(model.triangulation))
+    spring_itr = []
+    for (i, j) in each_solid_edge(model.triangulation)
+        push!(spring_itr, norm(get_point(model.triangulation, i) .- get_point(model.triangulation, j)))
+    end
     mean_spring = mean(spring_itr)
     return mean_spring
 end
@@ -359,8 +363,7 @@ resize_to_layout!(fig)
 fig
 
 voronoi_marker = (model, cell) -> begin
-    id = cell.id
-    verts = get_polygon_coordinates(model.tessellation, id)
+    verts = get_polygon_coordinates(model.tessellation, cell.index)
     return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
 end
 voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp)
