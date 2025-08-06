@@ -302,7 +302,7 @@ function initialize_cell_model(;
     space = ContinuousSpace(sides; periodic=false)
 
     # Define the model
-    model = StandardABM(Cell, space; model_step!, properties, container=Vector)
+    model = StandardABM(Cell, space; model_step!, properties)
 
     # Add the agents
     for (id, pos) in pairs(positions)
