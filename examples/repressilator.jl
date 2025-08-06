@@ -236,23 +236,19 @@ function proliferate_cells!(model, t)
     return true
 end
 
-function cull_cell!(model, i, t)
-    p = model[i]
-    elder = t - p.birth > max_age(p)
-    sick = rand() < model.dt * death_rate(p)
-    xmax, ymax = spacesize(model)
-    x, y = p.pos
-    distance_to_origin = norm(p.pos-SVector(xmax / 2, ymax / 2)) # distance to the center of the space
-    outside = distance_to_origin > 0.5 * min(xmax, ymax)
-    if elder || sick || outside
-        push!(model.dead_cells, i)
-        p.death = t
-    end
-    return model
-end
 function cull_cells!(model, t)
-    for i in each_solid_vertex(model.triangulation)
-        cull_cell!(model, i, t)
+    for p in allagents(model)
+        elder = t - p.birth > max_age(p)
+        sick = rand() < model.dt * death_rate(p)
+        xmax, ymax = spacesize(model)
+        x, y = p.pos
+        distance_to_origin = norm(p.pos-SVector(xmax / 2, ymax / 2))
+        outside = distance_to_origin > 0.5 * min(xmax, ymax)
+        if (elder || sick || outside) && !in(p.id, model.dead_cells)
+            remove_agent!(p.id, model)
+            push!(model.dead_cells, p.id)
+            p.death = t
+        end
     end
     return model
 end
