@@ -371,7 +371,7 @@ ax_count = Axis(count_layout[1, 1], xlabel="Time", ylabel="Count", width=600, he
 lines!(ax_count, t, ntotal, color=:black, label="Total", linewidth=3)
 vlines!(ax_count, current_time, color=:grey, linestyle=:dash, linewidth=3)
 xlims!(ax_count, 0, finalT)
-ylims!(ax_count, 0, 800)
+ylims!(ax_count, 0, 1200)
 avg_layout = plot_layout[2, 1] = GridLayout()
 ax_avg = Axis(avg_layout[1, 1], xlabel="Time", ylabel="Average", width=600, height=400)
 lines!(ax_avg, t, avg_area, color=:black, label="Cell area", linewidth=3)
@@ -380,7 +380,7 @@ lines!(ax_avg, t, avg_spring, color=:red, label="Spring length", linewidth=3)
 vlines!(ax_avg, current_time, color=:grey, linestyle=:dash, linewidth=3)
 axislegend(ax_avg, position=:rt)
 xlims!(ax_avg, 0, finalT)
-ylims!(ax_avg, 0, 2)
+ylims!(ax_avg, 0, 1)
 resize_to_layout!(fig)
 on(amobs.mdf) do mdf
     current_time[] = abmtime(amobs.model[]) * model.dt
