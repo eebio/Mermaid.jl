@@ -332,7 +332,7 @@ function average_spring_length(model)
     return mean_spring
 end
 
-finalT = 50.0
+finalT = 25.0
 model = initialize_cell_model()
 nsteps = Int(finalT / model.dt)
 mdata = [count_total,
@@ -362,7 +362,7 @@ ax_count = Axis(count_layout[1, 1], xlabel="Time", ylabel="Count", width=600, he
 lines!(ax_count, t, ntotal, color=:black, label="Total", linewidth=3)
 vlines!(ax_count, current_time, color=:grey, linestyle=:dash, linewidth=3)
 xlims!(ax_count, 0, finalT)
-ylims!(ax_count, 0, 1200)
+ylims!(ax_count, 0, 7000)
 avg_layout = plot_layout[2, 1] = GridLayout()
 ax_avg = Axis(avg_layout[1, 1], xlabel="Time", ylabel="Average", width=600, height=400)
 lines!(ax_avg, t, avg_area, color=:black, label="Cell area", linewidth=3)
@@ -384,4 +384,5 @@ end
 
 record(fig, "delaunay_model.mp4", 1:(nsteps÷10), framerate=24) do i
     step!(amobs, 10)
+    println("Time $(abmtime(amobs.model[])*model.dt). Number of cells: $(count_total(amobs.model[]))")
 end
