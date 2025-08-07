@@ -319,7 +319,7 @@ function animate_cells()
         avg_spring[] = mdf[!, :average_spring_length]
     end
 
-    record(fig, "delaunay_model.mp4", 1:(nsteps÷10), framerate=24) do i
+    record(fig, "examples/outputs/delaunay_model.mp4", 1:(nsteps÷10), framerate=24) do i
         step!(amobs, 10)
         println("Time $(abmtime(amobs.model[])*model.dt). Number of cells: $(count_total(amobs.model[]))")
     end
