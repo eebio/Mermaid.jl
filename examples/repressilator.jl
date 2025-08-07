@@ -144,7 +144,7 @@ function force(model, p::Cell, t)
     return F
 end
 
-tri2agent(model, p::Int) = first(filter(a -> a.index == p, collect(allagents(model))))
+tri2agent(model, p::Int) = model.triangulation.points[p]
 
 velocity(model, p::Cell, t) = force(model, p, t) / drag_coefficient(p)
 
