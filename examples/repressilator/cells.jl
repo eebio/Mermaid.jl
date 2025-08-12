@@ -175,7 +175,7 @@ function model_step!(model)
     stepn = abmtime(model)
     t = stepn * model.dt
     update_positions!(model, t)
-    cull_cells!(model, t)
+    #cull_cells!(model, t)
     proliferate_cells!(model, t)
     model.triangulation = retriangulate(model.triangulation, collect(allagents(model)))
     model.tessellation = voronoi(model.triangulation, clip=true)
