@@ -87,7 +87,7 @@ function CommonSolve.step!(compInt::DuplicatedComponentIntegrator)
             compInt.outputs[key][i] = getstate(compInt.integrator, newkey)
         end
         # Store the state for this instance
-        compInt.states[i] = getstate(compInt.integrator)
+        compInt.states[i] = getstate(compInt.integrator, copy=true)
     end
 end
 
