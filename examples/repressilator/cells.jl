@@ -22,7 +22,7 @@ DT.is_point2(::Cell) = true
 
 spring_constant(p, q) = 20.0 # μ
 heterotypic_spring_constant(p, q) = 1.0 # μₕₑₜ
-drag_coefficient(p) = 1 / 2 # η
+drag_coefficient(p) = 1.0 # η
 mature_cell_spring_rest_length(p, q) = 0.4 # s
 expansion_rate(p, q) = 0.05 * mature_cell_spring_rest_length(p, q) # ε
 cutoff_distance(p, q) = 1.5 # ℓₘₐₓ
