@@ -2,25 +2,26 @@ using Catalyst
 using DifferentialEquations, StochasticDiffEq
 using Plots
 
-function get_repressilator()
-    # Constants
-    eff = 20
-    n = 2
-    KM = 40
-    tau_mRNA = 2
-    tau_prot = 10
-    ps_a = 0.5
-    ps_0 = 5e-4
+# Constants
+eff = 20
+n = 2
+KM = 40
+tau_mRNA = 2
+tau_prot = 10
+ps_a = 0.5
+ps_0 = 5e-4
 
-    # Derived
-    t_ave = tau_mRNA / log(2)
-    beta = tau_mRNA / tau_prot
-    k_tl = eff / t_ave
-    a_tr = (ps_a - ps_0) * 60
-    a0_tr = ps_0 * 60
-    kd_prot = log(2) / tau_prot
-    kd_mRNA = log(2) / tau_mRNA
-    alpha = a_tr * eff * tau_prot / (KM * log(2))
+# Derived
+t_ave = tau_mRNA / log(2)
+beta = tau_mRNA / tau_prot
+k_tl = eff / t_ave
+a_tr = (ps_a - ps_0) * 60
+a0_tr = ps_0 * 60
+kd_prot = log(2) / tau_prot
+kd_mRNA = log(2) / tau_mRNA
+alpha = a_tr * eff * tau_prot / (KM * log(2))
+
+function get_repressilator()
 
     repressilator = @reaction_network repressilator begin
         hillr(P₃, a_tr, KM, n) + a0_tr, ∅ --> m₁
