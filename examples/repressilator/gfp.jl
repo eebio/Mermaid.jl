@@ -56,9 +56,9 @@ function plot_ode()
     prob = ode_repressilator()
     sol = solve(prob, Tsit5())
 
-    plot(sol, vars=[:gfp], xlabel="Time", ylabel="Concentration", label="gfp - Cell 1", title="Repressilator Protein Dynamics", linewidth=2)
+    Plots.plot(sol, vars=[:gfp], xlabel="Time", ylabel="Concentration", label="gfp - Cell 1", title="Repressilator Protein Dynamics", linewidth=2)
     sol = solve(prob, Tsit5())
-    display(plot!(sol, vars=[:gfp], label="gfp - Cell 2", linestyle=:dash, linewidth=2))
+    display(Plots.plot!(sol, vars=[:gfp], label="gfp - Cell 2", linestyle=:dash, linewidth=2))
 end
 
 function sde_repressilator()
@@ -70,7 +70,7 @@ function plot_sde()
     sde = sde_repressilator()
     sol_sde = solve(sde, EM(), dt=0.1)
 
-    plot(sol_sde, vars=[:gfp], xlabel="Time", ylabel="Concentration", label="gfp - Cell 1", title="Repressilator Protein Dynamics (Stochastic)", linewidth=2)
+    Plots.plot(sol_sde, vars=[:gfp], xlabel="Time", ylabel="Concentration", label="gfp - Cell 1", title="Repressilator Protein Dynamics (Stochastic)", linewidth=2)
     sol_sde = solve(sde, EM(), dt=0.1)
-    display(plot!(sol_sde, vars=[:gfp], label="gfp - Cell 2", linestyle=:dash, linewidth=2))
+    display(Plots.plot!(sol_sde, vars=[:gfp], label="gfp - Cell 2", linestyle=:dash, linewidth=2))
 end
