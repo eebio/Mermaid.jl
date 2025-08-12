@@ -103,6 +103,14 @@ function setstate!(merInt::MermaidIntegrator, key::ConnectedVariable, value)
     end
 end
 
+function getstate(int::ComponentIntegrator; copy=false)
+    if copy
+        return deepcopy(getstate(int))
+    else
+        return getstate(int)
+    end
+end
+
 """
     update_outputs!(compInt::ComponentIntegrator)
 
