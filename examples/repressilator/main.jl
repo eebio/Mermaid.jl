@@ -4,7 +4,7 @@ using StochasticDiffEq
 includet("gfp.jl")
 includet("cells.jl")
 
-maxt = 200.0
+maxt = 500.0
 
 repressilator = get_repressilator()
 sde = SDEProblem(repressilator, u0, tspan, ps)
