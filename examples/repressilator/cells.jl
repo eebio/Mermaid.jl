@@ -163,9 +163,8 @@ function cull_cells!(model, t)
         x, y = p.pos
         distance_to_origin = norm(p.pos - SVector(xmax / 2, ymax / 2))
         outside = distance_to_origin > 0.5 * min(xmax, ymax)
-        if (elder || sick || outside) && !in(p.id, model.dead_cells)
+        if (elder || sick || outside)
             remove_agent!(p.id, model)
-            push!(model.dead_cells, p.id)
             p.death = t
         end
     end
@@ -216,7 +215,6 @@ function initialize_cell_model(;
         :triangulation => triangulation,
         :tessellation => tessellation,
         :dt => dt,
-        :dead_cells => Set{Int}()
     )
 
     # Define the space
