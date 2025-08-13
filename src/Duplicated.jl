@@ -26,6 +26,7 @@ mutable struct DuplicatedComponentIntegrator <: ComponentIntegrator
     inputs::OrderedDict{ConnectedVariable,Any}
     states::Vector
     ids::Union{Vector,Nothing}
+    init_states::Dict
 end
 
 function CommonSolve.init(c::DuplicatedComponent, conns::Vector{Connector})
@@ -61,7 +62,7 @@ function CommonSolve.init(c::DuplicatedComponent, conns::Vector{Connector})
         end
     end
     # Create the DuplicatedComponentIntegrator
-    integrator = DuplicatedComponentIntegrator(integrator, c, outputs, inputs, states, ids)
+    integrator = DuplicatedComponentIntegrator(integrator, c, outputs, inputs, states, ids, Dict())
     return integrator
 end
 
@@ -81,15 +82,26 @@ function CommonSolve.step!(compInt::DuplicatedComponentIntegrator)
         # Get the outputs for this instance
         for key in keys(compInt.outputs)
             newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
-            compInt.outputs[key][i] = getstate(compInt.integrator, newkey)
+            if key.variable ∉ ["#init_states", "#states", "#ids"]
+                compInt.outputs[key][i] = getstate(compInt.integrator, newkey)
+            end
         end
         # Store the state for this instance
         compInt.states[i] = getstate(compInt.integrator, copy=true)
     end
+    for key in keys(compInt.outputs)
+        if key.variable ∈ ["#init_states", "#states", "#ids"]
+            compInt.outputs[key] = getstate(compInt, key)
+        end
+    end
 end
 
 function getstate(compInt::DuplicatedComponentIntegrator, key)
-    if key.variable == "#ids"
+    if key.variable == "#init_states"
+        return compInt.init_states
+    elseif key.variable == "#states"
+        return compInt.states
+    elseif key.variable == "#ids"
         return compInt.ids
     end
     out = Vector{Any}(nothing, length(compInt.ids))
@@ -107,13 +119,25 @@ function getstate(compInt::DuplicatedComponentIntegrator, key)
 end
 
 function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
-    if key.variable == "#ids"
+    if key.variable == "#init_states"
+        # Set the initial states for the component
+        compInt.init_states = value
+        return nothing
+    elseif key.variable == "#states"
+        compInt.states = value
+        return nothing
+    elseif key.variable == "#ids"
         # Add any new states, remove any old states, and then set the ids vector
         states = similar(compInt.states, size(value))
         for i in eachindex(value)
             id = value[i]
             if id ∉ compInt.ids
-                states[i] = deepcopy(compInt.component.default_state)
+                if id ∈ keys(compInt.init_states)
+                    states[i] = deepcopy(compInt.init_states[id])
+                else
+                    # If no initial state is provided, use the default state
+                    states[i] = deepcopy(compInt.component.default_state)
+                end
             else
                 states[i] = compInt.states[findfirst(==(id), compInt.ids)]
             end
