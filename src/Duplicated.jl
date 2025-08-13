@@ -121,10 +121,14 @@ function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
         compInt.ids = value
         compInt.states = states
         for key in keys(compInt.outputs)
-            resize!(compInt.outputs[key], length(compInt.ids))
+            if compInt.outputs[key] isa AbstractVector
+                resize!(compInt.outputs[key], length(compInt.ids))
+            end
         end
         for key in keys(compInt.inputs)
-            resize!(compInt.inputs[key], length(compInt.ids))
+            if compInt.inputs[key] isa AbstractVector
+                resize!(compInt.inputs[key], length(compInt.ids))
+            end
         end
         return nothing
     end
