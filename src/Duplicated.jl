@@ -29,7 +29,7 @@ mutable struct DuplicatedComponentIntegrator <: ComponentIntegrator
 end
 
 function CommonSolve.init(c::DuplicatedComponent, conns::Vector{Connector})
-    integrator = init(c.component, conns)
+    integrator = init(c.component, Vector{Connector}())
     states = deepcopy(c.initial_states)
     ids = isnothing(c.instances) ? [] : 1:c.instances
 
@@ -60,9 +60,6 @@ function CommonSolve.init(c::DuplicatedComponent, conns::Vector{Connector})
             end
         end
     end
-    # Letting the internal integrator have inputs and outputs will break our setstate!
-    integrator.inputs = Dict{ConnectedVariable, Any}()
-    integrator.outputs = Dict{ConnectedVariable, Any}()
     # Create the DuplicatedComponentIntegrator
     integrator = DuplicatedComponentIntegrator(integrator, c, outputs, inputs, states, ids)
     return integrator
