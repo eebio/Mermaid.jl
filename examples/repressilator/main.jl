@@ -89,9 +89,31 @@ conn3 = Connector(
     func=(model) -> plot_input(model)
 )
 
+function set_initial_states!(states, ids, model) # Do mutating functions work in Mermaid connectors?
+    # init_states is returned, states is mutated
+    init_states = Dict{Int,Vector{Float64}}()
+    for id in allids(model)
+        if id ∉ ids
+            # New cell, so either divided or freshing created at start of simulation
+            parent = model[id].parent
+            if !isnothing(parent)
+                states[ids .== parent.id] = states[ids .== parent.id] ./ 2
+                init_states[id] = first(deepcopy(states[ids .== parent.id]))
+            end
+        end
+    end
+    return init_states
+end
+
+conn4 = Connector(
+    inputs=["repressilator.#states", "repressilator.#ids", "cells.#model"],
+    outputs=["repressilator.#init_states"],
+    func = set_initial_states!
+)
+
 mp = MermaidProblem(
     components=[dup, abm],
-    connectors=[conn1, conn2, conn3],
+    connectors=[conn4, conn1, conn2, conn3],
     max_t=maxt,
 )
 
