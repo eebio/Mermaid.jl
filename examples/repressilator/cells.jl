@@ -12,6 +12,7 @@ const DT = DelaunayTriangulation
     const birth::Float64
     death::Float64 = Inf
     index::Int = typemin(Int)
+    const parent::Union{Cell, Nothing} = nothing
 end
 
 DT.getx(cell::Cell) = cell.pos[1]
@@ -141,7 +142,7 @@ end
 function place_daughter_cell!(model, i, t)
     parent = model[i]
     daughter = sample_voronoi_cell(model.tessellation, parent.index) # this is an SVector, not a Cell
-    add_agent!(daughter, model; birth=t, gfp=parent.gfp, vel=SVector(0.0, 0.0)) # HERE we want the cell to be nearby, not sure this does it? maybe daughter is a nearby position
+    add_agent!(daughter, model; birth=t, gfp=parent.gfp, vel=SVector(0.0, 0.0), parent=parent) # HERE we want the cell to be nearby, not sure this does it? maybe daughter is a nearby position
     return daughter
 end
 function proliferate_cells!(model, t)
