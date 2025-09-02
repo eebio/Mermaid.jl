@@ -13,6 +13,7 @@ const DT = DelaunayTriangulation
     death::Float64 = Inf
     index::Int = typemin(Int)
     const parent::Union{Cell, Nothing} = nothing
+    nutrients::Float64 = 0.0
 end
 
 DT.getx(cell::Cell) = cell.pos[1]
@@ -27,7 +28,7 @@ drag_coefficient(p) = 1.0 # η
 mature_cell_spring_rest_length(p, q) = 0.4 # s
 expansion_rate(p, q) = 0.05 * mature_cell_spring_rest_length(p, q) # ε
 cutoff_distance(p, q) = 1.5 # ℓₘₐₓ
-intrinsic_proliferation_rate(p) = 0.01 # β
+intrinsic_proliferation_rate(p) = 0.05 # β
 carrying_capacity_density(p) = 100.0^2 # K
 max_age(p) = 10.0 # dₘₐₓ
 min_division_age(p) = 15.0 # tₘᵢₙ
@@ -62,7 +63,7 @@ function proliferation_rate(model, i::Int, t)
     Aᵢ = get_area(vorn, p.index)
     β = intrinsic_proliferation_rate(p)
     K = carrying_capacity_density(p)
-    return max(0.0, β * (1 - 1 / (K * Aᵢ)))
+    return max(0.0, β * (1 - 1 / (K * Aᵢ)) * p.nutrients)
 end
 
 function force(model, p, q, t)
@@ -172,10 +173,32 @@ function cull_cells!(model, t)
     return model
 end
 
+function update_nutrients!(model, t)
+    # Clear previous nutrients
+    for p in allagents(model)
+        ind = get_spatial_index(p.pos, model.nutrients, model)
+        p.nutrients = model.nutrients[ind]
+        model.nutrients[ind] -= 0.0003
+    end
+    # Diffuse nutrients
+    tmp = copy(model.nutrients)
+    for x in 2:size(model.nutrients, 1)-1, y in 2:size(model.nutrients, 2)-1
+        tmp[x,y] = 0.99*model.nutrients[x,y] + 0.01*(sum(model.nutrients[x-1:x+1,y-1:y+1]) - model.nutrients[x,y]) / 8
+    end
+    model.nutrients = tmp
+    # Cap cell nutrients at 0
+    for p in allagents(model)
+        p.nutrients = max(p.nutrients, 0.0)
+        p.nutrients = min(p.nutrients, 1.0)
+    end
+    return model
+end
+
 function model_step!(model)
     stepn = abmtime(model)
     t = stepn * model.dt
     update_positions!(model, t)
+    update_nutrients!(model, t)
     #cull_cells!(model, t)
     proliferate_cells!(model, t)
     model.triangulation = retriangulate(model.triangulation, collect(allagents(model)))
@@ -216,6 +239,7 @@ function initialize_cell_model(;
         :triangulation => triangulation,
         :tessellation => tessellation,
         :dt => dt,
+        :nutrients => ones(100,100),
     )
 
     # Define the space

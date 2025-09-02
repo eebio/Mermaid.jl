@@ -4,7 +4,7 @@ using StochasticDiffEq
 includet("gfp.jl")
 includet("cells.jl")
 
-maxt = 600.0
+maxt = 250.0
 
 repressilator = get_repressilator()
 sde = SDEProblem(repressilator, u0, tspan, ps)
@@ -44,7 +44,7 @@ end
 voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp / 1000.0)
 fig, ax = abmplot(agents, agent_marker=cell -> voronoi_marker(agents, cell), agent_color=voronoi_color,
     agentsplotkwargs=(strokewidth=1,), figure=(; size=(1600, 800), fontsize=34),
-    axis=(; width=800, height=800))
+    axis=(; width=800, height=800), heatarray=:nutrients, heatkwargs=(colorrange=(0.0, 1.0),))
 t = [0.0]
 gfp1 = [agents[1].gfp]
 gfp2 = [agents[2].gfp]
@@ -69,7 +69,7 @@ function plot_input(model)
         empty!(ax_1)
         empty!(ax_2)
         abmplot!(ax, model; agent_marker=cell -> voronoi_marker(model, cell), agent_color=voronoi_color,
-            agentsplotkwargs=(strokewidth=1,))
+            agentsplotkwargs=(strokewidth=1,), heatarray=:nutrients, heatkwargs=(colorrange=(0.0, 1.0),))
         push!(t, abmtime(model) * model.dt)
         push!(gfp1, model[1].gfp)
         push!(gfp2, model[2].gfp)
