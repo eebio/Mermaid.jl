@@ -13,7 +13,7 @@ const DT = DelaunayTriangulation
     death::Float64 = Inf
     index::Int = typemin(Int)
     const parent::Union{Cell, Nothing} = nothing
-    nutrients::Float64 = 0.0
+    growth::Float64 = 0.0
 end
 
 DT.getx(cell::Cell) = cell.pos[1]
@@ -63,7 +63,7 @@ function proliferation_rate(model, i::Int, t)
     Aᵢ = get_area(vorn, p.index)
     β = intrinsic_proliferation_rate(p)
     K = carrying_capacity_density(p)
-    return max(0.0, β * (1 - 1 / (K * Aᵢ)) * p.nutrients)
+    return max(0.0, β * (1 - 1 / (K * Aᵢ)) * p.growth)
 end
 
 function force(model, p, q, t)
@@ -174,10 +174,10 @@ function cull_cells!(model, t)
 end
 
 function update_nutrients!(model, t)
-    # Clear previous nutrients
+    # Clear previous growth
     for p in allagents(model)
         ind = get_spatial_index(p.pos, model.nutrients, model)
-        p.nutrients = model.nutrients[ind]
+        p.growth = model.nutrients[ind]
         model.nutrients[ind] -= 0.0003
     end
     # Diffuse nutrients
@@ -188,8 +188,8 @@ function update_nutrients!(model, t)
     model.nutrients = tmp
     # Cap cell nutrients at 0
     for p in allagents(model)
-        p.nutrients = max(p.nutrients, 0.0)
-        p.nutrients = min(p.nutrients, 1.0)
+        p.growth = max(p.growth, 0.0)
+        p.growth = min(p.growth, 1.0)
     end
     return model
 end

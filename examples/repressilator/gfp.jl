@@ -23,28 +23,29 @@ alpha = a_tr * eff * tau_prot / (KM * log(2))
 
 function get_repressilator()
 
-    repressilator = @reaction_network repressilator begin
-        hillr(P₃, a_tr, KM, n) + a0_tr, ∅ --> m₁
-        hillr(P₁, a_tr, KM, n) + a0_tr, ∅ --> m₂
-        hillr(P₂, a_tr, KM, n) + a0_tr, ∅ --> m₃
-        kd_mRNA, m₁ --> ∅
-        kd_mRNA, m₂ --> ∅
-        kd_mRNA, m₃ --> ∅
-        k_tl, m₁ --> m₁ + P₁
-        k_tl, m₂ --> m₂ + P₂
-        k_tl, m₃ --> m₃ + P₃
-        kd_prot, P₁ --> ∅
-        kd_prot, P₂ --> ∅
-        kd_prot, P₃ --> ∅
-        hillr(P₁, a_tr, KM, n) + a0_tr, ∅ --> m_gfp
-        kd_mRNA, m_gfp --> ∅
-        k_tl, m_gfp --> m_gfp + gfp
-        kd_prot, gfp --> ∅
+    repressilator = @reaction_network begin
+        @species gr(t)
+        gr*(hillr(P₃, a_tr, KM, n) + a0_tr), ∅ --> m₁
+        gr*(hillr(P₁, a_tr, KM, n) + a0_tr), ∅ --> m₂
+        gr*(hillr(P₂, a_tr, KM, n) + a0_tr), ∅ --> m₃
+        gr*kd_mRNA, m₁ --> ∅
+        gr*kd_mRNA, m₂ --> ∅
+        gr*kd_mRNA, m₃ --> ∅
+        gr*k_tl, m₁ --> m₁ + P₁
+        gr*k_tl, m₂ --> m₂ + P₂
+        gr*k_tl, m₃ --> m₃ + P₃
+        gr*kd_prot, P₁ --> ∅
+        gr*kd_prot, P₂ --> ∅
+        gr*kd_prot, P₃ --> ∅
+        gr*(hillr(P₁, a_tr, KM, n) + a0_tr), ∅ --> m_gfp
+        gr*kd_mRNA, m_gfp --> ∅
+        gr*k_tl, m_gfp --> m_gfp + gfp
+        gr*kd_prot, gfp --> ∅
     end
     return repressilator
 end
 
-u0 = [:P₁ => 150.0, :P₂ => 140.0, :P₃ => 130.0, :m₁ => 10.0, :m₂ => 12.0, :m₃ => 11.0, :m_gfp => 0.0, :gfp => 0.0]
+u0 = [:P₁ => 150.0, :P₂ => 140.0, :P₃ => 130.0, :m₁ => 10.0, :m₂ => 12.0, :m₃ => 11.0, :m_gfp => 0.0, :gfp => 0.0, :gr => 1.0]
 tspan = (0., 1500.)
 ps = [:k_tl => k_tl, :KM => KM, :a0_tr => a0_tr, :a_tr => a_tr, :kd_prot => kd_prot, :n => n, :kd_mRNA => kd_mRNA]
 

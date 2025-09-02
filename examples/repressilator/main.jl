@@ -4,20 +4,21 @@ using StochasticDiffEq
 includet("gfp.jl")
 includet("cells.jl")
 
-maxt = 250.0
+maxt = 300.0
 
 repressilator = get_repressilator()
 sde = SDEProblem(repressilator, u0, tspan, ps)
 
 agents = initialize_cell_model()
 
-rep = DEComponent(model=sde, name="repressilator", state_names=Dict("gfp" => repressilator.gfp),
+rep = DEComponent(model=sde, name="repressilator", state_names=Dict("gfp" => repressilator.gfp,
+    "growth_rate" => repressilator.gr),
     alg=EM(), time_step=agents.dt)
 
 abm = AgentsComponent(
     model=agents,
     name="cells",
-    state_names=Dict("gfp" => :gfp),
+    state_names=Dict("gfp" => :gfp, "growth" => :growth),
     time_step=agents.dt
 )
 
@@ -45,22 +46,33 @@ voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp / 1000.0)
 fig, ax = abmplot(agents, agent_marker=cell -> voronoi_marker(agents, cell), agent_color=voronoi_color,
     agentsplotkwargs=(strokewidth=1,), figure=(; size=(1600, 800), fontsize=34),
     axis=(; width=800, height=800), heatarray=:nutrients, heatkwargs=(colorrange=(0.0, 1.0),))
+abmplot!(ax, agents; agent_marker=:xcross, agent_color=:red, agent_size=cell -> cell.id ∈ [1, 2] ? 10 : 0)
 t = [0.0]
 gfp1 = [agents[1].gfp]
 gfp2 = [agents[2].gfp]
+nut1 = [agents[1].growth]
+nut2 = [agents[2].growth]
 plot_layout = fig[:, end+1] = GridLayout()
 gfp1_layout = plot_layout[1, 1] = GridLayout()
 ax_1 = Axis(gfp1_layout[1, 1], xlabel="Time", ylabel="GFP 1", width=600, height=400)
+ax_1_2 = Axis(gfp1_layout[1, 1], ylabel="Nutrients 1", yaxisposition=:right, yticklabelcolor=:blue)
 lines!(ax_1, t, gfp1, color=:black, label="Total", linewidth=3)
+lines!(ax_1_2, t, nut1, color=:blue, label="Nutrients", linewidth=3)
 vlines!(ax_1, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_1, 0, maxt)
 Makie.ylims!(ax_1, 0, 7000)
+Makie.xlims!(ax_1_2, 0, maxt)
+Makie.ylims!(ax_1_2, 0, 1.0)
 gfp2_layout = plot_layout[2, 1] = GridLayout()
 ax_2 = Axis(gfp2_layout[1, 1], xlabel="Time", ylabel="GFP 2", width=600, height=400)
+ax_2_2 = Axis(gfp2_layout[1, 1], ylabel="Nutrients 2", yaxisposition=:right, yticklabelcolor=:blue)
 lines!(ax_2, t, gfp2, color=:black, label="Total", linewidth=3)
+lines!(ax_2_2, t, nut2, color=:blue, label="Nutrients", linewidth=3)
 vlines!(ax_2, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_2, 0, maxt)
 Makie.ylims!(ax_2, 0, 7000)
+Makie.xlims!(ax_2_2, 0, maxt)
+Makie.ylims!(ax_2_2, 0, 1.0)
 resize_to_layout!(fig)
 io = VideoStream(fig; framerate=20)
 function plot_input(model)
@@ -68,15 +80,22 @@ function plot_input(model)
         empty!(ax)
         empty!(ax_1)
         empty!(ax_2)
+        empty!(ax_1_2)
+        empty!(ax_2_2)
         abmplot!(ax, model; agent_marker=cell -> voronoi_marker(model, cell), agent_color=voronoi_color,
             agentsplotkwargs=(strokewidth=1,), heatarray=:nutrients, heatkwargs=(colorrange=(0.0, 1.0),))
+        abmplot!(ax, model; agent_marker=:xcross, agent_color=:red, agent_size= cell->cell.id ∈ [1,2] ? 10 : 0)
         push!(t, abmtime(model) * model.dt)
         push!(gfp1, model[1].gfp)
         push!(gfp2, model[2].gfp)
+        push!(nut1, model[1].growth)
+        push!(nut2, model[2].growth)
         lines!(ax_1, t, gfp1, color=:black, label="Total", linewidth=3)
+        lines!(ax_1_2, t, nut1, color=:blue, label="Nutrients", linewidth=3)
         vlines!(ax_1, t[end], color=:grey, linestyle=:dash, linewidth=3)
         lines!(ax_2, t, gfp2, color=:black, label="Total", linewidth=3)
-        vlines!(ax_2, t[end]    , color=:grey, linestyle=:dash, linewidth=3)
+        lines!(ax_2_2, t, nut2, color=:blue, label="Nutrients", linewidth=3)
+        vlines!(ax_2, t[end], color=:grey, linestyle=:dash, linewidth=3)
         recordframe!(io)
         @show abmtime(model) * model.dt
         @show nagents(model)
@@ -111,9 +130,14 @@ conn4 = Connector(
     func = set_initial_states!
 )
 
+conn5 = Connector(
+    inputs=["cells.growth"],
+    outputs=["repressilator.growth_rate"],
+)
+
 mp = MermaidProblem(
     components=[dup, abm],
-    connectors=[conn4, conn1, conn2, conn3],
+    connectors=[conn4, conn1, conn2, conn3, conn5],
     max_t=maxt,
 )
 
