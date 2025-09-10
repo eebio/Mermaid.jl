@@ -151,7 +151,8 @@ function update_inputs!(mermaidInt::MermaidIntegrator)
             if index !== nothing
                 integrator = mermaidInt.integrators[index]
                 # Get the value of the input from the integrator
-                push!(inputs, integrator.outputs[input])
+                #push!(inputs, integrator.outputs[input])
+                push!(inputs, getstate(integrator, input))
             end
         end
         if isnothing(conn.func)
@@ -171,6 +172,7 @@ function update_inputs!(mermaidInt::MermaidIntegrator)
                 integrator = mermaidInt.integrators[index]
                 # Set the input value for the integrator
                 integrator.inputs[output] = outputs
+                setstate!(integrator, output, outputs)
             end
         end
     end
