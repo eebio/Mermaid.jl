@@ -13,7 +13,9 @@ const DT = DelaunayTriangulation
     death::Float64 = Inf
     index::Int = typemin(Int)
     const parent::Union{Cell, Nothing} = nothing
-    growth::Float64 = 0.0
+    nut_import_rate::Float64 = 0.0
+    nuts::Float64
+    size::Float64
 end
 
 DT.getx(cell::Cell) = cell.pos[1]
@@ -25,7 +27,7 @@ DT.is_point2(::Cell) = true
 spring_constant(p, q) = 20.0 # μ
 heterotypic_spring_constant(p, q) = 1.0 # μₕₑₜ
 drag_coefficient(p) = 1.0 # η
-mature_cell_spring_rest_length(p, q) = 0.4 # s
+mature_cell_spring_rest_length(p, q) = p.size + q.size # s
 expansion_rate(p, q) = 0.05 * mature_cell_spring_rest_length(p, q) # ε
 cutoff_distance(p, q) = 1.5 # ℓₘₐₓ
 intrinsic_proliferation_rate(p) = 0.05 # β
@@ -45,25 +47,11 @@ end
 
 rest_length(model, i::Int, j::Int, t) = rest_length(model, model[i], model[j]..., t)
 function rest_length(model, p, q, t)
-    s = mature_cell_spring_rest_length(p, q)
-    ε = expansion_rate(p, q)
-    return min(s, (s - ε) * t + ε)
+    return mature_cell_spring_rest_length(p, q) * 0.4
 end
 
 function proliferation_rate(model, i::Int, t)
-    p = model[i]
-    age = t - p.birth
-    tₘᵢₙ = min_division_age(p)
-    tₘₐₓ = max_division_age(p)
-    A = get_area(model.tessellation, p.index)
-    if age ≤ tₘᵢₙ || age ≥ tₘₐₓ || A < min_area(p)
-        return 0.0
-    end
-    vorn = model.tessellation
-    Aᵢ = get_area(vorn, p.index)
-    β = intrinsic_proliferation_rate(p)
-    K = carrying_capacity_density(p)
-    return max(0.0, β * (1 - 1 / (K * Aᵢ)) * p.growth)
+    return model[i].size ^ 30
 end
 
 function force(model, p, q, t)
@@ -143,7 +131,7 @@ end
 function place_daughter_cell!(model, i, t)
     parent = model[i]
     daughter = sample_voronoi_cell(model.tessellation, parent.index) # this is an SVector, not a Cell
-    add_agent!(daughter, model; birth=t, gfp=parent.gfp, vel=SVector(0.0, 0.0), parent=parent) # HERE we want the cell to be nearby, not sure this does it? maybe daughter is a nearby position
+    add_agent!(daughter, model; birth=t, gfp=parent.gfp, vel=SVector(0.0, 0.0), parent=parent, size=parent.size/2, nuts=parent.nuts)
     return daughter
 end
 function proliferate_cells!(model, t)
@@ -152,6 +140,7 @@ function proliferate_cells!(model, t)
         u = rand()
         if u < Gᵢ * model.dt
             place_daughter_cell!(model, p.id, t)
+            p.size /= 2
         end
     end
     return true
@@ -176,21 +165,23 @@ end
 function update_nutrients!(model, t)
     # Clear previous growth
     for p in allagents(model)
-        ind = get_spatial_index(p.pos, model.nutrients, model)
-        p.growth = model.nutrients[ind]
-        model.nutrients[ind] -= 0.0003
+        # Get the triangle of that voronoi cell
+        num_sample_points = 20
+        points = [sample_voronoi_cell(model.tessellation, p.index) for _ in 1:num_sample_points]
+        inds = [get_spatial_index(point, model.nutrients, model) for point in points]
+        # Points will be duplicated if they are closer to the centre of the cell
+        p.nuts = mean(model.nutrients[inds])
+        for ind in inds
+            model.nutrients[ind] -= p.nut_import_rate * model.dt/num_sample_points
+            model.nutrients[ind] = max(0, model.nutrients[ind])
+        end
     end
     # Diffuse nutrients
     tmp = copy(model.nutrients)
     for x in 2:size(model.nutrients, 1)-1, y in 2:size(model.nutrients, 2)-1
-        tmp[x,y] = 0.99*model.nutrients[x,y] + 0.01*(sum(model.nutrients[x-1:x+1,y-1:y+1]) - model.nutrients[x,y]) / 8
+        tmp[x,y] = max(0, 0.99*model.nutrients[x,y] + 0.01*(sum(model.nutrients[x-1:x+1,y-1:y+1]) - model.nutrients[x,y]) / 8)
     end
     model.nutrients = tmp
-    # Cap cell nutrients at 0
-    for p in allagents(model)
-        p.growth = max(p.growth, 0.0)
-        p.growth = min(p.growth, 1.0)
-    end
     return model
 end
 
@@ -226,7 +217,7 @@ function initialize_cell_model(;
         r = radius * sqrt(rand())
         pos = cent + SVector(r * cos(θ), r * sin(θ))
         cell = Cell(; id=i, pos=pos,
-            birth=0.0, gfp=rand(), vel=SVector(0.0, 0.0))
+            birth=0.0, gfp=rand(), vel=SVector(0.0, 0.0), nuts=1.0, size=1.0)
     end
     positions = [cell.pos for cell in cells]
 
@@ -250,7 +241,7 @@ function initialize_cell_model(;
 
     # Add the agents
     for (id, pos) in pairs(positions)
-        add_agent!(pos, model; birth=0.0, gfp=rand(), vel=SVector(0.0, 0.0), index=id)
+        add_agent!(pos, model; birth=0.0, gfp=rand(), vel=SVector(0.0, 0.0), index=id, nuts=1.0, size=1.0)
     end
 
     return model
