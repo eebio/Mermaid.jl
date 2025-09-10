@@ -3,13 +3,22 @@ using StochasticDiffEq
 
 includet("gfp.jl")
 includet("cells.jl")
+includet("growth.jl")
 
-maxt = 300.0
+using Random
+Random.seed!(1234)
 
-repressilator = get_repressilator()
-sde = SDEProblem(repressilator, u0, tspan, ps)
+using .Repressilator
+
+maxt = 5.0
+
+repressilator = Repressilator.repressilator
+sde = SDEProblem(repressilator, Repressilator.u0, Repressilator.tspan, Repressilator.ps)
 
 agents = initialize_cell_model()
+
+growth = ode_growth()
+g_model = get_growth_model()
 
 rep = DEComponent(model=sde, name="repressilator", state_names=Dict("gfp" => repressilator.gfp,
     "growth_rate" => repressilator.gr),
@@ -18,22 +27,36 @@ rep = DEComponent(model=sde, name="repressilator", state_names=Dict("gfp" => rep
 abm = AgentsComponent(
     model=agents,
     name="cells",
-    state_names=Dict("gfp" => :gfp, "growth" => :growth),
+    state_names=Dict("gfp" => :gfp, "size" => :size, "nutrients" => :nuts, "nut_import_rate" => :nut_import_rate),
     time_step=agents.dt
 )
 
-dup = DuplicatedComponent(
+gro = DEComponent(model=growth, name="growth", state_names=Dict("s" => g_model.s, "λ" => g_model.λ, "mass" => g_model.M, "import" => g_model.ν_imp),
+    alg=Tsit5(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u)))
+
+dup_r = DuplicatedComponent(
     component=rep,
     default_state=sde.u0,
     initial_states=[],
 )
 
-conn1 = Connector(
+dup_g = DuplicatedComponent(
+    component=gro,
+    default_state=growth.u0,
+    initial_states=[],
+)
+
+conn_ids_1 = Connector(
     inputs=["cells.#ids"],
     outputs=["repressilator.#ids"],
 )
 
-conn2 = Connector(
+conn_ids_2 = Connector(
+    inputs=["cells.#ids"],
+    outputs=["growth.#ids"]
+)
+
+conn_gfp = Connector(
     inputs=["repressilator.gfp"],
     outputs=["cells.gfp"],
 )
@@ -50,14 +73,14 @@ abmplot!(ax, agents; agent_marker=:xcross, agent_color=:red, agent_size=cell -> 
 t = [0.0]
 gfp1 = [agents[1].gfp]
 gfp2 = [agents[2].gfp]
-nut1 = [agents[1].growth]
-nut2 = [agents[2].growth]
+nut1 = [agents[1].size]
+nut2 = [agents[2].size]
 plot_layout = fig[:, end+1] = GridLayout()
 gfp1_layout = plot_layout[1, 1] = GridLayout()
 ax_1 = Axis(gfp1_layout[1, 1], xlabel="Time", ylabel="GFP 1", width=600, height=400)
-ax_1_2 = Axis(gfp1_layout[1, 1], ylabel="Nutrients 1", yaxisposition=:right, yticklabelcolor=:blue)
+ax_1_2 = Axis(gfp1_layout[1, 1], ylabel="size 1", yaxisposition=:right, yticklabelcolor=:blue)
 lines!(ax_1, t, gfp1, color=:black, label="Total", linewidth=3)
-lines!(ax_1_2, t, nut1, color=:blue, label="Nutrients", linewidth=3)
+lines!(ax_1_2, t, nut1, color=:blue, label="size", linewidth=3)
 vlines!(ax_1, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_1, 0, maxt)
 Makie.ylims!(ax_1, 0, 7000)
@@ -65,9 +88,9 @@ Makie.xlims!(ax_1_2, 0, maxt)
 Makie.ylims!(ax_1_2, 0, 1.0)
 gfp2_layout = plot_layout[2, 1] = GridLayout()
 ax_2 = Axis(gfp2_layout[1, 1], xlabel="Time", ylabel="GFP 2", width=600, height=400)
-ax_2_2 = Axis(gfp2_layout[1, 1], ylabel="Nutrients 2", yaxisposition=:right, yticklabelcolor=:blue)
+ax_2_2 = Axis(gfp2_layout[1, 1], ylabel="size 2", yaxisposition=:right, yticklabelcolor=:blue)
 lines!(ax_2, t, gfp2, color=:black, label="Total", linewidth=3)
-lines!(ax_2_2, t, nut2, color=:blue, label="Nutrients", linewidth=3)
+lines!(ax_2_2, t, nut2, color=:blue, label="size", linewidth=3)
 vlines!(ax_2, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_2, 0, maxt)
 Makie.ylims!(ax_2, 0, 7000)
@@ -76,7 +99,12 @@ Makie.ylims!(ax_2_2, 0, 1.0)
 resize_to_layout!(fig)
 io = VideoStream(fig; framerate=20)
 function plot_input(model)
-    if abmtime(model) % 100 == 0
+    push!(t, abmtime(model) * model.dt)
+    push!(gfp1, model[1].gfp)
+    push!(gfp2, model[2].gfp)
+    push!(nut1, model[1].size)
+    push!(nut2, model[2].size)
+    if abmtime(model) % 10 == 0
         empty!(ax)
         empty!(ax_1)
         empty!(ax_2)
@@ -85,16 +113,11 @@ function plot_input(model)
         abmplot!(ax, model; agent_marker=cell -> voronoi_marker(model, cell), agent_color=voronoi_color,
             agentsplotkwargs=(strokewidth=1,), heatarray=:nutrients, heatkwargs=(colorrange=(0.0, 1.0),))
         abmplot!(ax, model; agent_marker=:xcross, agent_color=:red, agent_size= cell->cell.id ∈ [1,2] ? 10 : 0)
-        push!(t, abmtime(model) * model.dt)
-        push!(gfp1, model[1].gfp)
-        push!(gfp2, model[2].gfp)
-        push!(nut1, model[1].growth)
-        push!(nut2, model[2].growth)
         lines!(ax_1, t, gfp1, color=:black, label="Total", linewidth=3)
-        lines!(ax_1_2, t, nut1, color=:blue, label="Nutrients", linewidth=3)
+        lines!(ax_1_2, t, nut1, color=:blue, label="size", linewidth=3)
         vlines!(ax_1, t[end], color=:grey, linestyle=:dash, linewidth=3)
         lines!(ax_2, t, gfp2, color=:black, label="Total", linewidth=3)
-        lines!(ax_2_2, t, nut2, color=:blue, label="Nutrients", linewidth=3)
+        lines!(ax_2_2, t, nut2, color=:blue, label="size", linewidth=3)
         vlines!(ax_2, t[end], color=:grey, linestyle=:dash, linewidth=3)
         recordframe!(io)
         @show abmtime(model) * model.dt
@@ -102,7 +125,7 @@ function plot_input(model)
     end
 end
 
-conn3 = Connector(
+conn_plot = Connector(
     inputs=["cells.#model"],
     outputs=Vector{String}(),
     func=(model) -> plot_input(model)
@@ -124,20 +147,44 @@ function set_initial_states!(states, ids, model) # Do mutating functions work in
     return init_states
 end
 
-conn4 = Connector(
+conn_init_states_rep = Connector(
     inputs=["repressilator.#states", "repressilator.#ids", "cells.#model"],
     outputs=["repressilator.#init_states"],
     func = set_initial_states!
 )
 
-conn5 = Connector(
-    inputs=["cells.growth"],
+conn_init_states_growth = Connector(
+    inputs=["growth.#states", "growth.#ids", "cells.#model"],
+    outputs=["growth.#init_states"],
+    func=set_initial_states!
+)
+
+conn_gr = Connector(
+    inputs=["growth.λ"],
     outputs=["repressilator.growth_rate"],
 )
 
+conn_size = Connector(
+    inputs=["growth.mass"],
+    outputs=["cells.size"],
+    func = (M) -> (M ./ 1e8).^(1/3)
+)
+
+conn_nuts = Connector(
+    inputs=["cells.nutrients"],
+    outputs=["growth.s"],
+    func = (nutrients) -> nutrients .* 1e4,
+)
+
+conn_nuts_imp = Connector(
+    inputs=["growth.import"],
+    outputs=["cells.nut_import_rate"],
+    func = (imp) -> imp ./ 1e7, # Scaling is arbitrary
+)
+
 mp = MermaidProblem(
-    components=[dup, abm],
-    connectors=[conn4, conn1, conn2, conn3, conn5],
+    components=[dup_g, dup_r, abm], # TODO get awkward error when repressilator is run before growth
+    connectors=[conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp, conn_gr, conn_size, conn_nuts, conn_nuts_imp, conn_plot],
     max_t=maxt,
 )
 
