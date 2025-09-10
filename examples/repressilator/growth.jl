@@ -33,8 +33,8 @@ nₛ = 1
 function get_growth_model()
 
     growth = @reaction_network begin
-        @species s
-        @parameters s γ_max νₜ_max νₘ_max wᵣ_max wₕ_max θₜ θₘ θₕ θᵣ k Mₛ Kᵧ Kₜ Kₘ Kₕ wₘ_max wₜ_max dₘ hₕ nᵣ nₕ nₜ nₘ kᵤ nₛ
+        @species s(t)
+        @parameters γ_max νₜ_max νₘ_max wᵣ_max wₕ_max θₜ θₘ θₕ θᵣ k Mₛ Kᵧ Kₜ Kₘ Kₕ wₘ_max wₜ_max dₘ hₕ nᵣ nₕ nₜ nₘ kᵤ nₛ
         # Mass action reactions
         (wᵣ, λ + dₘ), ∅ <--> mᵣ
         (wₜ, λ + dₘ), ∅ <--> mₜ
