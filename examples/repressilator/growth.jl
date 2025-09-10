@@ -76,7 +76,8 @@ end
 
 u0 = [:mᵣ => 0.0, :mₜ => 0.0, :mₘ => 0.0, :mₕ => 0.0, :sᵢ => 0.0, :a => 1000.0, :pᵣ => 500.0, :pₜ => 0.0, :pₘ => 0.0, :pₕ => 0.0, :cᵣ => 0.0, :cₜ => 0.0, :cₘ => 0.0, :cₕ => 0.0]
 u0_steady_state = [:mᵣ => 105.0, :mₜ => 16.0, :mₘ => 16.0, :mₕ => 747.0, :sᵢ => 128.0, :a => 22.0, :pᵣ => 1218.0, :pₜ => 4623.0, :pₘ => 4623.0, :pₕ => 214477.0, :cᵣ => 1049.0, :cₜ => 44.0, :cₘ => 44.0, :cₕ => 2052.0]
-tspan = (0., 1500.)
+u0_start = [:mᵣ => 75.0, :mₜ => 20.0, :mₘ => 20.0, :mₕ => 4000.0, :sᵢ => 128.0, :a => 20.0, :pᵣ => 30.0, :pₜ => 300.0, :pₘ => 300.0, :pₕ => 68000.0, :cᵣ => 20.0, :cₜ => 2.0, :cₘ => 2.0, :cₕ => 400.0]
+tspan = (0., 1500/20)
 ps = [:s => s,
       :γ_max => γ_max,
       :νₜ_max => νₜ_max,
@@ -111,7 +112,9 @@ end
 
 function plot_ode()
     prob = ode_growth()
-    sol = solve(prob, Tsit5(), maxiters=1e7, isoutofdomain=(u,p,t)->any(x->x<0,u))
+    sol = solve(prob, Tsit5(), maxiters=Inf, isoutofdomain=(u,p,t)->any(x->x<0,u))
 
-    display(Plots.plot(sol, vars=[:M], xlabel="Time", ylabel="Concentration", title="Repressilator Protein Dynamics", linewidth=2))
+    display(Plots.plot(sol, vars=[:M], xlabel="Time", title="Cell mass", linewidth=2))
 end
+
+plot_ode()
