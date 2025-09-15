@@ -99,7 +99,7 @@ function sde_improved_repressilator()
     u0 = [:P₁ => 160.0, :P₂ => 55.0, :Nₒ => 10.0, :Nₜ => 40.0, :P₃ => 2400.0, :gfp => 0.0, :gr => 1.0, :V => 1.0]
     tspan = (0., 100.)
     ps = [:K => K, :N̄ₒ => N̄ₒ, :N̄ₜ => N̄ₜ, :λ => λ, :n => n, :b̄ => b̄]
-    sde = SDEProblem(r, u0, tspan, ps; structural_simplify = true)
+    sde = ODEProblem(r, u0, tspan, ps; structural_simplify = true)
     return sde
 end
 
