@@ -81,21 +81,22 @@ end
 function sde_improved_repressilator()
     r = @reaction_network begin
         @parameters n K[1:3]
+        @species gr(t) V(t)
         gr * N̄ₒ, ∅ --> Nₒ
         gr * N̄ₜ, ∅ --> Nₜ
-        gr * (hillr(root(P₃, Nₒ + Nₜ, K[3]), λ * (Nₒ + Nₜ), K[3], n)), ∅ --> b̄ * P₁
-        gr * (hillr(root(P₁, Nₒ, K[1]), λ * Nₒ, K[1], n)), ∅ --> b̄ * P₂
-        gr * (hillr(root(P₂, Nₒ, K[2]), λ * Nₒ, K[2], n)), ∅ --> b̄ * P₃
-        gr * (hillr(root(P₃, Nₒ + Nₜ, K[3]), λ * (Nₒ + Nₜ), K[3], n)), ∅ --> b̄ * gfp
-        gr, Nₒ --> ∅ # Degradation is only mimicing dilution
-        gr, Nₜ --> ∅
-        gr, P₁ --> ∅
-        gr, P₂ --> ∅
-        gr, P₃ --> ∅
-        gr, gfp --> ∅
+        gr * (hillr(root(P₃/V, (Nₒ + Nₜ)/V, K[3]), λ * (Nₒ + Nₜ)/V, K[3], n)), ∅ --> b̄ * P₁
+        gr * (hillr(root(P₁/V, Nₒ/V, K[1]), λ * Nₒ/V, K[1], n)), ∅ --> b̄ * P₂
+        gr * (hillr(root(P₂/V, Nₒ/V, K[2]), λ * Nₒ/V, K[2], n)), ∅ --> b̄ * P₃
+        gr * (hillr(root(P₃/V, (Nₒ + Nₜ)/V, K[3]), λ * (Nₒ + Nₜ)/V, K[3], n)), ∅ --> b̄ * gfp
+        # gr, Nₒ --> ∅ # Degradation is only mimicing dilution
+        # gr, Nₜ --> ∅
+        # gr, P₁ --> ∅
+        # gr, P₂ --> ∅
+        # gr, P₃ --> ∅
+        # gr, gfp --> ∅
     end
 
-    u0 = [:P₁ => 160.0, :P₂ => 55.0, :Nₒ => 10.0, :Nₜ => 40.0, :P₃ => 2400.0, :gfp => 0.0, :gr => 1.0]
+    u0 = [:P₁ => 160.0, :P₂ => 55.0, :Nₒ => 10.0, :Nₜ => 40.0, :P₃ => 2400.0, :gfp => 0.0, :gr => 1.0, :V => 1.0]
     tspan = (0., 100.)
     ps = [:K => K, :N̄ₒ => N̄ₒ, :N̄ₜ => N̄ₜ, :λ => λ, :n => n, :b̄ => b̄]
     sde = SDEProblem(r, u0, tspan, ps; structural_simplify = true)
