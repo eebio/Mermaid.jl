@@ -166,8 +166,9 @@ function update_nutrients!(model, t)
     # Clear previous growth
     for p in allagents(model)
         # Get the triangle of that voronoi cell
-        num_sample_points = 20
-        points = [sample_voronoi_cell(model.tessellation, p.index) for _ in 1:num_sample_points]
+        num_sample_points = 100
+        tri = triangulate_voronoi_cell(model.tessellation, p.index)
+        points = [sample_triangle(tri, random_triangle(tri)) for _ in 1:num_sample_points]
         inds = [get_spatial_index(point, model.nutrients, model) for point in points]
         # Points will be duplicated if they are closer to the centre of the cell
         p.nuts = mean(model.nutrients[inds])
