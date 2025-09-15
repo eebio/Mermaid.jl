@@ -83,12 +83,12 @@ function sde_improved_repressilator()
     r = @reaction_network begin
         @parameters n K[1:3]
         @species gr(t) V(t)
-        gr * N̄ₒ, ∅ --> Nₒ
-        gr * N̄ₜ, ∅ --> Nₜ
-        gr * (hillr(root(P₃/V, (Nₒ + Nₜ)/V, K[3]), λ * (Nₒ + Nₜ)/V, K[3], n)), ∅ --> b̄ * P₁
-        gr * (hillr(root(P₁/V, Nₒ/V, K[1]), λ * Nₒ/V, K[1], n)), ∅ --> b̄ * P₂
-        gr * (hillr(root(P₂/V, Nₒ/V, K[2]), λ * Nₒ/V, K[2], n)), ∅ --> b̄ * P₃
-        gr * (hillr(root(P₃/V, (Nₒ + Nₜ)/V, K[3]), λ * (Nₒ + Nₜ)/V, K[3], n)), ∅ --> b̄ * gfp
+        gr * N̄ₒ*V, ∅ --> Nₒ
+        gr * N̄ₜ*V, ∅ --> Nₜ
+        gr * (hillr(root(P₃/V, (Nₒ + Nₜ)/V, K[3]), λ * (Nₒ + Nₜ)/V, K[3], n))*V, ∅ --> b̄ * P₁
+        gr * (hillr(root(P₁/V, Nₒ/V, K[1]), λ * Nₒ/V, K[1], n))*V, ∅ --> b̄ * P₂
+        gr * (hillr(root(P₂/V, Nₒ/V, K[2]), λ * Nₒ/V, K[2], n))*V, ∅ --> b̄ * P₃
+        gr * (hillr(root(P₃/V, (Nₒ + Nₜ)/V, K[3]), λ * (Nₒ + Nₜ)/V, K[3], n))*V, ∅ --> b̄ * gfp
         # gr, Nₒ --> ∅ # Degradation is only mimicing dilution
         # gr, Nₜ --> ∅
         # gr, P₁ --> ∅
