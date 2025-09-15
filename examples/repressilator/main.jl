@@ -76,6 +76,7 @@ conn_gfp = Connector(
 )
 
 voronoi_marker = (model, cell) -> begin
+    #return :+
     verts = get_polygon_coordinates(model.tessellation, cell.index)
     return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
 end
