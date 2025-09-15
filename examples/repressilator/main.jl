@@ -184,6 +184,7 @@ conn_init_states_growth = Connector(
 conn_gr = Connector(
     inputs=["growth.λ"],
     outputs=["repressilator.growth_rate"],
+    #func = (λ) -> ones(length(λ))*0.6,
 )
 
 conn_size = Connector(
