@@ -51,7 +51,7 @@ function rest_length(model, p, q, t)
 end
 
 function proliferation_rate(model, i::Int, t)
-    return model[i].size ^ 30
+    return model[i].size^3 > 0.4 ? 0.2 : 0.0
 end
 
 function force(model, p, q, t)
