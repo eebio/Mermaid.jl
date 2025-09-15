@@ -4,6 +4,7 @@ using Plots
 using JumpProcesses
 using Distributions: Geometric
 using Polynomials
+using Random
 
 # Constants
 λ = 60
@@ -116,5 +117,34 @@ function plot_sde()
     display(Plots.plot!(sol_sde, vars=[:gfp], label="gfp - Cell 2", linestyle=:dash, linewidth=2))
 end
 
-plot_jump()
-plot_sde()
+function final_plot()
+    Random.seed!(0) # The seeding here is crazy, different between Shift+Enter and running the lines individually, not running the same way twice, etc., there is a seed option in StochasticDiffEq but doesn't seem to work
+    prob = sde_improved_repressilator()
+    Random.seed!(0)
+    sol_sde = solve(prob, EM(), dt=0.1, save_idxs=[:gfp, :P₁, :P₂, :P₃], saveat=0.1)
+    display(sol_sde[end])
+    average_gfp = sol_sde[:gfp]
+    for i in 1:30
+        Random.seed!(i)
+        sol2 = solve(prob, EM(), dt=0.1, save_idxs=[:gfp], saveat=0.1)
+        average_gfp .+= sol2[:gfp]
+    end
+    average_gfp ./= 31
+    p1 = Plots.plot(sol_sde.t, sol_sde[:gfp], label="GFP", xlabel="Time", ylabel="Concentration", title="Improved Repressilator GFP", linewidth=2, ylims=(0, 1.3 * maximum(sol_sde[:gfp])))
+    Plots.plot!(p1, sol_sde.t, average_gfp, linewidth=2, linestyle=:dash, label="Average GFP")
+
+    p2 = Plots.plot(sol_sde.t, sol_sde[:P₁], label="tetR", xlabel="Time", ylabel="Concentration", title="Proteins", linewidth=2)
+    Plots.plot!(p2, sol_sde.t, sol_sde[:P₂], label="cI", linewidth=2)
+    Plots.plot!(p2, sol_sde.t, sol_sde[:P₃], label="lacI", linewidth=2)
+
+    # Plots.plot!(p1, xticks=0:250:750)
+    # Plots.plot!(p2, xticks=0:250:750)
+
+    l = @layout [a b]
+    display(Plots.plot(p1, p2, layout=l, size=(750, 350), margin=2*Plots.mm))
+    savefig("repressilator_plots_improved.png")
+end
+
+#plot_jump()
+#plot_sde()
+#final_plot()
