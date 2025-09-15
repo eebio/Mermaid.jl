@@ -85,39 +85,45 @@ fig, ax = abmplot(agents, agent_marker=cell -> voronoi_marker(agents, cell), age
     axis=(; width=800, height=800), heatarray=:nutrients, heatkwargs=(colorrange=(0.0, 1.0),))
 abmplot!(ax, agents; agent_marker=:xcross, agent_color=:red, agent_size=cell -> cell.id ∈ [1, 2] ? 10 : 0)
 t = [0.0]
-gfp1 = [agents[1].gfp]
-gfp2 = [agents[2].gfp]
-nut1 = [agents[1].size]
-nut2 = [agents[2].size]
+gfp1 = [agents[1].gfp/agents[1].size^3]
+gfp2 = [agents[2].gfp/agents[2].size^3]
+nut1 = [agents[1].nuts]
+nut2 = [agents[2].nuts]
+size1 = [agents[1].size^3]
+size2 = [agents[2].size^3]
 plot_layout = fig[:, end+1] = GridLayout()
 gfp1_layout = plot_layout[1, 1] = GridLayout()
 ax_1 = Axis(gfp1_layout[1, 1], xlabel="Time", ylabel="GFP 1", width=600, height=400)
 ax_1_2 = Axis(gfp1_layout[1, 1], ylabel="size 1", yaxisposition=:right, yticklabelcolor=:blue)
 lines!(ax_1, t, gfp1, color=:black, label="Total", linewidth=3)
-lines!(ax_1_2, t, nut1, color=:blue, label="size", linewidth=3)
+lines!(ax_1_2, t, size1, color=:blue, label="size", linewidth=3)
+lines!(ax_1_2, t, nut1, color=:green, label="nutrients", linewidth=3)
 vlines!(ax_1, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_1, 0, maxt)
-Makie.ylims!(ax_1, 0, 7000)
+Makie.ylims!(ax_1, 0, 10000)
 Makie.xlims!(ax_1_2, 0, maxt)
 Makie.ylims!(ax_1_2, 0, 1.0)
 gfp2_layout = plot_layout[2, 1] = GridLayout()
 ax_2 = Axis(gfp2_layout[1, 1], xlabel="Time", ylabel="GFP 2", width=600, height=400)
 ax_2_2 = Axis(gfp2_layout[1, 1], ylabel="size 2", yaxisposition=:right, yticklabelcolor=:blue)
 lines!(ax_2, t, gfp2, color=:black, label="Total", linewidth=3)
-lines!(ax_2_2, t, nut2, color=:blue, label="size", linewidth=3)
+lines!(ax_2_2, t, size2, color=:blue, label="size", linewidth=3)
+lines!(ax_2_2, t, nut2, color=:green, label="nutrients", linewidth=3)
 vlines!(ax_2, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_2, 0, maxt)
-Makie.ylims!(ax_2, 0, 7000)
+Makie.ylims!(ax_2, 0, 10000)
 Makie.xlims!(ax_2_2, 0, maxt)
 Makie.ylims!(ax_2_2, 0, 1.0)
 resize_to_layout!(fig)
 io = VideoStream(fig; framerate=20)
 function plot_input(model)
     push!(t, abmtime(model) * model.dt)
-    push!(gfp1, model[1].gfp)
-    push!(gfp2, model[2].gfp)
-    push!(nut1, model[1].size)
-    push!(nut2, model[2].size)
+    push!(gfp1, model[1].gfp/model[1].size^3)
+    push!(gfp2, model[2].gfp/model[2].size^3)
+    push!(nut1, model[1].nuts)
+    push!(nut2, model[2].nuts)
+    push!(size1, model[1].size^3)
+    push!(size2, model[2].size^3)
     if abmtime(model) % 10 == 0
         empty!(ax)
         empty!(ax_1)
@@ -128,10 +134,12 @@ function plot_input(model)
             agentsplotkwargs=(strokewidth=1,), heatarray=:nutrients, heatkwargs=(colorrange=(0.0, 1.0),))
         abmplot!(ax, model; agent_marker=:xcross, agent_color=:red, agent_size= cell->cell.id ∈ [1,2] ? 10 : 0)
         lines!(ax_1, t, gfp1, color=:black, label="Total", linewidth=3)
-        lines!(ax_1_2, t, nut1, color=:blue, label="size", linewidth=3)
+        lines!(ax_1_2, t, size1, color=:blue, label="size", linewidth=3)
+        lines!(ax_1_2, t, nut1, color=:green, label="nutrients", linewidth=3)
         vlines!(ax_1, t[end], color=:grey, linestyle=:dash, linewidth=3)
         lines!(ax_2, t, gfp2, color=:black, label="Total", linewidth=3)
-        lines!(ax_2_2, t, nut2, color=:blue, label="size", linewidth=3)
+        lines!(ax_2_2, t, size2, color=:blue, label="size", linewidth=3)
+        lines!(ax_2_2, t, nut2, color=:green, label="nutrients", linewidth=3)
         vlines!(ax_2, t[end], color=:grey, linestyle=:dash, linewidth=3)
         recordframe!(io)
         @show abmtime(model) * model.dt
