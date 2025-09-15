@@ -4,6 +4,7 @@ using StochasticDiffEq
 includet("gfp.jl")
 includet("cells.jl")
 includet("growth.jl")
+includet("improved.jl")
 
 using Random
 Random.seed!(1234)
@@ -15,6 +16,9 @@ maxt = 5.0
 repressilator = Repressilator.repressilator
 sde = SDEProblem(repressilator, Repressilator.u0, Repressilator.tspan, Repressilator.ps)
 
+sde_improved = sde_improved_repressilator()
+improved = sde_improved.f.sys
+
 agents = initialize_cell_model()
 
 growth = ode_growth()
@@ -22,7 +26,11 @@ g_model = get_growth_model()
 
 rep = DEComponent(model=sde, name="repressilator", state_names=Dict("gfp" => repressilator.gfp,
     "growth_rate" => repressilator.gr),
-    alg=EM(), time_step=agents.dt)
+    alg=EM(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :save_everystep => false))
+
+rep_imp = DEComponent(model=sde_improved, name="repressilator", state_names=Dict("gfp" => improved.gfp,
+        "growth_rate" => improved.gr, "volume" => improved.V),
+    alg=Tsit5(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :save_everystep => false))
 
 abm = AgentsComponent(
     model=agents,
@@ -32,11 +40,17 @@ abm = AgentsComponent(
 )
 
 gro = DEComponent(model=growth, name="growth", state_names=Dict("s" => g_model.s, "λ" => g_model.λ, "mass" => g_model.M, "import" => g_model.ν_imp),
-    alg=Tsit5(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u)))
+    alg=Tsit5(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u), :save_everystep => false))
 
 dup_r = DuplicatedComponent(
     component=rep,
     default_state=sde.u0,
+    initial_states=[],
+)
+
+dup_i = DuplicatedComponent(
+    component=rep_imp,
+    default_state=sde_improved.u0,
     initial_states=[],
 )
 
@@ -136,7 +150,7 @@ function set_initial_states!(states, ids, model) # Do mutating functions work in
     init_states = Dict{Int,Vector{Float64}}()
     for id in allids(model)
         if id ∉ ids
-            # New cell, so either divided or freshing created at start of simulation
+            # New cell, so either divided or freshly created at start of simulation
             parent = model[id].parent
             if !isnothing(parent)
                 states[ids .== parent.id] = states[ids .== parent.id] ./ 2
@@ -170,6 +184,12 @@ conn_size = Connector(
     func = (M) -> (M ./ 1e8).^(1/3)
 )
 
+conn_volume = Connector(
+    inputs=["growth.mass"],
+    outputs=["repressilator.volume"],
+    func = (V) -> (V ./ 1e8)
+)
+
 conn_nuts = Connector(
     inputs=["cells.nutrients"],
     outputs=["growth.s"],
@@ -183,8 +203,8 @@ conn_nuts_imp = Connector(
 )
 
 mp = MermaidProblem(
-    components=[dup_g, dup_r, abm], # TODO get awkward error when repressilator is run before growth
-    connectors=[conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp, conn_gr, conn_size, conn_nuts, conn_nuts_imp, conn_plot],
+    components=[dup_g, dup_i, abm], # TODO get awkward error when repressilator is run before growth
+    connectors=[conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp, conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
     max_t=maxt,
 )
 
