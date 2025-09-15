@@ -54,10 +54,10 @@ function CommonSolve.solve!(int::MermaidIntegrator)
     t = [0.0]
     dt = minimum([i.component.time_step for i in int.integrators]) # Minimum isnt sufficient to guarantee we don't jump over anything
     sol = MermaidSolution(int)
-    update_solution!(sol, int)
+    #update_solution!(sol, int)
     while int.currtime < int.maxt
         CommonSolve.step!(int, dt)
-        update_solution!(sol, int)
+        #update_solution!(sol, int)
     end
     return sol
 end
@@ -192,10 +192,10 @@ Appends the current time from `merInt` to `sol.t`. For each key in `sol.u`, retr
 """
 function update_solution!(sol::MermaidSolution, merInt::MermaidIntegrator)
     # Update the solution with the current time and state
-    push!(sol.t, merInt.currtime)
-    for key in keys(sol.u)
-        push!(sol.u[key], getstate(merInt, key))
-    end
+    #push!(sol.t, merInt.currtime)
+    #for key in keys(sol.u)
+    #    push!(sol.u[key], getstate(merInt, key))
+    #end
 end
 
 """
