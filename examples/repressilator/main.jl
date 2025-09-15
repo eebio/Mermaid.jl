@@ -207,7 +207,7 @@ conn_nuts = Connector(
 conn_nuts_imp = Connector(
     inputs=["growth.import"],
     outputs=["cells.nut_import_rate"],
-    func = (imp) -> imp ./ 1e7, # Scaling is arbitrary
+    func = (imp) -> imp ./ 1e8*5*0, # Scaling is arbitrary
 )
 
 mp = MermaidProblem(
