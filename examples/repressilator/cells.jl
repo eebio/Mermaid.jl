@@ -131,7 +131,7 @@ end
 function place_daughter_cell!(model, i, t)
     parent = model[i]
     daughter = sample_voronoi_cell(model.tessellation, parent.index) # this is an SVector, not a Cell
-    add_agent!(daughter, model; birth=t, gfp=parent.gfp, vel=SVector(0.0, 0.0), parent=parent, size=parent.size/2, nuts=parent.nuts)
+    add_agent!(daughter, model; birth=t, gfp=parent.gfp, vel=SVector(0.0, 0.0), parent=parent, size=parent.size*0.5^(1/3), nuts=parent.nuts)
     return daughter
 end
 function proliferate_cells!(model, t)
@@ -140,7 +140,7 @@ function proliferate_cells!(model, t)
         u = rand()
         if u < Gᵢ * model.dt
             place_daughter_cell!(model, p.id, t)
-            p.size /= 2
+            p.size *= 0.5^(1/3)
         end
     end
     return true
