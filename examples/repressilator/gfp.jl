@@ -3,6 +3,7 @@ module Repressilator
     using Catalyst
     using DifferentialEquations, StochasticDiffEq
     using Plots
+    using Random
 
     # Constants
     eff = 20
@@ -43,8 +44,8 @@ module Repressilator
         gr*kd_prot, gfp --> ∅
     end
 
-    u0 = [:P₁ => 150.0, :P₂ => 140.0, :P₃ => 130.0, :m₁ => 10.0, :m₂ => 12.0, :m₃ => 11.0, :m_gfp => 0.0, :gfp => 0.0, :gr => 1.0]
-    tspan = (0., 1500.)
+    u0 = [:P₁ => 150.0, :P₂ => 10.0, :P₃ => 10.0, :m₁ => 50.0, :m₂ => 5.0, :m₃ => 5.0, :m_gfp => 0.0, :gfp => 0.0, :gr => 1.0]
+    tspan = (0., 750.)
     ps = [:k_tl => k_tl, :KM => KM, :a0_tr => a0_tr, :a_tr => a_tr, :kd_prot => kd_prot, :n => n, :kd_mRNA => kd_mRNA]
 
     function ode_repressilator()
@@ -72,4 +73,43 @@ module Repressilator
         sol_sde = solve(sde, EM(), dt=0.1)
         display(Plots.plot!(sol_sde, vars=[:gfp], label="gfp - Cell 2", linestyle=:dash, linewidth=2))
     end
+
+    function final_plot()
+        Random.seed!(1)
+        prob = ode_repressilator()
+        sol = solve(prob, Tsit5(), save_idxs=[:gfp, :P₁, :P₂, :P₃], saveat=1.0)
+
+        p1 = Plots.plot(sol[:gfp], label="", xlabel="Time", ylabel="Concentration", title="Repressilator GFP (ODE)", linewidth=2)
+
+        p2 = Plots.plot(sol[:P₁], label="", xlabel="Time", ylabel="Concentration", title="Repressilator Proteins (ODE)", linewidth=2)
+        Plots.plot!(p2, sol[:P₂], label="", linewidth=2)
+        Plots.plot!(p2, sol[:P₃], label="", linewidth=2)
+
+        prob = sde_repressilator()
+        sol_sde = solve(prob, EM(), dt=0.1, save_idxs=[:gfp, :P₁, :P₂, :P₃], saveat=1.0)
+        average_gfp = sol_sde[:gfp]
+        for i in 1:30
+            sol2 = solve(prob, EM(), dt=0.1, save_idxs=[:gfp], saveat=1.0)
+            average_gfp .+= sol2[:gfp]
+        end
+        average_gfp ./= 31
+        p3 = Plots.plot(sol_sde[:gfp], label="GFP", xlabel="Time", ylabel="Concentration", title="Repressilator GFP (Stochastic)", linewidth=2, ylims=(0, 1.3*maximum(sol_sde[:gfp])))
+        Plots.plot!(p3, sol_sde.t, average_gfp, linewidth=2, linestyle=:dash, label="Average GFP")
+
+        p4 = Plots.plot(sol_sde[:P₁], label="tetR", xlabel="Time", ylabel="Concentration", title="Repressilator Proteins (Stochastic)", linewidth=2)
+        Plots.plot!(p4, sol_sde[:P₂], label="cI", linewidth=2)
+        Plots.plot!(p4, sol_sde[:P₃], label="lacI", linewidth=2)
+
+        Plots.plot!(p1, xticks=0:250:750)
+        Plots.plot!(p2, xticks=0:250:750)
+        Plots.plot!(p3, xticks=0:250:750)
+        Plots.plot!(p4, xticks=0:250:750)
+
+        l = @layout [a b; c d]
+        display(Plots.plot(p1, p2, p3, p4, layout=l, size=(900, 700)))
+        savefig("repressilator_plots.png")
+    end
 end
+using .Repressilator
+
+#Repressilator.final_plot()
