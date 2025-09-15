@@ -79,7 +79,7 @@ voronoi_marker = (model, cell) -> begin
     verts = get_polygon_coordinates(model.tessellation, cell.index)
     return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
 end
-voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp / 1000.0)
+voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp/cell.size^3 / 500.0)
 fig, ax = abmplot(agents, agent_marker=cell -> voronoi_marker(agents, cell), agent_color=voronoi_color,
     agentsplotkwargs=(strokewidth=1,), figure=(; size=(1600, 800), fontsize=34),
     axis=(; width=800, height=800), heatarray=:nutrients, heatkwargs=(colorrange=(0.0, 1.0),))
