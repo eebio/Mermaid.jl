@@ -11,7 +11,7 @@ Random.seed!(1234)
 
 using .Repressilator
 
-maxt = 10.0
+maxt = 15.0
 
 repressilator = Repressilator.repressilator
 sde = SDEProblem(repressilator, Repressilator.u0, Repressilator.tspan, Repressilator.ps)
@@ -101,7 +101,7 @@ lines!(ax_1_2, t, size1, color=:blue, label="size", linewidth=3)
 lines!(ax_1_2, t, nut1, color=:green, label="nutrients", linewidth=3)
 vlines!(ax_1, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_1, 0, maxt)
-Makie.ylims!(ax_1, 0, 75000)
+Makie.ylims!(ax_1, 0, 100000)
 Makie.xlims!(ax_1_2, 0, maxt)
 Makie.ylims!(ax_1_2, 0, 5.0)
 gfp2_layout = plot_layout[2, 1] = GridLayout()
@@ -112,7 +112,7 @@ lines!(ax_2_2, t, size2, color=:blue, label="size", linewidth=3)
 lines!(ax_2_2, t, nut2, color=:green, label="nutrients", linewidth=3)
 vlines!(ax_2, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_2, 0, maxt)
-Makie.ylims!(ax_2, 0, 75000)
+Makie.ylims!(ax_2, 0, 100000)
 Makie.xlims!(ax_2_2, 0, maxt)
 Makie.ylims!(ax_2_2, 0, 5.0)
 resize_to_layout!(fig)
