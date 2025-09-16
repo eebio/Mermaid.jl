@@ -36,15 +36,15 @@ function get_growth_model()
         @species s(t)
         @parameters γ_max νₜ_max νₘ_max wᵣ_max wₕ_max θₜ θₘ θₕ θᵣ k Mₛ Kᵧ Kₜ Kₘ Kₕ wₘ_max wₜ_max dₘ hₕ nᵣ nₕ nₜ nₘ kᵤ nₛ
         # Mass action reactions
-        (wᵣ, λ + dₘ), ∅ <--> mᵣ
-        (wₜ, λ + dₘ), ∅ <--> mₜ
-        (wₘ, λ + dₘ), ∅ <--> mₘ
-        (wₕ, λ + dₘ), ∅ <--> mₕ
-        (k, kᵤ), pᵣ + mᵣ <--> cᵣ
-        (k, kᵤ), pᵣ + mₜ <--> cₜ
-        (k, kᵤ), pᵣ + mₘ <--> cₘ
-        (k, kᵤ), pᵣ + mₕ <--> cₕ
-        λ, (sᵢ, a, cᵣ, cₜ, cₘ, cₕ, pᵣ, pₜ, pₘ, pₕ) --> ∅
+        (wᵣ, dₘ), ∅ <--> mᵣ
+        (wₜ, dₘ), ∅ <--> mₜ
+        (wₘ, dₘ), ∅ <--> mₘ
+        (wₕ, dₘ), ∅ <--> mₕ
+        (k/V, kᵤ), pᵣ + mᵣ <--> cᵣ
+        (k/V, kᵤ), pᵣ + mₜ <--> cₜ
+        (k/V, kᵤ), pᵣ + mₘ <--> cₘ
+        (k/V, kᵤ), pᵣ + mₕ <--> cₕ
+        #λ, (sᵢ, a, cᵣ, cₜ, cₘ, cₕ, pᵣ, pₜ, pₘ, pₕ, mᵣ, mₜ, mₘ, mₕ) --> ∅
 
         # Non-mass action reactions
         ν_imp, ∅ => sᵢ
@@ -55,20 +55,22 @@ function get_growth_model()
         νₕ, nₕ * a + cₕ => pᵣ + mₕ + pₕ
 
         @equations begin
-            λ ~ γ * (cᵣ + cₜ + cₘ + cₕ) / Mₛ
-            double ~ log(2) / λ
             M ~ nᵣ * pᵣ + nₜ * pₜ + nₘ * pₘ + nₕ * pₕ + nᵣ * (cᵣ + cₜ + cₘ + cₕ)
-            γ ~ γ_max * a / (Kᵧ + a)
+            V ~ M / Mₛ
+            γ ~ γ_max * a / V / (Kᵧ + a / V)
+            λ ~ γ * (cᵣ + cₜ + cₘ + cₕ) / M
+            double ~ log(2) / λ
             ν_imp ~ pₜ * νₜ_max * s / (Kₜ + s)
-            ν_cat ~ pₘ * νₘ_max * sᵢ / (Kₘ + sᵢ)
+            ν_cat ~ pₘ * νₘ_max * sᵢ / V / (Kₘ + sᵢ / V)
             νᵣ ~ cᵣ * γ / nᵣ
             νₜ ~ cₜ * γ / nₜ
             νₘ ~ cₘ * γ / nₘ
             νₕ ~ cₕ * γ / nₕ
-            wᵣ ~ wᵣ_max * a / (θᵣ + a)
-            wₜ ~ wₜ_max * a / (θₜ + a)
-            wₘ ~ wₘ_max * a / (θₘ + a)
-            wₕ ~ wₕ_max * a / (θₕ + a) / (1 + (pₕ/Kₕ)^hₕ)
+            wᵣ ~ wᵣ_max * a / (θᵣ + a / V)
+            wₜ ~ wₜ_max * a / (θₜ + a / V)
+            wₘ ~ wₘ_max * a / (θₘ + a / V)
+            wₕ ~ wₕ_max * a / (θₕ + a / V) / (1 + (pₕ / V / Kₕ)^hₕ)
+
         end
     end
     return growth
