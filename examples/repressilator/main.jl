@@ -40,7 +40,7 @@ abm = AgentsComponent(
 )
 
 gro = DEComponent(model=growth, name="growth", state_names=Dict("s" => g_model.s, "λ" => g_model.λ, "mass" => g_model.M, "import" => g_model.ν_imp),
-    alg=Tsit5(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u), :save_everystep => false))
+    alg=Rosenbrock23(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u), :save_everystep => false))
 
 dup_r = DuplicatedComponent(
     component=rep,

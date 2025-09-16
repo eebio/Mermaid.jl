@@ -112,7 +112,7 @@ end
 
 function plot_ode()
     prob = ode_growth()
-    sol = solve(prob, Tsit5(), maxiters=Inf, isoutofdomain=(u,p,t)->any(x->x<0,u))
+    sol = solve(prob, Rosenbrock23(), maxiters=Inf, isoutofdomain=(u,p,t)->any(x->x<0,u))
 
     display(Plots.plot(sol, vars=[:M], xlabel="Time", title="Cell mass", linewidth=2))
 end
