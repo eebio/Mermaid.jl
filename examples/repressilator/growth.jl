@@ -116,6 +116,7 @@ function plot_ode()
     # Define the callback for cell splitting
     function affect!(integrator)
         integrator.u .= integrator.u ./ 2.0
+        integrator[:s] = 1e4
     end
 
     function condition(u, t, integrator)
