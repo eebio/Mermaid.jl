@@ -109,7 +109,7 @@ ps = [:s => s,
 
 function ode_growth()
     growth = get_growth_model()
-    return ODEProblem(growth, u0_start, tspan, ps; structural_simplify=true)
+    return ODEProblem(growth, u0_steady_state, tspan, ps; structural_simplify=true)
 end
 
 function plot_ode()
