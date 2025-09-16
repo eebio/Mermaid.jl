@@ -47,7 +47,7 @@ end
 
 rest_length(model, i::Int, j::Int, t) = rest_length(model, model[i], model[j]..., t)
 function rest_length(model, p, q, t)
-    return mature_cell_spring_rest_length(p, q) * 0.4
+    return mature_cell_spring_rest_length(p, q) * 0.2
 end
 
 function proliferation_rate(model, i::Int, t)
