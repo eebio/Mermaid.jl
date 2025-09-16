@@ -107,14 +107,33 @@ ps = [:s => s,
 
 function ode_growth()
     growth = get_growth_model()
-    return ODEProblem(growth, u0_steady_state, tspan, ps; structural_simplify = true)
+    return ODEProblem(growth, u0_start, tspan, ps; structural_simplify=true)
 end
 
 function plot_ode()
     prob = ode_growth()
-    sol = solve(prob, Rosenbrock23(), maxiters=Inf, isoutofdomain=(u,p,t)->any(x->x<0,u))
 
+    # Define the callback for cell splitting
+    function affect!(integrator)
+        integrator.u .= integrator.u ./ 2.0
+    end
+
+    function condition(u, t, integrator)
+        pᵣ = integrator[:pᵣ]
+        pₜ = integrator[:pₜ]
+        pₘ = integrator[:pₘ]
+        pₕ = integrator[:pₕ]
+        cᵣ = integrator[:cᵣ]
+        cₜ = integrator[:cₜ]
+        cₘ = integrator[:cₘ]
+        cₕ = integrator[:cₕ]
+        M = nᵣ * pᵣ + nₜ * pₜ + nₘ * pₘ + nₕ * pₕ + nᵣ * (cᵣ + cₜ + cₘ + cₕ)
+        return M > 0.66e8
+    end
+    cb = DiscreteCallback(condition, affect!)
+    sol = solve(prob, Rosenbrock23(), callback=cb, maxiters=Inf, isoutofdomain=(u, p, t) -> any(x -> x < 0, u))
     display(Plots.plot(sol, vars=[:M], xlabel="Time", title="Cell mass", linewidth=2))
+    display(Plots.plot(sol, vars=[:λ], xlabel="Time", title="Growth rate", linewidth=2))
 end
 
 plot_ode()
