@@ -190,7 +190,7 @@ function model_step!(model)
     stepn = abmtime(model)
     t = stepn * model.dt
     update_positions!(model, t)
-    #update_nutrients!(model, t)
+    update_nutrients!(model, t)
     #cull_cells!(model, t)
     proliferate_cells!(model, t)
     model.triangulation = retriangulate(model.triangulation, collect(allagents(model)))

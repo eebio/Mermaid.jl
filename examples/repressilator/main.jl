@@ -11,7 +11,7 @@ Random.seed!(1234)
 
 using .Repressilator
 
-maxt = 5.0
+maxt = 10.0
 
 repressilator = Repressilator.repressilator
 sde = SDEProblem(repressilator, Repressilator.u0, Repressilator.tspan, Repressilator.ps)
@@ -209,7 +209,7 @@ conn_nuts = Connector(
 conn_nuts_imp = Connector(
     inputs=["growth.import"],
     outputs=["cells.nut_import_rate"],
-    func = (imp) -> imp ./ 1e8*5*0, # Scaling is arbitrary
+    func = (imp) -> imp ./ 1e8*1.5, # Scaling is arbitrary
 )
 
 mp = MermaidProblem(
