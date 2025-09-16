@@ -9,7 +9,7 @@ using Random
 # Constants
 λ = 60
 K = [5, 10, 10]
-n = 1.5
+n = 2
 b̄ = 10
 N̄ₒ = 10
 N̄ₜ = 40
@@ -97,10 +97,10 @@ function sde_improved_repressilator()
         b*gr, gfp --> ∅
     end
 
-    u0 = [:P₁ => 160.0, :P₂ => 55.0, :Nₒ => 10.0, :Nₜ => 40.0, :P₃ => 2400.0, :gfp => 0.0, :gr => 1.0, :V => 1.0]
-    tspan = (0., 100.)
-    ps = [:K => K, :N̄ₒ => N̄ₒ, :N̄ₜ => N̄ₜ, :λ => λ, :n => n, :b̄ => b̄, :a => 4.0, :b => 2.0]
-    sde = ODEProblem(r, u0, tspan, ps; structural_simplify = true)
+    u0 = [:P₁ => 0.0, :P₂ => 0.0, :Nₒ => 10.0, :Nₜ => 40.0, :P₃ => 1000.0, :gfp => 0.0, :gr => 1.0, :V => 1.0]
+    tspan = (0., 30.)
+    ps = [:K => K, :N̄ₒ => N̄ₒ, :N̄ₜ => N̄ₜ, :λ => λ, :n => n, :b̄ => b̄, :a => 15.0, :b => 4.0]
+    sde = SDEProblem(r, u0, tspan, ps; structural_simplify = true)
     return sde
 end
 
