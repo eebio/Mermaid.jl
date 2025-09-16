@@ -30,7 +30,7 @@ rep = DEComponent(model=sde, name="repressilator", state_names=Dict("gfp" => rep
 
 rep_imp = DEComponent(model=sde_improved, name="repressilator", state_names=Dict("gfp" => improved.gfp,
         "growth_rate" => improved.gr, "volume" => improved.V),
-    alg=Tsit5(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :save_everystep => false))
+    alg=EM(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :save_everystep => false))
 
 abm = AgentsComponent(
     model=agents,
@@ -80,7 +80,7 @@ voronoi_marker = (model, cell) -> begin
     verts = get_polygon_coordinates(model.tessellation, cell.index)
     return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
 end
-voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp/cell.size^3 / 200.0)
+voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp/cell.size^3 / 10000.0)
 fig, ax = abmplot(agents, agent_marker=cell -> voronoi_marker(agents, cell), agent_color=voronoi_color,
     agentsplotkwargs=(strokewidth=1,), figure=(; size=(1600, 800), fontsize=34),
     axis=(; width=800, height=800), heatarray=:nutrients, heatkwargs=(colorrange=(0.0, 1.0),))
@@ -101,7 +101,7 @@ lines!(ax_1_2, t, size1, color=:blue, label="size", linewidth=3)
 lines!(ax_1_2, t, nut1, color=:green, label="nutrients", linewidth=3)
 vlines!(ax_1, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_1, 0, maxt)
-Makie.ylims!(ax_1, 0, 2000)
+Makie.ylims!(ax_1, 0, 75000)
 Makie.xlims!(ax_1_2, 0, maxt)
 Makie.ylims!(ax_1_2, 0, 5.0)
 gfp2_layout = plot_layout[2, 1] = GridLayout()
@@ -112,7 +112,7 @@ lines!(ax_2_2, t, size2, color=:blue, label="size", linewidth=3)
 lines!(ax_2_2, t, nut2, color=:green, label="nutrients", linewidth=3)
 vlines!(ax_2, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_2, 0, maxt)
-Makie.ylims!(ax_2, 0, 2000)
+Makie.ylims!(ax_2, 0, 75000)
 Makie.xlims!(ax_2_2, 0, maxt)
 Makie.ylims!(ax_2_2, 0, 5.0)
 resize_to_layout!(fig)
