@@ -1,17 +1,18 @@
 using Mermaid
 using StochasticDiffEq
 
-includet("gfp.jl")
+include("gfp.jl")
 includet("cells.jl")
 includet("growth.jl")
 includet("improved.jl")
 
 using Random
-Random.seed!(1234)
+Random.seed!(123)
 
 using .Repressilator
 
 maxt = 15.0
+use_improved = false
 
 repressilator = Repressilator.repressilator
 sde = SDEProblem(repressilator, Repressilator.u0, Repressilator.tspan, Repressilator.ps)
@@ -25,7 +26,7 @@ growth = ode_growth()
 g_model = get_growth_model()
 
 rep = DEComponent(model=sde, name="repressilator", state_names=Dict("gfp" => repressilator.gfp,
-    "growth_rate" => repressilator.gr),
+    "growth_rate" => repressilator.gr, "volume" => repressilator.V),
     alg=EM(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :save_everystep => false))
 
 rep_imp = DEComponent(model=sde_improved, name="repressilator", state_names=Dict("gfp" => improved.gfp,
@@ -80,7 +81,7 @@ voronoi_marker = (model, cell) -> begin
     verts = get_polygon_coordinates(model.tessellation, cell.index)
     return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
 end
-voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp/cell.size^3 / 10000.0)
+voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp/cell.size^3 / (use_improved ? 10000.0 : 1000.0))
 fig, ax = abmplot(agents, agent_marker=cell -> voronoi_marker(agents, cell), agent_color=voronoi_color,
     agentsplotkwargs=(strokewidth=1,), figure=(; size=(1600, 800), fontsize=34),
     axis=(; width=800, height=800), heatarray=:nutrients, heatkwargs=(colorrange=(0.0, 1.0),))
@@ -94,25 +95,25 @@ size1 = [agents[1].size^3]
 size2 = [agents[2].size^3]
 plot_layout = fig[:, end+1] = GridLayout()
 gfp1_layout = plot_layout[1, 1] = GridLayout()
-ax_1 = Axis(gfp1_layout[1, 1], xlabel="Time", ylabel="GFP 1", width=600, height=400)
-ax_1_2 = Axis(gfp1_layout[1, 1], ylabel="size 1", yaxisposition=:right, yticklabelcolor=:blue)
+ax_1 = Axis(gfp1_layout[1, 1], title="Cell 1", xlabel="Time (Generations)", ylabel="GFP", width=600, height=400)
+ax_1_2 = Axis(gfp1_layout[1, 1], ylabel=rich(rich("Size", color=:blue),"/",rich("Nutrients", color=:green)), yaxisposition=:right)
 lines!(ax_1, t, gfp1, color=:black, label="Total", linewidth=3)
-lines!(ax_1_2, t, size1, color=:blue, label="size", linewidth=3)
-lines!(ax_1_2, t, nut1, color=:green, label="nutrients", linewidth=3)
+lines!(ax_1_2, t, size1, color=:blue, label="Size", linewidth=3)
+lines!(ax_1_2, t, nut1, color=:green, label="Nutrients", linewidth=3)
 vlines!(ax_1, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_1, 0, maxt)
-Makie.ylims!(ax_1, 0, 100000)
+Makie.ylims!(ax_1, 0, use_improved ? 100000 : 2000)
 Makie.xlims!(ax_1_2, 0, maxt)
 Makie.ylims!(ax_1_2, 0, 5.0)
 gfp2_layout = plot_layout[2, 1] = GridLayout()
-ax_2 = Axis(gfp2_layout[1, 1], xlabel="Time", ylabel="GFP 2", width=600, height=400)
-ax_2_2 = Axis(gfp2_layout[1, 1], ylabel="size 2", yaxisposition=:right, yticklabelcolor=:blue)
+ax_2 = Axis(gfp2_layout[1, 1], title="Cell 2", xlabel="Time (Generations)", ylabel="GFP", width=600, height=400)
+ax_2_2 = Axis(gfp2_layout[1, 1], ylabel=rich(rich("Size", color=:blue),"/",rich("Nutrients", color=:green)), yaxisposition=:right)
 lines!(ax_2, t, gfp2, color=:black, label="Total", linewidth=3)
-lines!(ax_2_2, t, size2, color=:blue, label="size", linewidth=3)
-lines!(ax_2_2, t, nut2, color=:green, label="nutrients", linewidth=3)
+lines!(ax_2_2, t, size2, color=:blue, label="Size", linewidth=3)
+lines!(ax_2_2, t, nut2, color=:green, label="Nutrients", linewidth=3)
 vlines!(ax_2, 0.0, color=:grey, linestyle=:dash, linewidth=3)
 Makie.xlims!(ax_2, 0, maxt)
-Makie.ylims!(ax_2, 0, 100000)
+Makie.ylims!(ax_2, 0, use_improved ? 100000 : 2000)
 Makie.xlims!(ax_2_2, 0, maxt)
 Makie.ylims!(ax_2_2, 0, 5.0)
 resize_to_layout!(fig)
@@ -133,14 +134,14 @@ function plot_input(model)
         empty!(ax_2_2)
         abmplot!(ax, model; agent_marker=cell -> voronoi_marker(model, cell), agent_color=voronoi_color,
             agentsplotkwargs=(strokewidth=1,), heatarray=:nutrients, heatkwargs=(colorrange=(0.0, 1.0),))
-        abmplot!(ax, model; agent_marker=:xcross, agent_color=:red, agent_size= cell->cell.id ∈ [1,2] ? 10 : 0)
+        abmplot!(ax, model; agent_marker=:circle, agent_color=:red, agent_size= cell->cell.id ∈ [1,2] ? 10 : 0)
         lines!(ax_1, t, gfp1, color=:black, label="Total", linewidth=3)
-        lines!(ax_1_2, t, size1, color=:blue, label="size", linewidth=3)
-        lines!(ax_1_2, t, nut1, color=:green, label="nutrients", linewidth=3)
+        lines!(ax_1_2, t, size1, color=:blue, label="Size", linewidth=3)
+        lines!(ax_1_2, t, nut1, color=:green, label="Nutrients", linewidth=3)
         vlines!(ax_1, t[end], color=:grey, linestyle=:dash, linewidth=3)
         lines!(ax_2, t, gfp2, color=:black, label="Total", linewidth=3)
-        lines!(ax_2_2, t, size2, color=:blue, label="size", linewidth=3)
-        lines!(ax_2_2, t, nut2, color=:green, label="nutrients", linewidth=3)
+        lines!(ax_2_2, t, size2, color=:blue, label="Size", linewidth=3)
+        lines!(ax_2_2, t, nut2, color=:green, label="Nutrients", linewidth=3)
         vlines!(ax_2, t[end], color=:grey, linestyle=:dash, linewidth=3)
         recordframe!(io)
         @show abmtime(model) * model.dt
@@ -212,15 +213,27 @@ conn_nuts_imp = Connector(
     func = (imp) -> imp ./ 1e8*1.5, # Scaling is arbitrary
 )
 
-mp = MermaidProblem(
-    components=[dup_g, dup_i, abm], # TODO get awkward error when repressilator is run before growth
-    connectors=[conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp, conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
-    max_t=maxt,
-)
+if use_improved
+    mp = MermaidProblem(
+        components=[dup_g, dup_i, abm], # TODO get awkward error when repressilator is run before growth
+        connectors=[conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp, conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
+        max_t=maxt,
+    )
+else
+    mp = MermaidProblem(
+        components=[dup_g, dup_r, abm], # TODO get awkward error when repressilator is run before growth
+        connectors=[conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp, conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
+        max_t=maxt,
+    )
+end
 
 alg = MinimumTimeStepper()
 sol = solve(mp, alg)
 
-save("examples/outputs/repressilator.mp4", io)
+if use_improved
+    save("examples/outputs/repressilator_imp.mp4", io)
+else
+    save("examples/outputs/repressilator.mp4", io)
+end
 
 # TODO There might be an assumption in Duplicated that the ids are consecutive, I have an error that tried to set the state of agents at 2365 - BoundsError: attempt to access 2364-element Vector{Any} at index [2365]

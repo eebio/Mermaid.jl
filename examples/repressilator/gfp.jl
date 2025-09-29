@@ -25,28 +25,28 @@ module Repressilator
     alpha = a_tr * eff * tau_prot / (KM * log(2))
 
     repressilator = @reaction_network begin
-        @species gr(t)
-        gr*(hillr(P₃, a_tr, KM, n) + a0_tr), ∅ --> m₁
-        gr*(hillr(P₁, a_tr, KM, n) + a0_tr), ∅ --> m₂
-        gr*(hillr(P₂, a_tr, KM, n) + a0_tr), ∅ --> m₃
-        gr*kd_mRNA, m₁ --> ∅
-        gr*kd_mRNA, m₂ --> ∅
-        gr*kd_mRNA, m₃ --> ∅
-        gr*k_tl, m₁ --> m₁ + P₁
-        gr*k_tl, m₂ --> m₂ + P₂
-        gr*k_tl, m₃ --> m₃ + P₃
-        gr*kd_prot, P₁ --> ∅
-        gr*kd_prot, P₂ --> ∅
-        gr*kd_prot, P₃ --> ∅
-        gr*(hillr(P₁, a_tr, KM, n) + a0_tr), ∅ --> m_gfp
-        gr*kd_mRNA, m_gfp --> ∅
-        gr*k_tl, m_gfp --> m_gfp + gfp
-        gr*kd_prot, gfp --> ∅
+        @species gr(t) V(t)
+        a*gr*V*(hillr(P₃/V, a_tr, KM, n) + a0_tr), ∅ --> m₁
+        a*gr*V*(hillr(P₁/V, a_tr, KM, n) + a0_tr), ∅ --> m₂
+        a*gr*V*(hillr(P₂/V, a_tr, KM, n) + a0_tr), ∅ --> m₃
+        b*gr*kd_mRNA, m₁ --> ∅
+        b*gr*kd_mRNA, m₂ --> ∅
+        b*gr*kd_mRNA, m₃ --> ∅
+        a*gr*k_tl, m₁ --> m₁ + P₁
+        a*gr*k_tl, m₂ --> m₂ + P₂
+        a*gr*k_tl, m₃ --> m₃ + P₃
+        b*gr*kd_prot, P₁ --> ∅
+        b*gr*kd_prot, P₂ --> ∅
+        b*gr*kd_prot, P₃ --> ∅
+        a*gr*V*(hillr(P₁/V, a_tr, KM, n) + a0_tr), ∅ --> m_gfp
+        b*gr*kd_mRNA, m_gfp --> ∅
+        b*gr*k_tl, m_gfp --> m_gfp + gfp
+        b*gr*kd_prot, gfp --> ∅
     end
 
-    u0 = [:P₁ => 150.0, :P₂ => 10.0, :P₃ => 10.0, :m₁ => 50.0, :m₂ => 5.0, :m₃ => 5.0, :m_gfp => 0.0, :gfp => 0.0, :gr => 1.0]
+    u0 = [:P₁ => 10.0, :P₂ => 10.0, :P₃ => 500.0, :m₁ => 50.0, :m₂ => 5.0, :m₃ => 5.0, :m_gfp => 0.0, :gfp => 0.0, :gr => 1.0, :V => 1.0]
     tspan = (0., 750.)
-    ps = [:k_tl => k_tl, :KM => KM, :a0_tr => a0_tr, :a_tr => a_tr, :kd_prot => kd_prot, :n => n, :kd_mRNA => kd_mRNA]
+    ps = [:k_tl => k_tl, :KM => KM, :a0_tr => a0_tr, :a_tr => a_tr, :kd_prot => kd_prot, :n => n, :kd_mRNA => kd_mRNA, :a => 10.0, :b => 40.0]
 
     function ode_repressilator()
         return ODEProblem(repressilator, u0, tspan, ps)
@@ -112,4 +112,4 @@ module Repressilator
 end
 using .Repressilator
 
-#Repressilator.final_plot()
+#Repressilator.plot_ode()
