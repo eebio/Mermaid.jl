@@ -5,7 +5,7 @@ using CommonSolve
 using OrderedCollections
 
 export AbstractComponent, AbstractTimeDependentComponent, AbstractTimeIndependentComponent
-export ODEComponent, PDEComponent, AgentsComponent, SurrogateComponent
+export DEComponent, PDEComponent, AgentsComponent, SurrogateComponent
 export DuplicatedComponent
 export Connector, ConnectedVariable, MermaidProblem
 export AbstractMermaidSolver, MinimumTimeStepper

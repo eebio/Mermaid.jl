@@ -78,7 +78,7 @@
     u0 = 0.5
     tspan = (0.0, 1.0)
     prob = ODEProblem(f2, u0, tspan)
-    c2 = ODEComponent(
+    c2 = DEComponent(
         model=prob,
         name="G",
         time_step=0.0001,

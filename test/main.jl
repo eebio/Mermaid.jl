@@ -112,7 +112,7 @@ end
     tspan = (0.0, 10.0)
     prob1 = ODEProblem(f1!, [u0[1], 2.0], tspan) # TODO Initial value for params is intentionally wrong
     prob2 = ODEProblem(f2!, [u0[2], 4.0], tspan)
-    c1 = ODEComponent(
+    c1 = DEComponent(
         model=prob1,
         name="Prey",
         time_step=0.002,
@@ -121,7 +121,7 @@ end
         intkwargs=(:adaptive => false,),
     )
 
-    c2 = ODEComponent(
+    c2 = DEComponent(
         model=prob2,
         name="Predator",
         time_step=0.002,
