@@ -25,29 +25,17 @@
 
     # Initialize both components
     ode_int = init(ode_comp, conns)
-    @show ode_int.integrator.u
     surrogate_int = init(surrogate_comp, conns)
-    @show surrogate_int.integrator.integrator.u
 
     # Step both integrators and compare
     n_steps = 5
     tol = 0.1  # Surrogate tolerance
 
-    examples = [1.0, 0.7, 0.5, 0.3, 0.1]
-    for example in examples
-        @show "Example input: $example"
-        @show surrogate_int.surrogate([example])
-    end
     for i in 1:n_steps
-        println("Starting testing")
-        @show Mermaid.getstate(ode_int, ConnectedVariable("decay.x"))
-        @show Mermaid.getstate(surrogate_int, ConnectedVariable("decay.x"))
         step!(ode_int)
         step!(surrogate_int)
         orig = Mermaid.getstate(ode_int, ConnectedVariable("decay.x"))
         sur = Mermaid.getstate(surrogate_int, ConnectedVariable("decay.x"))
-        @show orig
-        @show sur
         @test isapprox(sur, orig; atol=tol)
     end
 end
