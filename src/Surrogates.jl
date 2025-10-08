@@ -49,9 +49,8 @@ function CommonSolve.init(c::SurrogateComponent, conns::Vector{Connector})
         model1 = Chain(
             Dense(length(lower_bound), 32, relu),
             Dense(32, 32, relu),
-            Dense(32, length(lower_bound)),
-            first
         )
+            Dense(32, length(lower_bound))
     else
         model1 = c.model
     end
