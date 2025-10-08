@@ -20,6 +20,7 @@ Represents a component that is replaced with a surrogate in the simulation, spee
     upper_bound
     model = nothing
     n_samples = 100
+    n_epochs = 100
 end
 
 mutable struct SurrogateComponentIntegrator <: ComponentIntegrator
@@ -59,13 +60,14 @@ function CommonSolve.init(c::SurrogateComponent, conns::Vector{Connector})
     if length(lower_bound) == 1
         xys = [[x] for x in xys]
     end
-    neural = NeuralSurrogate(xys, zs, lower_bound, upper_bound, model=model1, n_epochs=1000)
-    for (x, z) in zip(xys, zs)
-        println("Training surrogate with input: $x, output: $z, surrogate: $(neural(x))")
-        update!(neural, x, z)
-        println("After update, surrogate output: $(neural(x))")
-    end
-    return SurrogateComponentIntegrator(integrator, c, inputs, outputs, initial_state, 0.0, neural)
+
+    learning_rate = 0.1
+    optimizer = Descent(learning_rate)  # Simple gradient descent. See Flux documentation for other options.
+
+    sgt = NeuralSurrogate(xys, zs, lower_bound, upper_bound; model=model1,
+        opt=optimizer, n_epochs=c.n_epochs)
+
+    return SurrogateComponentIntegrator(integrator, c, inputs, outputs, initial_state, 0.0, sgt)
 end
 
 function CommonSolve.step!(compInt::SurrogateComponentIntegrator)
