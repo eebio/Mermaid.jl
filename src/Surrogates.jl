@@ -1,6 +1,5 @@
 using Surrogates
 using Flux
-using SurrogatesFlux
 # TODO time dependence: what if an ODE non-autonomous? want an option to include time in the surrogate?
 
 """
