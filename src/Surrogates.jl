@@ -42,7 +42,10 @@ function CommonSolve.init(c::SurrogateComponent, conns::Vector{Connector})
     outputs = integrator.outputs
     initial_state = getstate(integrator)
     function step(x)
-        setstate!(integrator, x) # TODO x will be a tuple, will that be okay?
+        if x isa Tuple
+            x = collect(x)
+        end
+        setstate!(integrator, x)
         step!(integrator)
         return getstate(integrator)
     end
