@@ -6,7 +6,7 @@
     tspan = (0.0, 1.0)
     prob = ODEProblem(f, u0, tspan)
     state_names = Dict("x" => 1)
-    ode_comp = ODEComponent(model=prob, name="decay", state_names=state_names, time_step=0.1)
+    ode_comp = DEComponent(model=prob, name="decay", state_names=state_names, time_step=0.1)
 
     # Set bounds for surrogate sampling
     lower = [0.0]
