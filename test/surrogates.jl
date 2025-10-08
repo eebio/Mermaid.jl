@@ -17,7 +17,6 @@
         component=ode_comp,
         lower_bound=lower,
         upper_bound=upper,
-        n_samples=1000,
     )
 
     # Dummy connector list (no connections for this test)
@@ -28,8 +27,8 @@
     surrogate_int = init(surrogate_comp, conns)
 
     # Step both integrators and compare
-    n_steps = 5
-    tol = 0.1  # Surrogate tolerance
+    n_steps = 20
+    tol = 0.01  # Surrogate tolerance
 
     for i in 1:n_steps
         step!(ode_int)

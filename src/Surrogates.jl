@@ -19,8 +19,8 @@ Represents a component that is replaced with a surrogate in the simulation, spee
     lower_bound
     upper_bound
     model = nothing
-    n_samples = 100
-    n_epochs = 100
+    n_samples = 1000
+    n_epochs = 1000
 end
 
 mutable struct SurrogateComponentIntegrator <: ComponentIntegrator
