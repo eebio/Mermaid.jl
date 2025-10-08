@@ -119,9 +119,10 @@ end
     # Ensure the code is compiled
     solMer = solve(mp, alg)
 
+    preyODE = [solODE(t; idxs=x) for t in solMer.t]
+    predatorODE = [solODE(t; idxs=y) for t in solMer.t]
+    
     @test all(solMer.t .≈ solODE.t)
-    preyODE = [solODE(t)[1] for t in solMer.t]
-    predatorODE = [solODE(t)[2] for t in solMer.t]
     @test all(solMer["Prey.prey"] .≈ preyODE)
     @test all(solMer["Predator.predator"] .≈ predatorODE)
 end
