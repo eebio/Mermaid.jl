@@ -69,7 +69,12 @@ function CommonSolve.init(c::SurrogateComponent, conns::Vector{Connector})
 end
 
 function CommonSolve.step!(compInt::SurrogateComponentIntegrator)
-    compInt.state = compInt.surrogate(compInt.state)
+    surr = compInt.surrogate(compInt.state)
+    if length(surr) == 1
+        compInt.state = surr[1]  # Convert 1-element array to scalar
+    else
+        compInt.state = vec(surr)
+    end
     compInt.time += compInt.component.time_step
 end
 
