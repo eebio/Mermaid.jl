@@ -70,7 +70,7 @@ end
         lower_bound=lower,
         upper_bound=upper,
         n_samples=2000,
-        n_epochs=2000,
+        n_epochs=4000,
     )
 
     # Dummy connector list (no connections for this test)
