@@ -1,4 +1,4 @@
-@testitem "surrogate integrator" begin
+@testitem "surrogate integrator 1d" begin
     using DifferentialEquations
     # Define a simple ODE: dx/dt = -x, x(0) = 1
     f(u, p, t) = -u
@@ -40,7 +40,7 @@
     end
 end
 
-@testitem "surrogate integrator" begin
+@testitem "surrogate integrator 2d" begin
     using DifferentialEquations
     # Define a simple ODE: dx/dt = -x, x(0) = 1
     f(u, p, t) = [-u[1], u[2]-u[1]]
