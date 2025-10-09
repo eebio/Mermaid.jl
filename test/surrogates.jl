@@ -1,5 +1,7 @@
 @testitem "surrogate integrator 1d" begin
     using DifferentialEquations
+    using Random
+    Random.seed!(0)
     # Define a simple ODE: dx/dt = -x, x(0) = 1
     f(u, p, t) = -u
     u0 = 1.0
@@ -42,6 +44,8 @@ end
 
 @testitem "surrogate integrator 2d" begin
     using DifferentialEquations
+    using Random
+    Random.seed!(0)
     # Define a simple ODE: dx/dt = -x, x(0) = 1
     f(u, p, t) = [-u[1], u[2]-u[1]]
     u0 = [1.0, 0.5]
