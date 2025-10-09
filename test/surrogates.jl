@@ -17,6 +17,7 @@
         component=ode_comp,
         lower_bound=lower,
         upper_bound=upper,
+        n_epochs=4000,
     )
 
     # Dummy connector list (no connections for this test)
