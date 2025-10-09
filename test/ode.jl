@@ -70,14 +70,14 @@ end
     @variables x(t) y(t)
     eqs = [D(x) ~ x - x * y
         D(y) ~ -y + x * y]
-    @mtkbuild lv = ODESystem(eqs, t)
+    @mtkcompile lv = System(eqs, t)
     prob = ODEProblem(lv, [x => 4.0, y => 2.0], (0.0, 10.0))
 
     solODE = solve(prob, Euler(); adaptive=false, dt=0.002)
 
     eqs = [D(x) ~ x - x * y
         D(y) ~ 0]
-    @mtkbuild lv1 = ODESystem(eqs, t)
+    @mtkcompile lv1 = System(eqs, t)
     prob = ODEProblem(lv1, [x => 4.0, y => 2.0], (0.0, 10.0))
 
     c1 = DEComponent(
@@ -91,7 +91,7 @@ end
 
     eqs = [D(x) ~ 0
         D(y) ~ -y + x * y]
-    @mtkbuild lv2 = ODESystem(eqs, t)
+    @mtkcompile lv2 = System(eqs, t)
     prob = ODEProblem(lv2, [x => 4.0, y => 2.0], (0.0, 10.0))
 
     c2 = DEComponent(
@@ -119,9 +119,10 @@ end
     # Ensure the code is compiled
     solMer = solve(mp, alg)
 
+    preyODE = [solODE(t; idxs=x) for t in solMer.t]
+    predatorODE = [solODE(t; idxs=y) for t in solMer.t]
+    
     @test all(solMer.t .≈ solODE.t)
-    preyODE = [solODE(t)[1] for t in solMer.t]
-    predatorODE = [solODE(t)[2] for t in solMer.t]
     @test all(solMer["Prey.prey"] .≈ preyODE)
     @test all(solMer["Predator.predator"] .≈ predatorODE)
 end

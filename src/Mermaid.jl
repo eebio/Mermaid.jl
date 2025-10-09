@@ -5,7 +5,7 @@ using CommonSolve
 using OrderedCollections
 
 export AbstractComponent, AbstractTimeDependentComponent, AbstractTimeIndependentComponent
-export DEComponent, PDEComponent, AgentsComponent
+export DEComponent, PDEComponent, AgentsComponent, SurrogateComponent
 export DuplicatedComponent
 export Connector, ConnectedVariable, MermaidProblem
 export AbstractMermaidSolver, MinimumTimeStepper
@@ -18,6 +18,7 @@ include("DiffEq.jl")
 include("PDE.jl")
 include("Duplicated.jl")
 include("Agents.jl")
+include("Surrogates.jl")
 include("solvers.jl")
 
 end

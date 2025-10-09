@@ -60,13 +60,13 @@
 
     using SymbolicIndexingInterface
     function var_index(s)
-        return s => variable_index(prob, ModelingToolkit.parse_variable(prob.f.sys, s))
+        return variable_index(prob, ModelingToolkit.parse_variable(prob.f.sys, s))
     end
 
     c1 = PDEComponent(
         model=prob,
         name="PDE",
-        state_names=Dict("u" => [2:9..., 1], "g" => [11:18..., 10]), # TODO this needs to use the symbolic indexing
+        state_names=Dict("u" => [var_index("u[" * string(i) * "]") for i in 2:10], "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
         time_step=0.0001,
         alg=Euler(),
         intkwargs=(:adaptive => false,),
@@ -130,10 +130,15 @@ end
     # Convert the PDE problem into an ODE problem
     prob = discretize(pdesys, discretization)
 
+    using SymbolicIndexingInterface
+    function var_index(s)
+        return variable_index(prob, ModelingToolkit.parse_variable(prob.f.sys, s))
+    end
+
     c1 = PDEComponent(
         model=prob,
         name="PDE",
-        state_names=Dict("u" => [2:9..., 1], "g" => [11:18..., 10]), # TODO this needs to use the symbolic indexing
+        state_names=Dict("u" => [var_index("u[" * string(i) * "]") for i in 2:10], "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
         time_step=0.01,
         alg=Tsit5(),
     )
@@ -153,7 +158,7 @@ end
     # Check initial state
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) == [sin(pi * x) for x in 0.1:0.1:0.9]
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g")) == [0.5 for _ in 0.1:0.1:0.9]
-    @test Mermaid.getstate(integrator) == [[sin(pi * x) for x in [0.9, 0.1:0.1:0.8...]]...; [0.5 for _ in [0.9, 0.1:0.1:0.8...]]]
+    @test Mermaid.getstate(integrator) == [[sin(pi * x) for x in [0.1:0.1:0.9...]]...; [0.5 for _ in [0.1:0.1:0.9...]]][[c1.state_names["u"]..., c1.state_names["g"]...]]
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u[1]")) == sin(pi * 0.1)
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g[1:3]")) == [0.5, 0.5, 0.5]
     @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u[2:4]")) == [sin(pi * 0.2), sin(pi * 0.3), sin(pi * 0.4)]
