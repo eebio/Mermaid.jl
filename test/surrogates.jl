@@ -42,8 +42,8 @@
     for i in 1:n_steps
         step!(ode_int)
         step!(surrogate_int)
-        orig = Mermaid.getstate(ode_int, ConnectedVariable("decay.x"))
-        sur = Mermaid.getstate(surrogate_int, ConnectedVariable("decay.x"))
+        orig = getstate(ode_int, ConnectedVariable("decay.x"))
+        sur = getstate(surrogate_int, ConnectedVariable("decay.x"))
         @test isapprox(sur, orig; atol=tol)
     end
 end
@@ -87,8 +87,8 @@ end
     for i in 1:n_steps
         step!(ode_int)
         step!(surrogate_int)
-        orig = Mermaid.getstate(ode_int, ConnectedVariable("decay.x"))
-        sur = Mermaid.getstate(surrogate_int, ConnectedVariable("decay.x"))
+        orig = getstate(ode_int, ConnectedVariable("decay.x"))
+        sur = getstate(surrogate_int, ConnectedVariable("decay.x"))
         @test isapprox(sur, orig; atol=tol)
     end
 end
@@ -122,30 +122,30 @@ end
     # Initialize both components
     surrogate_int = init(surrogate_comp, conns)
 
-    @test Mermaid.getstate(surrogate_int, ConnectedVariable("decay.x")) == 1.0
-    @test Mermaid.getstate(surrogate_int, ConnectedVariable("decay.y")) == 0.5
-    @test Mermaid.getstate(surrogate_int) == [1.0, 0.5]
-    Mermaid.setstate!(surrogate_int, ConnectedVariable("decay.x"), 0.75)
-    @test Mermaid.getstate(surrogate_int, ConnectedVariable("decay.x")) == 0.75
-    @test Mermaid.getstate(surrogate_int, ConnectedVariable("decay.y")) == 0.5
-    @test Mermaid.getstate(surrogate_int) == [0.75, 0.5]
+    @test getstate(surrogate_int, ConnectedVariable("decay.x")) == 1.0
+    @test getstate(surrogate_int, ConnectedVariable("decay.y")) == 0.5
+    @test getstate(surrogate_int) == [1.0, 0.5]
+    setstate!(surrogate_int, ConnectedVariable("decay.x"), 0.75)
+    @test getstate(surrogate_int, ConnectedVariable("decay.x")) == 0.75
+    @test getstate(surrogate_int, ConnectedVariable("decay.y")) == 0.5
+    @test getstate(surrogate_int) == [0.75, 0.5]
 
-    @test Mermaid.gettime(surrogate_int) == 0.0
+    @test gettime(surrogate_int) == 0.0
 
-    Mermaid.step!(surrogate_int)
-    @test Mermaid.getstate(surrogate_int, ConnectedVariable("decay.x")) ≠ 0.75
-    @test all(Mermaid.getstate(surrogate_int) .≠ [0.75, 0.5])
+    step!(surrogate_int)
+    @test getstate(surrogate_int, ConnectedVariable("decay.x")) ≠ 0.75
+    @test all(getstate(surrogate_int) .≠ [0.75, 0.5])
 
-    Mermaid.setstate!(surrogate_int, [0.9, 0.1])
-    @test Mermaid.getstate(surrogate_int, ConnectedVariable("decay.x")) == 0.9
-    @test Mermaid.getstate(surrogate_int, ConnectedVariable("decay.y")) == 0.1
-    @test Mermaid.getstate(surrogate_int) == [0.9, 0.1]
+    setstate!(surrogate_int, [0.9, 0.1])
+    @test getstate(surrogate_int, ConnectedVariable("decay.x")) == 0.9
+    @test getstate(surrogate_int, ConnectedVariable("decay.y")) == 0.1
+    @test getstate(surrogate_int) == [0.9, 0.1]
 
-    @test Mermaid.gettime(surrogate_int) == 0.1
-    Mermaid.settime!(surrogate_int, 0.5)
-    @test Mermaid.gettime(surrogate_int) == 0.5
-    Mermaid.step!(surrogate_int)
-    @test Mermaid.gettime(surrogate_int) == 0.6
+    @test gettime(surrogate_int) == 0.1
+    settime!(surrogate_int, 0.5)
+    @test gettime(surrogate_int) == 0.5
+    step!(surrogate_int)
+    @test gettime(surrogate_int) == 0.6
 
-    @test all(Mermaid.variables(surrogate_int) .== ["x", "y"])
+    @test all(variables(surrogate_int) .== ["x", "y"])
 end

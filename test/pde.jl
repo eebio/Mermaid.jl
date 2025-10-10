@@ -153,42 +153,42 @@ end
     )
     integrator = init(c1, [conn1, conn2])
 
-    @test issetequal(Mermaid.variables(integrator), ["u", "g"])
+    @test issetequal(variables(integrator), ["u", "g"])
 
     # Check initial state
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) == [sin(pi * x) for x in 0.1:0.1:0.9]
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g")) == [0.5 for _ in 0.1:0.1:0.9]
-    @test Mermaid.getstate(integrator) == [[sin(pi * x) for x in [0.1:0.1:0.9...]]...; [0.5 for _ in [0.1:0.1:0.9...]]][[c1.state_names["u"]..., c1.state_names["g"]...]]
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u[1]")) == sin(pi * 0.1)
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g[1:3]")) == [0.5, 0.5, 0.5]
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u[2:4]")) == [sin(pi * 0.2), sin(pi * 0.3), sin(pi * 0.4)]
+    @test getstate(integrator, ConnectedVariable("PDE.u")) == [sin(pi * x) for x in 0.1:0.1:0.9]
+    @test getstate(integrator, ConnectedVariable("PDE.g")) == [0.5 for _ in 0.1:0.1:0.9]
+    @test getstate(integrator) == [[sin(pi * x) for x in [0.1:0.1:0.9...]]...; [0.5 for _ in [0.1:0.1:0.9...]]][[c1.state_names["u"]..., c1.state_names["g"]...]]
+    @test getstate(integrator, ConnectedVariable("PDE.u[1]")) == sin(pi * 0.1)
+    @test getstate(integrator, ConnectedVariable("PDE.g[1:3]")) == [0.5, 0.5, 0.5]
+    @test getstate(integrator, ConnectedVariable("PDE.u[2:4]")) == [sin(pi * 0.2), sin(pi * 0.3), sin(pi * 0.4)]
     # Check setting state
-    Mermaid.setstate!(integrator, ConnectedVariable("PDE.u"), [1.0 for _ in 0.1:0.1:0.9])
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) == [1.0 for _ in 0.1:0.1:0.9]
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g")) == [0.5 for _ in 0.1:0.1:0.9]
-    Mermaid.setstate!(integrator, ConnectedVariable("PDE.u[1]"), 0.0)
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) == [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-    Mermaid.setstate!(integrator, ConnectedVariable("PDE.g[1:3]"), [0.0, 0.1, 0.2])
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g")) == [0.0, 0.1, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    setstate!(integrator, ConnectedVariable("PDE.u"), [1.0 for _ in 0.1:0.1:0.9])
+    @test getstate(integrator, ConnectedVariable("PDE.u")) == [1.0 for _ in 0.1:0.1:0.9]
+    @test getstate(integrator, ConnectedVariable("PDE.g")) == [0.5 for _ in 0.1:0.1:0.9]
+    setstate!(integrator, ConnectedVariable("PDE.u[1]"), 0.0)
+    @test getstate(integrator, ConnectedVariable("PDE.u")) == [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    setstate!(integrator, ConnectedVariable("PDE.g[1:3]"), [0.0, 0.1, 0.2])
+    @test getstate(integrator, ConnectedVariable("PDE.g")) == [0.0, 0.1, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 
 
     # Check time control
-    @test Mermaid.gettime(integrator) == 0.0
+    @test gettime(integrator) == 0.0
     step!(integrator)
-    @test Mermaid.gettime(integrator) == 0.01
-    Mermaid.settime!(integrator, 0.1)
-    @test Mermaid.gettime(integrator) == 0.1
+    @test gettime(integrator) == 0.01
+    settime!(integrator, 0.1)
+    @test gettime(integrator) == 0.1
     step!(integrator)
-    @test Mermaid.gettime(integrator) == 0.11
+    @test gettime(integrator) == 0.11
 
     # Step means the state has changed
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) ≠ [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g")) ≠ [0.0, 0.1, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    @test getstate(integrator, ConnectedVariable("PDE.u")) ≠ [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    @test getstate(integrator, ConnectedVariable("PDE.g")) ≠ [0.0, 0.1, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 
     # Global setstate!
-    Mermaid.setstate!(integrator, [-1.0 for _ in 1:18])
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.u")) == [-1.0 for _ in 0.1:0.1:0.9]
-    @test Mermaid.getstate(integrator, ConnectedVariable("PDE.g")) == [-1.0 for _ in 0.1:0.1:0.9]
+    setstate!(integrator, [-1.0 for _ in 1:18])
+    @test getstate(integrator, ConnectedVariable("PDE.u")) == [-1.0 for _ in 0.1:0.1:0.9]
+    @test getstate(integrator, ConnectedVariable("PDE.g")) == [-1.0 for _ in 0.1:0.1:0.9]
 
     # Test error on symbolic indexing
     c1 = PDEComponent(

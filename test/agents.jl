@@ -134,7 +134,7 @@ end
     c1 = AgentsComponent(
         model=model,
         name="Schelling",
-        state_names=Dict("min_to_be_happy" => :min_to_be_happy, "list_property" => :list_property,"mood" => :mood, "group" => :group),
+        state_names=Dict("min_to_be_happy" => :min_to_be_happy, "list_property" => :list_property, "mood" => :mood, "group" => :group),
         time_step=0.2,
     )
 
@@ -149,64 +149,64 @@ end
 
     integrator = init(c1, [conn1, conn2])
 
-    @test issetequal(Mermaid.variables(integrator), ["min_to_be_happy", "group", "mood", "list_property", "#model"])
+    @test issetequal(variables(integrator), ["min_to_be_happy", "group", "mood", "list_property", "#model"])
 
     # Check initial state
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 3.0
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) == [n < 300 / 2 ? 1 : 2 for n in allids(integrator.integrator)]
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) == [false for _ in allids(integrator.integrator)]
+    @test getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 3.0
+    @test getstate(integrator, ConnectedVariable("Schelling.group")) == [n < 300 / 2 ? 1 : 2 for n in allids(integrator.integrator)]
+    @test getstate(integrator, ConnectedVariable("Schelling.mood")) == [false for _ in allids(integrator.integrator)]
     # Check setting state
-    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.min_to_be_happy"), 5.0)
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 5.0
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) == [n < 300 / 2 ? 1 : 2 for n in allids(integrator.integrator)]
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) == [false for _ in allids(integrator.integrator)]
+    setstate!(integrator, ConnectedVariable("Schelling.min_to_be_happy"), 5.0)
+    @test getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 5.0
+    @test getstate(integrator, ConnectedVariable("Schelling.group")) == [n < 300 / 2 ? 1 : 2 for n in allids(integrator.integrator)]
+    @test getstate(integrator, ConnectedVariable("Schelling.mood")) == [false for _ in allids(integrator.integrator)]
 
-    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.group[1:3]"), [3, 4, 5])
-    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.mood[2:3]"), [true, true])
-    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.mood[300]"), true)
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 5.0
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) == [n ∈ [1,2,3] ? n+2 : (n < 300 / 2 ? 1 : 2) for n in allids(integrator.integrator)]
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) == [n ∈ [2,3, 300] ? true : false for n in allids(integrator.integrator)]
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood[300]")) == true
+    setstate!(integrator, ConnectedVariable("Schelling.group[1:3]"), [3, 4, 5])
+    setstate!(integrator, ConnectedVariable("Schelling.mood[2:3]"), [true, true])
+    setstate!(integrator, ConnectedVariable("Schelling.mood[300]"), true)
+    @test getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 5.0
+    @test getstate(integrator, ConnectedVariable("Schelling.group")) == [n ∈ [1, 2, 3] ? n + 2 : (n < 300 / 2 ? 1 : 2) for n in allids(integrator.integrator)]
+    @test getstate(integrator, ConnectedVariable("Schelling.mood")) == [n ∈ [2, 3, 300] ? true : false for n in allids(integrator.integrator)]
+    @test getstate(integrator, ConnectedVariable("Schelling.mood[300]")) == true
 
     # Check time control (can't set time in Agents.jl)
-    @test Mermaid.gettime(integrator) == 0.0
+    @test gettime(integrator) == 0.0
     step!(integrator)
-    @test Mermaid.gettime(integrator) == 0.2
+    @test gettime(integrator) == 0.2
 
     # Step means the state has changed
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.group")) ≠ [3, 4, 5, [n < 300 / 2 ? 1 : 2 for n in 4:300]...]
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) ≠ [false, true, true, [false for _ in 4:300]..., true]
+    @test getstate(integrator, ConnectedVariable("Schelling.group")) ≠ [3, 4, 5, [n < 300 / 2 ? 1 : 2 for n in 4:300]...]
+    @test getstate(integrator, ConnectedVariable("Schelling.mood")) ≠ [false, true, true, [false for _ in 4:300]..., true]
 
-    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.mood"), [true for _ in allids(integrator.integrator)])
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.mood")) == [true for _ in allids(integrator.integrator)]
-    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.list_property"), [4, 5, 6])
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property")) == [4, 5, 6]
-    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.list_property[1:2]"), [7, 8])
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property[1]")) == 7
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.list_property[1:3]")) == [7, 8, 6]
+    setstate!(integrator, ConnectedVariable("Schelling.mood"), [true for _ in allids(integrator.integrator)])
+    @test getstate(integrator, ConnectedVariable("Schelling.mood")) == [true for _ in allids(integrator.integrator)]
+    setstate!(integrator, ConnectedVariable("Schelling.list_property"), [4, 5, 6])
+    @test getstate(integrator, ConnectedVariable("Schelling.list_property")) == [4, 5, 6]
+    setstate!(integrator, ConnectedVariable("Schelling.list_property[1:2]"), [7, 8])
+    @test getstate(integrator, ConnectedVariable("Schelling.list_property[1]")) == 7
+    @test getstate(integrator, ConnectedVariable("Schelling.list_property[1:3]")) == [7, 8, 6]
 
     # getstate and setstate! for duplicated AgentsComponent
-    @test Mermaid.getstate(integrator) isa StandardABM
-    @test Mermaid.gettime(integrator) ≈ 0.2
-    state = Mermaid.getstate(integrator, true) # Get a copy of the state
-    state2 = Mermaid.getstate(integrator) # Default is don't copy, just return reference
+    @test getstate(integrator) isa StandardABM
+    @test gettime(integrator) ≈ 0.2
+    state = getstate(integrator, true) # Get a copy of the state
+    state2 = getstate(integrator) # Default is don't copy, just return reference
     step!(integrator)
-    @test Mermaid.gettime(integrator) ≈ 0.4
-    Mermaid.setstate!(integrator, state)
-    @test Mermaid.gettime(integrator) ≈ 0.2
-    Mermaid.setstate!(integrator, state2)
-    @test Mermaid.gettime(integrator) ≈ 0.4
+    @test gettime(integrator) ≈ 0.4
+    setstate!(integrator, state)
+    @test gettime(integrator) ≈ 0.2
+    setstate!(integrator, state2)
+    @test gettime(integrator) ≈ 0.4
 
     # Settime does nothing since Agents.jl does not support setting time directly but rather stores it within the state
-    Mermaid.settime!(integrator, 1.0)
-    @test Mermaid.gettime(integrator) ≈ 0.4
+    settime!(integrator, 1.0)
+    @test gettime(integrator) ≈ 0.4
 
     # Same thing but with the #model variable
-    @test Mermaid.getstate(integrator, ConnectedVariable("Schelling.#model")) isa StandardABM
-    state = Mermaid.getstate(integrator, ConnectedVariable("Schelling.#model"))
+    @test getstate(integrator, ConnectedVariable("Schelling.#model")) isa StandardABM
+    state = getstate(integrator, ConnectedVariable("Schelling.#model"))
     step!(integrator)
-    @test Mermaid.gettime(integrator) ≈ 0.6
-    Mermaid.setstate!(integrator, ConnectedVariable("Schelling.#model"), state)
-    @test Mermaid.gettime(integrator) ≈ 0.4
+    @test gettime(integrator) ≈ 0.6
+    setstate!(integrator, ConnectedVariable("Schelling.#model"), state)
+    @test gettime(integrator) ≈ 0.4
 end

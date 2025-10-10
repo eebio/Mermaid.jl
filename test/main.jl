@@ -1,8 +1,8 @@
 @testitem "fullname" begin
-    @test Mermaid.fullname(ConnectedVariable("comp", "var", 1:5, [1, 3, 5, 7])) == "comp[[1, 3, 5, 7]].var[1:5]"
-    @test Mermaid.fullname(ConnectedVariable("cmp", "var", 1:5, nothing)) == "cmp.var[1:5]"
-    @test Mermaid.fullname(ConnectedVariable("cp", "vr", nothing, [1, 3, 5, 7])) == "cp[[1, 3, 5, 7]].vr"
-    @test Mermaid.fullname(ConnectedVariable("comp", "var", nothing, nothing)) == "comp.var"
+    @test fullname(ConnectedVariable("comp", "var", 1:5, [1, 3, 5, 7])) == "comp[[1, 3, 5, 7]].var[1:5]"
+    @test fullname(ConnectedVariable("cmp", "var", 1:5, nothing)) == "cmp.var[1:5]"
+    @test fullname(ConnectedVariable("cp", "vr", nothing, [1, 3, 5, 7])) == "cp[[1, 3, 5, 7]].vr"
+    @test fullname(ConnectedVariable("comp", "var", nothing, nothing)) == "comp.var"
 end
 
 @testitem "solution" begin
@@ -58,22 +58,22 @@ end
     @test sol["Schelling.min_to_be_happy"] == [3.0 for _ in sol.t]
     @test sol["Schelling.list_property"] == [[1, 2, 3, 4, 5] for _ in sol.t]
     @test sol["Schelling.list_property[2:3]"] == [[2, 3] for _ in sol.t]
-    @test sol["Schelling.mood"] == sol[Mermaid.parsevariable("Schelling.mood")]
+    @test sol["Schelling.mood"] == sol[parsevariable("Schelling.mood")]
 
     # Test indexing
     @test sol[2].t[1] == sol.t[2]
     @test length(sol[2].t) == 1
-    @test (sol[2].u)[Mermaid.parsevariable("Schelling.min_to_be_happy")] == sol["Schelling.min_to_be_happy"][2]
+    @test (sol[2].u)[parsevariable("Schelling.min_to_be_happy")] == sol["Schelling.min_to_be_happy"][2]
     @test sol[2] isa MermaidSolution
     @test keys(sol[2].u) == keys(sol.u)
 
     # Test interpolation
     @test sol(2) isa MermaidSolution
     @test sol(2).t[1] == 2.0
-    sol.u[Mermaid.parsevariable("Schelling.min_to_be_happy")][4] = rand()
+    sol.u[parsevariable("Schelling.min_to_be_happy")][4] = rand()
     @test sol(2.75).t[1] == 2.75
     @test length(sol(2.75).t) == 1
-    @test sol(2.75)["Schelling.min_to_be_happy"] ≈ (sol.u[Mermaid.parsevariable("Schelling.min_to_be_happy")][3] + 3*sol.u[Mermaid.parsevariable("Schelling.min_to_be_happy")][4]) / 4
+    @test sol(2.75)["Schelling.min_to_be_happy"] ≈ (sol.u[parsevariable("Schelling.min_to_be_happy")][3] + 3 * sol.u[parsevariable("Schelling.min_to_be_happy")][4]) / 4
     @test sol(2)["Schelling.min_to_be_happy"] == 3.0
     @test sol(3)["Schelling.min_to_be_happy"] ≠ 3.0
 
@@ -86,7 +86,7 @@ end
     sol = solve(mp, alg; save_vars=["Schelling.min_to_be_happy", "Schelling.list_property[2:4]"])
     @test sol["Schelling.min_to_be_happy"] == [3.0 for _ in sol.t]
     @test_throws KeyError sol["Schelling.mood"]
-    @test issetequal(keys(sol.u), Mermaid.parsevariable.(["Schelling.min_to_be_happy", "Schelling.list_property[2:4]"]))
+    @test issetequal(keys(sol.u), parsevariable.(["Schelling.min_to_be_happy", "Schelling.list_property[2:4]"]))
     @test sol["Schelling.list_property[2:3]"] == [[2, 3] for _ in sol.t]
     @test sol["Schelling.list_property[2]"] == [2 for _ in sol.t]
     @test sol["Schelling.list_property[3]"] == [3 for _ in sol.t]
@@ -143,15 +143,15 @@ end
     integrator = init(mp, MinimumTimeStepper())
 
     # State control
-    @test Mermaid.getstate(integrator, ConnectedVariable("Prey.prey")) == 4.0
-    @test Mermaid.getstate(integrator, ConnectedVariable("Predator.predator")) == 2.0
-    Mermaid.setstate!(integrator, ConnectedVariable("Prey.prey"), 5.0)
-    @test Mermaid.getstate(integrator, ConnectedVariable("Prey.prey")) == 5.0
-    @test Mermaid.getstate(integrator, ConnectedVariable("Predator.predator")) == 2.0
-    @test Mermaid.getstate(integrator.integrators[1], ConnectedVariable("Prey.prey")) == 5.0
+    @test getstate(integrator, ConnectedVariable("Prey.prey")) == 4.0
+    @test getstate(integrator, ConnectedVariable("Predator.predator")) == 2.0
+    setstate!(integrator, ConnectedVariable("Prey.prey"), 5.0)
+    @test getstate(integrator, ConnectedVariable("Prey.prey")) == 5.0
+    @test getstate(integrator, ConnectedVariable("Predator.predator")) == 2.0
+    @test getstate(integrator.integrators[1], ConnectedVariable("Prey.prey")) == 5.0
     step!(integrator, 0.01)
-    @test Mermaid.getstate(integrator, ConnectedVariable("Prey.prey")) ≠ 5.0
-    @test Mermaid.getstate(integrator, ConnectedVariable("Predator.predator")) ≠ 2.0
+    @test getstate(integrator, ConnectedVariable("Prey.prey")) ≠ 5.0
+    @test getstate(integrator, ConnectedVariable("Predator.predator")) ≠ 2.0
 
     # update_inputs!
     integrator = init(mp, MinimumTimeStepper())
@@ -161,29 +161,29 @@ end
     conn1 = Connector(
         inputs=["Predator.predator"],
         outputs=["Prey.predator"],
-        func=x->x*4,
+        func=x -> x * 4,
     )
     conn2 = Connector(
         inputs=["Prey.prey"],
         outputs=["Predator.prey"],
-        func=x->x/1.5,
+        func=x -> x / 1.5,
     )
 
     mp = MermaidProblem(components=[c1, c2], connectors=[conn1, conn2], max_t=10.0)
     integrator = init(mp, MinimumTimeStepper())
     Mermaid.update_inputs!(integrator)
     @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == 8.0
-    @test integrator.integrators[2].inputs[ConnectedVariable("Predator.prey")] == 4.0/1.5
+    @test integrator.integrators[2].inputs[ConnectedVariable("Predator.prey")] == 4.0 / 1.5
     conn1 = Connector(
         inputs=["Predator.predator", "Predator.prey"],
         outputs=["Prey.predator", "Prey.prey"],
-        func=(x,y) -> x*y,
+        func=(x, y) -> x * y,
     )
 
     mp = MermaidProblem(components=[c1, c2], connectors=[conn1], max_t=10.0)
     integrator = init(mp, MinimumTimeStepper())
-    Mermaid.setstate!(integrator, ConnectedVariable("Predator.predator"), 2.0)
-    Mermaid.setstate!(integrator, ConnectedVariable("Predator.prey"), 4.0)
+    setstate!(integrator, ConnectedVariable("Predator.predator"), 2.0)
+    setstate!(integrator, ConnectedVariable("Predator.prey"), 4.0)
     Mermaid.update_inputs!(integrator)
     @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == 8.0
     @test integrator.integrators[1].inputs[ConnectedVariable("Prey.prey")] == 8.0
@@ -195,8 +195,8 @@ end
     )
     mp = MermaidProblem(components=[c1, c2], connectors=[conn1], max_t=10.0)
     integrator = init(mp, MinimumTimeStepper())
-    Mermaid.setstate!(integrator, ConnectedVariable("Predator.predator"), 2.0)
-    Mermaid.setstate!(integrator, ConnectedVariable("Predator.prey"), 4.0)
+    setstate!(integrator, ConnectedVariable("Predator.predator"), 2.0)
+    setstate!(integrator, ConnectedVariable("Predator.prey"), 4.0)
     Mermaid.update_inputs!(integrator)
     @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == [2.0, 4.0]
 

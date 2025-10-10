@@ -226,7 +226,7 @@ function parsevariable(name)
     return ConnectedVariable(component, variable, index, dupindex)
 end
 
-function fullname(var::ConnectedVariable)
+function Base.fullname(var::ConnectedVariable)
     # Construct the full name of the variable
     comp = var.component
     dupindex = isnothing(var.duplicatedindex) ? "" : "[" * string(var.duplicatedindex) * "]"

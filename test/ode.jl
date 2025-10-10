@@ -22,8 +22,8 @@
         du[1] = -y + x * y
         du[2] = 0
     end
-    prob1 = ODEProblem(f1!, [u0[1],2.0], tspan) # TODO Initial value for params is intentionally wrong
-    prob2 = ODEProblem(f2!, [u0[2],4.0], tspan)
+    prob1 = ODEProblem(f1!, [u0[1], 2.0], tspan) # TODO Initial value for params is intentionally wrong
+    prob2 = ODEProblem(f2!, [u0[2], 4.0], tspan)
     c1 = DEComponent(
         model=prob1,
         name="Prey",
@@ -121,7 +121,7 @@ end
 
     preyODE = [solODE(t; idxs=x) for t in solMer.t]
     predatorODE = [solODE(t; idxs=y) for t in solMer.t]
-    
+
     @test all(solMer.t .≈ solODE.t)
     @test all(solMer["Prey.prey"] .≈ preyODE)
     @test all(solMer["Predator.predator"] .≈ predatorODE)
@@ -158,38 +158,38 @@ end
     )
     integrator = init(c1, [conn1, conn2])
 
-    @test issetequal(Mermaid.variables(integrator), ["prey", "predator"])
+    @test issetequal(variables(integrator), ["prey", "predator"])
 
     # Check initial state
-    @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 4.0
-    @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 2.0
-    @test Mermaid.getstate(integrator) == [4.0, 2.0]
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 4.0
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 2.0
+    @test getstate(integrator) == [4.0, 2.0]
 
     # Check setting state
-    Mermaid.setstate!(integrator, ConnectedVariable("Lotka-Volterra.prey"), 5.0)
-    @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 5.0
-    @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 2.0
-    @test Mermaid.getstate(integrator) == [5.0, 2.0]
-    Mermaid.setstate!(integrator, ConnectedVariable("Lotka-Volterra.predator"), 3.0)
-    @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 5.0
-    @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 3.0
-    @test Mermaid.getstate(integrator) == [5.0, 3.0]
-    Mermaid.setstate!(integrator, [1.0, 1.0])
-    @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 1.0
-    @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 1.0
-    @test Mermaid.getstate(integrator) == [1.0, 1.0]
+    setstate!(integrator, ConnectedVariable("Lotka-Volterra.prey"), 5.0)
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 5.0
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 2.0
+    @test getstate(integrator) == [5.0, 2.0]
+    setstate!(integrator, ConnectedVariable("Lotka-Volterra.predator"), 3.0)
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 5.0
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 3.0
+    @test getstate(integrator) == [5.0, 3.0]
+    setstate!(integrator, [1.0, 1.0])
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 1.0
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 1.0
+    @test getstate(integrator) == [1.0, 1.0]
 
     # Check time control
-    @test Mermaid.gettime(integrator) == 0.0
+    @test gettime(integrator) == 0.0
     step!(integrator)
-    @test Mermaid.gettime(integrator) == 0.002
-    Mermaid.settime!(integrator, 1.0)
-    @test Mermaid.gettime(integrator) == 1.0
+    @test gettime(integrator) == 0.002
+    settime!(integrator, 1.0)
+    @test gettime(integrator) == 1.0
     step!(integrator)
-    @test Mermaid.gettime(integrator) == 1.002
+    @test gettime(integrator) == 1.002
 
     # Step means the state has changed
-    @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) ≠ 1.0
-    @test Mermaid.getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) ≠ 1.0
-    @test Mermaid.getstate(integrator) ≠ [1.0, 1.0]
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) ≠ 1.0
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) ≠ 1.0
+    @test getstate(integrator) ≠ [1.0, 1.0]
 end

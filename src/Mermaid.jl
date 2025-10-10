@@ -5,13 +5,13 @@ using CommonSolve
 using OrderedCollections
 
 export AbstractComponent, AbstractTimeDependentComponent, AbstractTimeIndependentComponent
-export DEComponent, PDEComponent, AgentsComponent, SurrogateComponent
-export DuplicatedComponent
+export DEComponent, DuplicatedComponent, PDEComponent, AgentsComponent, SurrogateComponent
 export Connector, ConnectedVariable, MermaidProblem
 export AbstractMermaidSolver, MinimumTimeStepper
 export MermaidSolution
-export solve!, solve
-export inputsandoutputs
+export solve!, solve, init
+export getstate, setstate!, gettime, settime!, step!, variables
+export inputsandoutputs, parsevariable, fullname
 include("types.jl")
 include("functions.jl")
 include("DiffEq.jl")

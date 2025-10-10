@@ -157,29 +157,29 @@ end
     dup_int = int.integrators[1]
     @test length(dup_int.states) == nagents(agent_int.integrator) == 4
     # Set the ids manually
-    states = Mermaid.getstate(dup_int, ConnectedVariable("decay.val"))
-    ids = Mermaid.getstate(dup_int, ConnectedVariable("decay.#ids"))
-    Mermaid.setstate!(dup_int, ConnectedVariable("decay.#ids"), [1, 2, 5, 4])
-    states2 = Mermaid.getstate(dup_int, ConnectedVariable("decay.val"))
-    ids2 = Mermaid.getstate(dup_int, ConnectedVariable("decay.#ids"))
-    @test issetequal(ids, [1,2,3,4])
+    states = getstate(dup_int, ConnectedVariable("decay.val"))
+    ids = getstate(dup_int, ConnectedVariable("decay.#ids"))
+    setstate!(dup_int, ConnectedVariable("decay.#ids"), [1, 2, 5, 4])
+    states2 = getstate(dup_int, ConnectedVariable("decay.val"))
+    ids2 = getstate(dup_int, ConnectedVariable("decay.#ids"))
+    @test issetequal(ids, [1, 2, 3, 4])
     @test states ≠ states2
     @test length(states2) == length(states) == 4
     @test ids2 == [1, 2, 5, 4]
-    @test states[ids .== 1] == states2[ids2 .== 1]
-    @test states[ids .== 2] == states2[ids2 .== 2]
-    @test states[ids .== 4] == states2[ids2 .== 4]
-    @test states[ids .== 3] ∉ states2
-    @test states2[ids2 .== 5] == [5.0] # The new agent's value is set to the default state
+    @test states[ids.==1] == states2[ids2.==1]
+    @test states[ids.==2] == states2[ids2.==2]
+    @test states[ids.==4] == states2[ids2.==4]
+    @test states[ids.==3] ∉ states2
+    @test states2[ids2.==5] == [5.0] # The new agent's value is set to the default state
 
     # Test deleting multiple ids
-    Mermaid.setstate!(dup_int, ConnectedVariable("decay.#ids"), [1, 5])
-    states3 = Mermaid.getstate(dup_int, ConnectedVariable("decay.val"))
-    ids3 = Mermaid.getstate(dup_int, ConnectedVariable("decay.#ids"))
+    setstate!(dup_int, ConnectedVariable("decay.#ids"), [1, 5])
+    states3 = getstate(dup_int, ConnectedVariable("decay.val"))
+    ids3 = getstate(dup_int, ConnectedVariable("decay.#ids"))
     @test ids3 == [1, 5]
-    @test states3[ids3 .== 1] == states2[ids2 .== 1]
-    @test states3[ids3 .== 5] == states2[ids2 .== 5]
-    @test states3[ids3 .== 5] == [5.0]
+    @test states3[ids3.==1] == states2[ids2.==1]
+    @test states3[ids3.==5] == states2[ids2.==5]
+    @test states3[ids3.==5] == [5.0]
     @test length(states3) == 2
 
     # Add new agents doesnt break step!
