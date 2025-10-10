@@ -92,8 +92,13 @@ function CommonSolve.step!(compInt::DuplicatedComponentIntegrator)
 end
 
 function getstate(compInt::DuplicatedComponentIntegrator, key)
-    if key.variable == "#ids"
-        return compInt.ids
+    if first(key.variable) == '#'
+        if key.variable == "#time"
+            return getstate(compInt.integrator, key)
+        end
+        if key.variable == "#ids"
+            return compInt.ids
+        end
     end
     out = Vector{Any}(nothing, length(compInt.ids))
     if isnothing(key.duplicatedindex)
@@ -110,26 +115,32 @@ function getstate(compInt::DuplicatedComponentIntegrator, key)
 end
 
 function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
-    if key.variable == "#ids"
-        # Add any new states, remove any old states, and then set the ids vector
-        states = similar(compInt.states, size(value))
-        for i in eachindex(value)
-            id = value[i]
-            if id ∉ compInt.ids
-                states[i] = deepcopy(compInt.component.default_state)
-            else
-                states[i] = compInt.states[findfirst(==(id), compInt.ids)]
+    if first(key.variable) == '#'
+        if key.variable == "#time"
+            setstate!(compInt.integrator, key, value)
+            return nothing
+        end
+        if key.variable == "#ids"
+            # Add any new states, remove any old states, and then set the ids vector
+            states = similar(compInt.states, size(value))
+            for i in eachindex(value)
+                id = value[i]
+                if id ∉ compInt.ids
+                    states[i] = deepcopy(compInt.component.default_state)
+                else
+                    states[i] = compInt.states[findfirst(==(id), compInt.ids)]
+                end
             end
+            compInt.ids = value
+            compInt.states = states
+            for key in keys(compInt.outputs)
+                resize!(compInt.outputs[key], length(compInt.ids))
+            end
+            for key in keys(compInt.inputs)
+                resize!(compInt.inputs[key], length(compInt.ids))
+            end
+            return nothing
         end
-        compInt.ids = value
-        compInt.states = states
-        for key in keys(compInt.outputs)
-            resize!(compInt.outputs[key], length(compInt.ids))
-        end
-        for key in keys(compInt.inputs)
-            resize!(compInt.inputs[key], length(compInt.ids))
-        end
-        return nothing
     end
     if isnothing(key.duplicatedindex)
         ids = compInt.ids
@@ -142,10 +153,6 @@ function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
         setstate!(compInt.integrator, newkey, value[i])
         compInt.states[i] = getstate(compInt.integrator)
     end
-end
-
-function gettime(compInt::DuplicatedComponentIntegrator)
-    return gettime(compInt.integrator)
 end
 
 function variables(component::DuplicatedComponent)

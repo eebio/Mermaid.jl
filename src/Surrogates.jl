@@ -84,6 +84,11 @@ function CommonSolve.step!(compInt::SurrogateComponentIntegrator)
 end
 
 function getstate(compInt::SurrogateComponentIntegrator, key)
+    if first(key.variable) == '#'
+        if key.variable == "#time"
+            return compInt.time
+        end
+    end
     setstate!(compInt.integrator, compInt.state)
     return getstate(compInt.integrator, key)
 end
@@ -97,17 +102,15 @@ function setstate!(compInt::SurrogateComponentIntegrator, state)
 end
 
 function setstate!(compInt::SurrogateComponentIntegrator, key, value)
+    if first(key.variable) == '#'
+        if key.variable == "#time"
+            compInt.time = value
+            return nothing
+        end
+    end
     setstate!(compInt.integrator, compInt.state)
     setstate!(compInt.integrator, key, value)
     compInt.state = getstate(compInt.integrator)
-end
-
-function gettime(compInt::SurrogateComponentIntegrator)
-    return compInt.time
-end
-
-function settime!(compInt::SurrogateComponentIntegrator, t)
-    compInt.time = t
 end
 
 function variables(component::SurrogateComponent)

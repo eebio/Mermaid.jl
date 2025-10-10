@@ -84,10 +84,17 @@ Retrieves the state of a specific variable from the [AgentsComponentIntegrator](
 - The current state of the variable specified by `key`, which can be a model-level property or an agent-specific property.
 """
 function getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
-    if key.variable == "#model"
-        return getstate(compInt, true)
-    elseif key.variable == "#ids"
-        return collect(allids(compInt.integrator))
+    if first(key.variable) == '#'
+        # Special variables
+        if key.variable == "#time"
+            return abmtime(compInt.integrator) * compInt.component.time_step
+        end
+        if key.variable == "#model"
+            return getstate(compInt, true)
+        end
+        if key.variable == "#ids"
+            return collect(allids(compInt.integrator))
+        end
     end
     index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
@@ -120,9 +127,16 @@ Sets the state of a specific variable in the [AgentsComponentIntegrator](@ref).
 """
 function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
     # TODO add ids exception? Is there a way to specify the id when creating an agent
-    if key.variable == "#model"
-        setstate!(compInt, value)
-        return nothing
+    if first(key.variable) == '#'
+        # Special variables
+        if key.variable == "#time"
+            @warn "Agents.jl does not support setting time directly. The time is stored within #model. DuplicatedComponents of Agent-based models still works."
+            return nothing
+        end
+        if key.variable == "#model"
+            setstate!(compInt, value)
+            return nothing
+        end
     end
     index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
@@ -156,21 +170,6 @@ function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, v
 end
 
 """
-    gettime(compInt::AgentsComponentIntegrator)
-
-Returns the simulation time of the [AgentsComponentIntegrator](@ref) at the current state.
-
-# Arguments
-- `compInt::AgentsComponentIntegrator`: The component integrator for which to retrieve the current time.
-
-# Returns
-- `time`: The current simulation time.
-"""
-function gettime(compInt::AgentsComponentIntegrator)
-    return abmtime(compInt.integrator)*compInt.component.time_step
-end
-
-"""
     getstate(compInt::AgentsComponentIntegrator)
 
 Returns the current state of the [AgentsComponentIntegrator](@ref).
@@ -201,11 +200,6 @@ Sets the state of the [AgentsComponentIntegrator](@ref) to a new state.
 """
 function setstate!(compInt::AgentsComponentIntegrator, state::StandardABM)
     compInt.integrator = state
-end
-
-function settime!(compInt::AgentsComponentIntegrator, time::Float64)
-    # Agents.jl does not support setting time directly, but the time is stored within the state of the integrator.
-    return nothing
 end
 
 function variables(component::AgentsComponent)

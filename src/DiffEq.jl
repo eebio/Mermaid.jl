@@ -44,11 +44,15 @@ function CommonSolve.step!(compInt::DEComponentIntegrator)
     for (key, value) in compInt.inputs
         setstate!(compInt, key, value)
     end
-    u_modified!(compInt.integrator, true)
     CommonSolve.step!(compInt.integrator, compInt.component.time_step, true)
 end
 
 function getstate(compInt::DEComponentIntegrator, key)
+    if first(key.variable) == '#'
+        if key.variable == "#time"
+            return compInt.integrator.t
+        end
+    end
     index = compInt.component.state_names[key.variable]
     return compInt.integrator[index]
 end
@@ -58,21 +62,20 @@ function getstate(compInt::DEComponentIntegrator)
 end
 
 function setstate!(compInt::DEComponentIntegrator, key, value)
+    u_modified!(compInt.integrator, true)
+    if first(key.variable) == '#'
+        if key.variable == "#time"
+            compInt.integrator.t = value
+            return nothing
+        end
+    end
     index = compInt.component.state_names[key.variable]
     compInt.integrator[index] = value
 end
 
 function setstate!(compInt::DEComponentIntegrator, value)
-    compInt.integrator.u = value
-end
-
-function gettime(compInt::DEComponentIntegrator)
-    return compInt.integrator.t
-end
-
-function settime!(compInt::DEComponentIntegrator, t)
     u_modified!(compInt.integrator, true)
-    compInt.integrator.t = t
+    compInt.integrator.u = value
 end
 
 function variables(component::DEComponent)

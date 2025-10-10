@@ -368,4 +368,7 @@ function inputsandoutputs(integrator::ComponentIntegrator, conns::Vector{Connect
     return inputs, outputs
 end
 
+gettime(integrator::ComponentIntegrator) = getstate(integrator, ConnectedVariable(integrator.component.name, "#time", nothing, nothing))
+settime!(integrator::ComponentIntegrator, t) = setstate!(integrator, ConnectedVariable(integrator.component.name, "#time", nothing, nothing), t)
+
 variables(integrator::ComponentIntegrator) = variables(integrator.component)

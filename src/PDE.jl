@@ -29,11 +29,15 @@ function CommonSolve.step!(compInt::PDEComponentIntegrator)
     for (key, value) in compInt.inputs
         setstate!(compInt, key, value)
     end
-    u_modified!(compInt.integrator, true)
     CommonSolve.step!(compInt.integrator, compInt.component.time_step, true)
 end
 
 function getstate(compInt::PDEComponentIntegrator, key)
+    if first(key.variable) == '#'
+        if key.variable == "#time"
+            return compInt.integrator.t
+        end
+    end
     if isnothing(key.variableindex)
         # No index for variable
         index = compInt.component.state_names[key.variable]
@@ -50,6 +54,13 @@ function getstate(compInt::PDEComponentIntegrator)
 end
 
 function setstate!(compInt::PDEComponentIntegrator, key, value)
+    u_modified!(compInt.integrator, true)
+    if first(key.variable) == '#'
+        if key.variable == "#time"
+            compInt.integrator.t = value
+            return nothing
+        end
+    end
     if isnothing(key.variableindex)
         # No index for variable
         index = compInt.component.state_names[key.variable]
@@ -70,15 +81,6 @@ end
 function setstate!(compInt::PDEComponentIntegrator, value)
     # Set the full state vector
     compInt.integrator.u = value
-end
-
-function gettime(compInt::PDEComponentIntegrator)
-    return compInt.integrator.t
-end
-
-function settime!(compInt::PDEComponentIntegrator, t)
-    u_modified!(compInt.integrator, true)
-    compInt.integrator.t = t
 end
 
 function variables(component::PDEComponent)
