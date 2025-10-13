@@ -1,5 +1,5 @@
-@testitem "pde" begin
-    using DifferentialEquations, ModelingToolkit, MethodOfLines, DomainSets
+@testitem "MOL" begin
+    using OrdinaryDiffEq, ModelingToolkit, MethodOfLines, DomainSets
     # Parameters, variables, and derivatives
     @parameters t x
     @variables u(..) g(..) [irreducible = true]
@@ -63,12 +63,10 @@
         return variable_index(prob, ModelingToolkit.parse_variable(prob.f.sys, s))
     end
 
-    c1 = PDEComponent(
-        model=prob,
+    c1 = MOLComponent(prob, Euler();
         name="PDE",
         state_names=Dict("u" => [var_index("u[" * string(i) * "]") for i in 2:10], "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
         time_step=0.0001,
-        alg=Euler(),
         intkwargs=(:adaptive => false,),
     )
 
@@ -79,11 +77,10 @@
     tspan = (0.0, 1.0)
     prob = ODEProblem(f2, u0, tspan)
     c2 = DEComponent(
-        model=prob,
+        prob, Euler();
         name="G",
         time_step=0.0001,
         state_names=Dict("g" => 1),
-        alg=Euler(),
         intkwargs=(:adaptive => false,),
     )
 
@@ -99,7 +96,7 @@
 end
 
 @testitem "state control" begin
-    using DifferentialEquations, ModelingToolkit, MethodOfLines, DomainSets
+    using OrdinaryDiffEq, ModelingToolkit, MethodOfLines, DomainSets
     @parameters t x
     @variables u(..) g(..) [irreducible = true]
     Dt = Differential(t)
@@ -135,12 +132,10 @@ end
         return variable_index(prob, ModelingToolkit.parse_variable(prob.f.sys, s))
     end
 
-    c1 = PDEComponent(
-        model=prob,
+    c1 = MOLComponent(prob, Tsit5();
         name="PDE",
         state_names=Dict("u" => [var_index("u[" * string(i) * "]") for i in 2:10], "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
         time_step=0.01,
-        alg=Tsit5(),
     )
 
     conn1 = Connector(
@@ -191,12 +186,10 @@ end
     @test getstate(integrator, ConnectedVariable("PDE.g")) == [-1.0 for _ in 0.1:0.1:0.9]
 
     # Test error on symbolic indexing
-    c1 = PDEComponent(
-        model=prob,
+    c1 = MOLComponent(prob, Tsit5();
         name="PDE",
         state_names=Dict("u" => u, "g" => g),
         time_step=0.01,
-        alg=Tsit5(),
     )
     @test_throws ArgumentError init(c1, [conn1, conn2])
 end

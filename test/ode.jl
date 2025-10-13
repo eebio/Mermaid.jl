@@ -1,5 +1,5 @@
 @testitem "simple ODE" begin
-    using DifferentialEquations
+    using OrdinaryDiffEq
 
     function f!(du, u, p, t)
         x, y = u
@@ -25,20 +25,18 @@
     prob1 = ODEProblem(f1!, [u0[1], 2.0], tspan) # TODO Initial value for params is intentionally wrong
     prob2 = ODEProblem(f2!, [u0[2], 4.0], tspan)
     c1 = DEComponent(
-        model=prob1,
+        prob1, Euler();
         name="Prey",
         time_step=0.002,
         state_names=Dict("prey" => 1, "predator" => 2),
-        alg=Euler(),
         intkwargs=(:adaptive => false,),
     )
 
     c2 = DEComponent(
-        model=prob2,
+        prob2, Euler();
         name="Predator",
         time_step=0.002,
         state_names=Dict("predator" => 1, "prey" => 2),
-        alg=Euler(),
         intkwargs=(:adaptive => false,),
     )
 
@@ -64,7 +62,7 @@
 end
 
 @testitem "mtk" begin
-    using ModelingToolkit, DifferentialEquations
+    using ModelingToolkit, OrdinaryDiffEq
     using ModelingToolkit: t_nounits as t, D_nounits as D
 
     @variables x(t) y(t)
@@ -81,11 +79,10 @@ end
     prob = ODEProblem(lv1, [x => 4.0, y => 2.0], (0.0, 10.0))
 
     c1 = DEComponent(
-        model=prob,
+        prob, Euler();
         name="Prey",
         time_step=0.002,
         state_names=Dict("prey" => x, "predator" => y),
-        alg=Euler(),
         intkwargs=(:adaptive => false,),
     )
 
@@ -95,11 +92,10 @@ end
     prob = ODEProblem(lv2, [x => 4.0, y => 2.0], (0.0, 10.0))
 
     c2 = DEComponent(
-        model=prob,
+        prob, Euler();
         name="Predator",
         time_step=0.002,
         state_names=Dict("prey" => x, "predator" => y),
-        alg=Euler(),
         intkwargs=(:adaptive => false,),
     )
 
@@ -128,7 +124,7 @@ end
 end
 
 @testitem "state control" begin
-    using DifferentialEquations
+    using OrdinaryDiffEq
 
     function f!(du, u, p, t)
         x, y = u
@@ -141,11 +137,10 @@ end
     prob = ODEProblem(f!, u0, tspan)
 
     c1 = DEComponent(
-        model=prob,
+        prob, Rodas5();
         name="Lotka-Volterra",
         time_step=0.002,
         state_names=Dict("prey" => 1, "predator" => 2),
-        alg=Tsit5(),
     )
 
     conn1 = Connector(

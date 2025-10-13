@@ -6,7 +6,7 @@
 end
 
 @testitem "solution" begin
-    using Agents, DifferentialEquations
+    using Agents, OrdinaryDiffEq
 
     space = GridSpace((20, 20))
 
@@ -44,8 +44,7 @@ end
         add_agent_single!(model; group=n < 300 / 2 ? 1 : 2)
     end
 
-    c1 = AgentsComponent(
-        model=model,
+    c1 = AgentsComponent(model;
         name="Schelling",
         state_names=Dict("min_to_be_happy" => :min_to_be_happy, "list_property" => :list_property, "mood" => :mood, "group" => :group),
         time_step=1.0,
@@ -96,7 +95,7 @@ end
 end
 
 @testitem "mermaid integrator" begin
-    using DifferentialEquations
+    using OrdinaryDiffEq
 
     function f1!(du, u, p, t)
         x, y = u
@@ -113,20 +112,18 @@ end
     prob1 = ODEProblem(f1!, [u0[1], 2.0], tspan) # TODO Initial value for params is intentionally wrong
     prob2 = ODEProblem(f2!, [u0[2], 4.0], tspan)
     c1 = DEComponent(
-        model=prob1,
+        prob1, Euler();
         name="Prey",
         time_step=0.002,
         state_names=Dict("prey" => 1, "predator" => 2),
-        alg=Euler(),
         intkwargs=(:adaptive => false,),
     )
 
     c2 = DEComponent(
-        model=prob2,
+        prob2, Euler();
         name="Predator",
         time_step=0.002,
         state_names=Dict("predator" => 1, "prey" => 2),
-        alg=Euler(),
         intkwargs=(:adaptive => false,),
     )
 

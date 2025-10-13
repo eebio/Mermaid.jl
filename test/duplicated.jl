@@ -1,5 +1,5 @@
 @testitem "duplicated component" begin
-    using DifferentialEquations
+    using OrdinaryDiffEq
     using Statistics
 
     function tree!(du, u, p, t)
@@ -12,7 +12,7 @@
     prob = ODEProblem(tree!, u0, tspan)
 
     comp1 = DEComponent(
-        model=prob,
+        prob, Rodas5();
         name="tree",
         state_names=Dict("heat" => 1, "life" => 2),
     )
@@ -62,8 +62,7 @@
 
     forest = forest_fire()
 
-    comp2 = AgentsComponent(
-        model=forest,
+    comp2 = AgentsComponent(forest;
         name="forest",
         state_names=Dict("heat" => :heat, "life" => :life)
     )
@@ -77,7 +76,7 @@
 end
 
 @testitem "flexible duplicated component" begin
-    using DifferentialEquations
+    using OrdinaryDiffEq
     using Agents
     using Statistics
     using Random
@@ -91,7 +90,7 @@ end
     tspan = (0.0, 2.0)
     prob = ODEProblem(coupled!, u0, tspan)
     comp1 = DEComponent(
-        model=prob,
+        prob, Rodas5();
         name="decay",
         state_names=Dict("val" => 1, "val2" => 2),
     )
@@ -116,8 +115,7 @@ end
     end
 
     abm = dummy_abm()
-    comp2 = AgentsComponent(
-        model=abm,
+    comp2 = AgentsComponent(abm;
         name="dummyabm",
         state_names=Dict("val2" => :val2, "val" => :val)
     )

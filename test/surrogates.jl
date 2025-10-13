@@ -1,7 +1,9 @@
 @testitem "surrogate integrator 1d" begin
-    using DifferentialEquations
+    using OrdinaryDiffEq
     using Flux
+    using Surrogates
     using Random
+    using Mermaid
     Random.seed!(0)
     # Define a simple ODE: dx/dt = -x, x(0) = 1
     f(u, p, t) = -u
@@ -9,7 +11,7 @@
     tspan = (0.0, 1.0)
     prob = ODEProblem(f, u0, tspan)
     state_names = Dict("x" => 1)
-    ode_comp = DEComponent(model=prob, name="decay", state_names=state_names, time_step=0.1)
+    ode_comp = Mermaid.DEComponent(prob, Rodas5(); name="decay", state_names=state_names, time_step=0.1)
 
     # Set bounds for surrogate sampling
     lower = [0.0]
@@ -21,9 +23,9 @@
     ))
     # Create surrogate component
     surrogate_comp = SurrogateComponent(
-        component=ode_comp,
-        lower_bound=lower,
-        upper_bound=upper,
+        ode_comp,
+        lower,
+        upper;
         n_epochs=4000,
         model=model,
     )
@@ -49,7 +51,7 @@
 end
 
 @testitem "surrogate integrator 2d" begin
-    using DifferentialEquations
+    using OrdinaryDiffEq
     using Random
     Random.seed!(0)
     # Define a simple ODE: dx/dt = -x, x(0) = 1
@@ -58,7 +60,7 @@ end
     tspan = (0.0, 1.0)
     prob = ODEProblem(f, u0, tspan)
     state_names = Dict("x" => 1)
-    ode_comp = DEComponent(model=prob, name="decay", state_names=state_names, time_step=0.1)
+    ode_comp = DEComponent(prob, Rodas5(); name="decay", state_names=state_names, time_step=0.1)
 
     # Set bounds for surrogate sampling
     lower = [0.0, 0.0]
@@ -66,9 +68,9 @@ end
 
     # Create surrogate component
     surrogate_comp = SurrogateComponent(
-        component=ode_comp,
-        lower_bound=lower,
-        upper_bound=upper,
+        ode_comp,
+        lower,
+        upper;
         n_samples=2000,
         n_epochs=4000,
     )
@@ -94,14 +96,14 @@ end
 end
 
 @testitem "state control" begin
-    using DifferentialEquations
+    using OrdinaryDiffEq
     # Define a simple ODE: dx/dt = -x, x(0) = 1
     f(u, p, t) = [-u[1], u[2] - u[1]]
     u0 = [1.0, 0.5]
     tspan = (0.0, 1.0)
     prob = ODEProblem(f, u0, tspan)
     state_names = Dict("x" => 1, "y" => 2)
-    ode_comp = DEComponent(model=prob, name="decay", state_names=state_names, time_step=0.1)
+    ode_comp = DEComponent(prob, Rodas5(); name="decay", state_names=state_names, time_step=0.1)
 
     # Set bounds for surrogate sampling
     lower = [0.0, 0.0]
@@ -109,9 +111,9 @@ end
 
     # Create surrogate component
     surrogate_comp = SurrogateComponent(
-        component=ode_comp,
-        lower_bound=lower,
-        upper_bound=upper,
+        ode_comp,
+        lower,
+        upper;
         n_samples=10,
         n_epochs=10,
     )

@@ -1,43 +1,51 @@
+module SurrogatesExt
+
+using Mermaid
 using Surrogates
 using Flux
+using CommonSolve
+using OrderedCollections: OrderedDict
 # TODO time dependence: what if an ODE non-autonomous? want an option to include time in the surrogate?
 
 """
-    SurrogateComponent <: AbstractComponent
+    SurrogateComponent(component::AbstractTimeDependentComponent, lower_bound, upper_bound; name=component.name,
+    time_step::Float64=component.time_step,
+    state_names::Dict{String,Any}=component.state_names,
+    model=nothing,
+    n_samples=1000,
+    n_epochs=1000)
 
 Represents a component that is replaced with a surrogate in the simulation, speeding up computation of a complex step! function.
 
-# Fields
-- `component::AbstractTimeDependentComponent`: The original component to be replaced with a surrogate.
-- `name::String`: Name of the surrogate component.
-"""
-@kwdef struct SurrogateComponent <: AbstractTimeDependentComponent
-    component::AbstractTimeDependentComponent
-    name::String = component.name
-    time_step::Float64 = component.time_step
-    state_names = component.state_names
-    lower_bound
-    upper_bound
-    model = nothing
-    n_samples = 1000
-    n_epochs = 1000
-end
+# Arguments
+- `component`: The original component to be replaced with a surrogate.
+- `lower_bound`: Lower bounds for each state variable for surrogate sampling.
+- `upper_bound`: Upper bounds for each state variable for surrogate sampling.
 
-mutable struct SurrogateComponentIntegrator <: ComponentIntegrator
-    integrator::ComponentIntegrator
-    component::SurrogateComponent
-    outputs::OrderedDict{ConnectedVariable,Any}
-    inputs::OrderedDict{ConnectedVariable,Any}
-    state
-    time::Float64
-    surrogate
+# Keyword Arguments
+- `name`: Name of the component (default: same as original component)
+- `time_step`: Time step for the component (default: same as original component)
+- `state_names`: Dictionary mapping variable names (as strings) to their corresponding indices in the
+    state vector or symbols from ModelingToolkit/Symbolics (default: same as original component)
+- `model`: A Flux.jl model to use as the surrogate. If `nothing`, a default feedforward neural network is created.
+- `n_samples`: Number of samples to use for training the surrogate (default: 1000)
+- `n_epochs`: Number of training epochs for the surrogate (default: 1000)
+"""
+function Mermaid.SurrogateComponent(component::AbstractTimeDependentComponent, lower_bound, upper_bound;
+    name=component.name,
+    time_step::Real=component.time_step,
+    state_names=component.state_names,
+    model=nothing,
+    n_samples=1000,
+    n_epochs=1000)
+    return Mermaid.SurrogateComponent(component, name, time_step, state_names, lower_bound, upper_bound, model, n_samples, n_epochs)
 end
 
 function CommonSolve.init(c::SurrogateComponent, conns::Vector{Connector})
     lower_bound = c.lower_bound
     upper_bound = c.upper_bound
     n_samples = c.n_samples
-    integrator = init(c.component, conns)
+    integrator = CommonSolve.init(c.component, conns)
     inputs = integrator.inputs
     outputs = integrator.outputs
     initial_state = getstate(integrator)
@@ -46,7 +54,7 @@ function CommonSolve.init(c::SurrogateComponent, conns::Vector{Connector})
             x = collect(x)
         end
         setstate!(integrator, x)
-        step!(integrator)
+        CommonSolve.step!(integrator)
         return getstate(integrator)
     end
     if isnothing(c.model)
@@ -83,7 +91,7 @@ function CommonSolve.step!(compInt::SurrogateComponentIntegrator)
     compInt.time += compInt.component.time_step
 end
 
-function getstate(compInt::SurrogateComponentIntegrator, key)
+function Mermaid.getstate(compInt::SurrogateComponentIntegrator, key)
     if first(key.variable) == '#'
         if key.variable == "#time"
             return compInt.time
@@ -93,15 +101,15 @@ function getstate(compInt::SurrogateComponentIntegrator, key)
     return getstate(compInt.integrator, key)
 end
 
-function getstate(compInt::SurrogateComponentIntegrator)
+function Mermaid.getstate(compInt::SurrogateComponentIntegrator)
     return compInt.state
 end
 
-function setstate!(compInt::SurrogateComponentIntegrator, state)
+function Mermaid.setstate!(compInt::SurrogateComponentIntegrator, state)
     compInt.state = state
 end
 
-function setstate!(compInt::SurrogateComponentIntegrator, key, value)
+function Mermaid.setstate!(compInt::SurrogateComponentIntegrator, key, value)
     if first(key.variable) == '#'
         if key.variable == "#time"
             compInt.time = value
@@ -113,6 +121,8 @@ function setstate!(compInt::SurrogateComponentIntegrator, key, value)
     compInt.state = getstate(compInt.integrator)
 end
 
-function variables(component::SurrogateComponent)
+function Mermaid.variables(component::SurrogateComponent)
     return variables(component.component)
+end
+
 end

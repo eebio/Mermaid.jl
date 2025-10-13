@@ -1,40 +1,33 @@
+module AgentsExt
+
+using Mermaid
+using CommonSolve
 using Agents
+using OrderedCollections: OrderedDict
+
+export AgentsComponent
 
 """
-    AgentsComponent <: AbstractTimeDependentComponent
+    AgentsComponent(model::StandardABM; name="Agents Component",
+                     state_names=Dict{String,Any}(),
+                     time_step::Real=1.0)
 
 A component that represents an agent-based model (ABM) using the Agents.jl package.
 
-# Fields
+# Arguments
 - `model::StandardABM`: The agent-based model to be solved.
-- `name::String="Agents Component"`: The name of the component.
-- `state_names::Dict{String,Any} = Dict{String,Any}()`: A dictionary mapping ConnectedVariable names (as strings) to their corresponding properties in the agent model. The properties differentiate between `:model` properties and `:agent` properties.
-- `time_step::Float64=1.0`: The time step for the component (not the ABM solver timestep), i.e. how frequently should the inputs and outputs be updated.
+
+# Keyword Arguments
+- `name="Agents Component"`: The name of the component.
+- `state_names = Dict{String,Any}()`: A dictionary mapping ConnectedVariable names (as strings) to their corresponding properties in the agent model. The properties differentiate between `:model` properties and `:agent` properties.
+- `time_step::Real=1.0`: The time step for the component (not the ABM solver timestep), i.e. how frequently should the inputs and outputs be updated.
 """
-@kwdef struct AgentsComponent <: AbstractTimeDependentComponent
-    model::StandardABM
-    name::String = "Agents Component"
-    state_names::Dict{String,Any} = Dict{String,Any}() # Naming model properties
-    time_step::Float64 = 1.0
+function Mermaid.AgentsComponent(model::StandardABM; name="Agents Component",
+                          state_names=Dict{String,Any}(),
+                          time_step::Real=1.0)
+    return Mermaid.AgentsComponent(model, name, state_names, time_step)
 end
 
-"""
-    AgentsComponentIntegrator <: ComponentIntegrator
-
-A mutable struct that integrates an [AgentsComponent](@ref) using the Agents.jl package.
-
-# Fields
-- `integrator::StandardABM`: The agent-based model integrator.
-- `component::AgentsComponent`: The AgentsComponent being integrated.
-- `outputs::Dict{ConnectedVariable,Any}`: A dictionary mapping [ConnectedVariable](@ref) names to their initial values from the component.
-- `inputs::Dict{ConnectedVariable,Any}`: A dictionary mapping [ConnectedVariable](@ref) names to their current values (initially 0).
-"""
-@kwdef mutable struct AgentsComponentIntegrator <: ComponentIntegrator
-    integrator::StandardABM
-    component::AgentsComponent
-    outputs::OrderedDict{ConnectedVariable,Any} = OrderedDict{ConnectedVariable,Any}()
-    inputs::OrderedDict{ConnectedVariable,Any} = OrderedDict{ConnectedVariable,Any}()
-end
 
 """
     init(c::AgentsComponent, conns::Vector{Connector})
@@ -49,7 +42,7 @@ Initializes an [AgentsComponentIntegrator](@ref) for the given [AgentsComponent]
 - `AgentsComponentIntegrator`: The initialized integrator for the Agents.jl component.
 """
 function CommonSolve.init(c::AgentsComponent, conns::Vector{Connector})
-    integrator = AgentsComponentIntegrator(integrator = deepcopy(c.model), component = c)
+    integrator = AgentsComponentIntegrator(deepcopy(c.model), c, OrderedDict{ConnectedVariable,Any}(), OrderedDict{ConnectedVariable,Any}())
     inputs, outputs = inputsandoutputs(integrator, conns)
     integrator.inputs = inputs
     integrator.outputs = outputs
@@ -83,7 +76,7 @@ Retrieves the state of a specific variable from the [AgentsComponentIntegrator](
 # Returns
 - The current state of the variable specified by `key`, which can be a model-level property or an agent-specific property.
 """
-function getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
+function Mermaid.getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
     if first(key.variable) == '#'
         # Special variables
         if key.variable == "#time"
@@ -125,7 +118,7 @@ Sets the state of a specific variable in the [AgentsComponentIntegrator](@ref).
 - `key::ConnectedVariable`: The [ConnectedVariable](@ref) specifying which variable's state to set.
 - `value`: The value to assign to the specified variable's state.
 """
-function setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
+function Mermaid.setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
     # TODO add ids exception? Is there a way to specify the id when creating an agent
     if first(key.variable) == '#'
         # Special variables
@@ -181,7 +174,7 @@ Returns the current state of the [AgentsComponentIntegrator](@ref).
 # Returns
 - `state::StandardABM`: The current state of the agent-based model being integrated.
 """
-function getstate(compInt::AgentsComponentIntegrator, copy::Bool=false)
+function Mermaid.getstate(compInt::AgentsComponentIntegrator, copy::Bool=false)
     if copy
         return deepcopy(compInt.integrator)
     else
@@ -198,10 +191,11 @@ Sets the state of the [AgentsComponentIntegrator](@ref) to a new state.
 - `compInt::AgentsComponentIntegrator`: The component integrator to be updated.
 - `state::StandardABM`: The new state to set for the component integrator.
 """
-function setstate!(compInt::AgentsComponentIntegrator, state::StandardABM)
+function Mermaid.setstate!(compInt::AgentsComponentIntegrator, state::StandardABM)
     compInt.integrator = state
 end
 
-function variables(component::AgentsComponent)
+function Mermaid.variables(component::AgentsComponent)
     return union(keys(component.state_names), ["#model"])
+end
 end

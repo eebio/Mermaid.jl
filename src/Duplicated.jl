@@ -29,7 +29,7 @@ mutable struct DuplicatedComponentIntegrator <: ComponentIntegrator
 end
 
 function CommonSolve.init(c::DuplicatedComponent, conns::Vector{Connector})
-    integrator = init(c.component, conns)
+    integrator = CommonSolve.init(c.component, conns)
     states = deepcopy(c.initial_states)
     ids = isnothing(c.instances) ? [] : 1:c.instances
 
@@ -80,7 +80,7 @@ function CommonSolve.step!(compInt::DuplicatedComponentIntegrator)
         # Set the instances state
         setstate!(compInt.integrator, compInt.states[i])
         # Step the integrator for this instance
-        step!(compInt.integrator)
+        CommonSolve.step!(compInt.integrator)
         # Get the outputs for this instance
         for key in keys(compInt.outputs)
             newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)

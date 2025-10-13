@@ -1,5 +1,3 @@
-using OrdinaryDiffEqCore: ODEIntegrator
-
 """
     ConnectedVariable
 

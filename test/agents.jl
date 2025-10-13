@@ -1,5 +1,5 @@
 @testitem "agent" begin
-    using Agents, DifferentialEquations
+    using Agents, OrdinaryDiffEq
 
     space = GridSpace((20, 20))
 
@@ -37,8 +37,7 @@
         add_agent_single!(model; group=n < 300 / 2 ? 1 : 2)
     end
 
-    c1 = AgentsComponent(
-        model=model,
+    c1 = AgentsComponent(model;
         name="Schelling",
         state_names=Dict("min_to_be_happy" => :min_to_be_happy),
         time_step=1.0,
@@ -51,11 +50,10 @@
     tspan = (0.0, 100.0)
     prob = ODEProblem(f2, u0, tspan)
     c2 = DEComponent(
-        model=prob,
+        prob, Tsit5();
         name="ode",
         time_step=1.0,
         state_names=Dict("happy" => 1),
-        alg=Tsit5(),
     )
 
     conn = Connector(
@@ -93,7 +91,7 @@
 end
 
 @testitem "state control" begin
-    using Agents, DifferentialEquations
+    using Agents, OrdinaryDiffEq
 
     space = GridSpace((20, 20))
 
@@ -131,8 +129,7 @@ end
         add_agent_single!(model; group=n < 300 / 2 ? 1 : 2)
     end
 
-    c1 = AgentsComponent(
-        model=model,
+    c1 = AgentsComponent(model;
         name="Schelling",
         state_names=Dict("min_to_be_happy" => :min_to_be_happy, "list_property" => :list_property, "mood" => :mood, "group" => :group),
         time_step=0.2,
