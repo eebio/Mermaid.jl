@@ -28,7 +28,7 @@ function Mermaid.MOLComponent(model::DiffEqBase.AbstractDEProblem, alg::DiffEqBa
     return Mermaid.MOLComponent(model, name, state_names, time_step, alg, intkwargs)
 end
 
-function CommonSolve.init(c::MOLComponent, conns::Vector{Connector})
+function CommonSolve.init(c::MOLComponent, conns::Vector{T}) where T<:Mermaid.AbstractConnector
     integrator = MOLComponentIntegrator(CommonSolve.init(c.model, c.alg; dt=c.time_step, c.intkwargs...), c, OrderedDict{ConnectedVariable,Any}(), OrderedDict{ConnectedVariable,Any}())
     inputs, outputs = inputsandoutputs(integrator, conns)
     integrator.inputs = inputs

@@ -13,10 +13,13 @@ export MermaidSolution
 export solve!, solve, init
 export getstate, setstate!, gettime, settime!, step!, variables
 export inputsandoutputs, parsevariable, fullname
-include("types.jl")
-include("functions.jl")
-include("Duplicated.jl")
+
+include("abstracts.jl")
+include("connections.jl")
+include("solutions.jl")
+include("mermaidProblems.jl")
 include("solvers.jl")
+include("Duplicated.jl")
 include("extensions.jl")
 
 end

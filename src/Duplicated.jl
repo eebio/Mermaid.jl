@@ -19,8 +19,8 @@ Represents a component that is duplicated in the simulation, allowing a single c
     default_state = zeros(length(initial_states[1]))
 end
 
-mutable struct DuplicatedComponentIntegrator <: ComponentIntegrator
-    integrator::ComponentIntegrator
+mutable struct DuplicatedComponentIntegrator <: AbstractComponentIntegrator
+    integrator::AbstractComponentIntegrator
     component::DuplicatedComponent
     outputs::OrderedDict{ConnectedVariable,Any}
     inputs::OrderedDict{ConnectedVariable,Any}
@@ -28,13 +28,13 @@ mutable struct DuplicatedComponentIntegrator <: ComponentIntegrator
     ids::Union{Vector,Nothing}
 end
 
-function CommonSolve.init(c::DuplicatedComponent, conns::Vector{Connector})
+function CommonSolve.init(c::DuplicatedComponent, conns::Vector{AbstractConnector})
     integrator = CommonSolve.init(c.component, conns)
     states = deepcopy(c.initial_states)
     ids = isnothing(c.instances) ? [] : 1:c.instances
 
-    outputs = OrderedDict{ConnectedVariable,Any}() # Full variable name => Initial value from component
-    inputs = OrderedDict{ConnectedVariable,Any}() # Full variable name => Value (initially 0)
+    outputs = OrderedDict{AbstractConnectedVariable,Any}() # Full variable name => Initial value from component
+    inputs = OrderedDict{AbstractConnectedVariable,Any}() # Full variable name => Value (initially 0)
     for conn in conns
         # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
         for input in conn.inputs
@@ -61,8 +61,8 @@ function CommonSolve.init(c::DuplicatedComponent, conns::Vector{Connector})
         end
     end
     # Letting the internal integrator have inputs and outputs will break our setstate!
-    integrator.inputs = Dict{ConnectedVariable, Any}()
-    integrator.outputs = Dict{ConnectedVariable, Any}()
+    integrator.inputs = Dict{AbstractConnectedVariable, Any}()
+    integrator.outputs = Dict{AbstractConnectedVariable, Any}()
     # Create the DuplicatedComponentIntegrator
     integrator = DuplicatedComponentIntegrator(integrator, c, outputs, inputs, states, ids)
     return integrator

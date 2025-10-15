@@ -41,7 +41,7 @@ function Mermaid.SurrogateComponent(component::AbstractTimeDependentComponent, l
     return Mermaid.SurrogateComponent(component, name, time_step, state_names, lower_bound, upper_bound, model, n_samples, n_epochs)
 end
 
-function CommonSolve.init(c::SurrogateComponent, conns::Vector{Connector})
+function CommonSolve.init(c::SurrogateComponent, conns::Vector{T}) where T<:Mermaid.AbstractConnector
     lower_bound = c.lower_bound
     upper_bound = c.upper_bound
     n_samples = c.n_samples

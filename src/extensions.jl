@@ -12,7 +12,7 @@ struct DEComponent{A, B, C, D, E, F} <: AbstractTimeDependentComponent
     intkwargs::F
 end
 
-mutable struct DEComponentIntegrator{A, B, C, D} <: ComponentIntegrator
+mutable struct DEComponentIntegrator{A, B, C, D} <: AbstractComponentIntegrator
     integrator::A
     component::B
     outputs::C
@@ -26,7 +26,7 @@ struct AgentsComponent{A, B, C, D} <: AbstractTimeDependentComponent
     time_step::D
 end
 
-mutable struct AgentsComponentIntegrator{A, B, C, D} <: ComponentIntegrator
+mutable struct AgentsComponentIntegrator{A, B, C, D} <: AbstractComponentIntegrator
     integrator::A
     component::B
     outputs::C
@@ -42,7 +42,7 @@ struct MOLComponent{A, B, C, D, E, F} <: AbstractTimeDependentComponent
     intkwargs::F
 end
 
-mutable struct MOLComponentIntegrator{A, B, C, D} <: ComponentIntegrator
+mutable struct MOLComponentIntegrator{A, B, C, D} <: AbstractComponentIntegrator
     integrator::A
     component::B
     outputs::C
@@ -61,7 +61,7 @@ struct SurrogateComponent{A, B, C, D, E, F, G, H, I} <: AbstractTimeDependentCom
     n_epochs::I
 end
 
-mutable struct SurrogateComponentIntegrator{A, B, C, D, E, F, G} <: ComponentIntegrator
+mutable struct SurrogateComponentIntegrator{A, B, C, D, E, F, G} <: AbstractComponentIntegrator
     integrator::A
     component::B
     outputs::C

@@ -41,7 +41,7 @@ Initializes an [AgentsComponentIntegrator](@ref) for the given [AgentsComponent]
 # Returns
 - `AgentsComponentIntegrator`: The initialized integrator for the Agents.jl component.
 """
-function CommonSolve.init(c::AgentsComponent, conns::Vector{Connector})
+function CommonSolve.init(c::AgentsComponent, conns::Vector{T}) where T<:Mermaid.AbstractConnector
     integrator = AgentsComponentIntegrator(deepcopy(c.model), c, OrderedDict{ConnectedVariable,Any}(), OrderedDict{ConnectedVariable,Any}())
     inputs, outputs = inputsandoutputs(integrator, conns)
     integrator.inputs = inputs
