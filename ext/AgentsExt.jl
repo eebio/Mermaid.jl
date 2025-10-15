@@ -22,12 +22,11 @@ A component that represents an agent-based model (ABM) using the Agents.jl packa
 - `state_names = Dict{String,Any}()`: A dictionary mapping ConnectedVariable names (as strings) to their corresponding properties in the agent model. The properties differentiate between `:model` properties and `:agent` properties.
 - `time_step::Real=1.0`: The time step for the component (not the ABM solver timestep), i.e. how frequently should the inputs and outputs be updated.
 """
-function Mermaid.AgentsComponent(model::StandardABM; name="Agents Component",
-                          state_names=Dict{String,Any}(),
-                          time_step::Real=1.0)
+function Mermaid.AgentsComponent(model::StandardABM; name = "Agents Component",
+        state_names = Dict{String, Any}(),
+        time_step::Real = 1.0)
     return Mermaid.AgentsComponent(model, name, state_names, time_step)
 end
-
 
 """
     init(c::AgentsComponent, conns::Vector{Connector})
@@ -41,8 +40,11 @@ Initializes an [AgentsComponentIntegrator](@ref) for the given [AgentsComponent]
 # Returns
 - `AgentsComponentIntegrator`: The initialized integrator for the Agents.jl component.
 """
-function CommonSolve.init(c::AgentsComponent, conns::Vector{T}) where T<:Mermaid.AbstractConnector
-    integrator = AgentsComponentIntegrator(deepcopy(c.model), c, OrderedDict{ConnectedVariable,Any}(), OrderedDict{ConnectedVariable,Any}())
+function CommonSolve.init(
+        c::AgentsComponent, conns::Vector{T}) where {T <: Mermaid.AbstractConnector}
+    integrator = AgentsComponentIntegrator(
+        deepcopy(c.model), c, OrderedDict{ConnectedVariable, Any}(),
+        OrderedDict{ConnectedVariable, Any}())
     inputs, outputs = inputsandoutputs(integrator, conns)
     integrator.inputs = inputs
     integrator.outputs = outputs
@@ -92,12 +94,16 @@ function Mermaid.getstate(compInt::AgentsComponentIntegrator, key::ConnectedVari
     index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
         # If model level property exists, return it directly
-        !isnothing(abmproperties(compInt.integrator)) && haskey(abmproperties(compInt.integrator), index) && return getproperty(compInt.integrator, index)
+        !isnothing(abmproperties(compInt.integrator)) &&
+            haskey(abmproperties(compInt.integrator), index) &&
+            return getproperty(compInt.integrator, index)
         # Otherwise, assume it's an agent property and return it for all agents
         return [getproperty(i, index) for i in allagents(compInt.integrator)]
     else
         # If model level property exists, return it after indexing
-        !isnothing(abmproperties(compInt.integrator)) && haskey(abmproperties(compInt.integrator), index) && return getproperty(compInt.integrator, index)[key.variableindex]
+        !isnothing(abmproperties(compInt.integrator)) &&
+            haskey(abmproperties(compInt.integrator), index) &&
+            return getproperty(compInt.integrator, index)[key.variableindex]
         # Otherwise, assume it's an agent property and return it for all agents in the specified range
         out = [getproperty(compInt.integrator[i], index) for i in key.variableindex]
         if length(out) == 1
@@ -118,7 +124,8 @@ Sets the state of a specific variable in the [AgentsComponentIntegrator](@ref).
 - `key::ConnectedVariable`: The [ConnectedVariable](@ref) specifying which variable's state to set.
 - `value`: The value to assign to the specified variable's state.
 """
-function Mermaid.setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
+function Mermaid.setstate!(
+        compInt::AgentsComponentIntegrator, key::ConnectedVariable, value)
     # TODO add ids exception? Is there a way to specify the id when creating an agent
     if first(key.variable) == '#'
         # Special variables
@@ -134,7 +141,8 @@ function Mermaid.setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVar
     index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
         # If model level property exists, return it directly
-        if !isnothing(abmproperties(compInt.integrator)) && haskey(abmproperties(compInt.integrator), index)
+        if !isnothing(abmproperties(compInt.integrator)) &&
+           haskey(abmproperties(compInt.integrator), index)
             setindex!(abmproperties(compInt.integrator), value, index)
         else
             # Otherwise, assume it's an agent property and set it for all agents
@@ -144,7 +152,8 @@ function Mermaid.setstate!(compInt::AgentsComponentIntegrator, key::ConnectedVar
         end
     else
         # If model level property exists, return it after indexing
-        if !isnothing(abmproperties(compInt.integrator)) && haskey(abmproperties(compInt.integrator), index)
+        if !isnothing(abmproperties(compInt.integrator)) &&
+           haskey(abmproperties(compInt.integrator), index)
             k = 1
             for i in key.variableindex
                 abmproperties(compInt.integrator)[index][i] = value[k]
@@ -174,7 +183,7 @@ Returns the current state of the [AgentsComponentIntegrator](@ref).
 # Returns
 - `state::StandardABM`: The current state of the agent-based model being integrated.
 """
-function Mermaid.getstate(compInt::AgentsComponentIntegrator, copy::Bool=false)
+function Mermaid.getstate(compInt::AgentsComponentIntegrator, copy::Bool = false)
     if copy
         return deepcopy(compInt.integrator)
     else

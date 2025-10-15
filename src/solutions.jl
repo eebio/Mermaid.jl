@@ -104,12 +104,16 @@ function Base.getindex(sol::AbstractMermaidSolution, var::AbstractConnectedVaria
         end
         for key in keys(sol.u)
             if !isnothing(key.variableindex) && !isnothing(var.variableindex)
-                if key.variable == var.variable && key.component == var.component && issubset(var.variableindex, key.variableindex)
+                if key.variable == var.variable && key.component == var.component &&
+                   issubset(var.variableindex, key.variableindex)
                     if length(var.variableindex) == 1
                         # If the variableindex is a single value, return the corresponding value
-                        return [i[findfirst(x -> x == var.variableindex[1], key.variableindex)] for i in sol.u[key]]
+                        return [i[findfirst(
+                                    x -> x == var.variableindex[1], key.variableindex)]
+                                for i in sol.u[key]]
                     else
-                        return [[i[findfirst(x -> x == v, key.variableindex)] for v in var.variableindex] for i in sol.u[key]]
+                        return [[i[findfirst(x -> x == v, key.variableindex)]
+                                 for v in var.variableindex] for i in sol.u[key]]
                     end
                 end
             end
@@ -134,7 +138,8 @@ function Base.getindex(sol::AbstractMermaidSolution, index::Int)
     if index < 1 || index > length(sol.t)
         throw(BoundsError(sol.t, index))
     end
-    return MermaidSolution([sol.t[index]], Dict([var => sol.u[var][index] for var in keys(sol.u)]))
+    return MermaidSolution(
+        [sol.t[index]], Dict([var => sol.u[var][index] for var in keys(sol.u)]))
 end
 
 """
@@ -161,6 +166,7 @@ function (sol::AbstractMermaidSolution)(t::Real)
     change = (t - sol.t[lb]) / (sol.t[ub] - sol.t[lb])
     return MermaidSolution(
         [sol.t[lb] + change * (sol.t[ub] - sol.t[lb])],
-        Dict([var => sol.u[var][lb] .+ change * (sol.u[var][ub] .- sol.u[var][lb]) for var in keys(sol.u)])
+        Dict([var => sol.u[var][lb] .+ change * (sol.u[var][ub] .- sol.u[var][lb])
+              for var in keys(sol.u)])
     )
 end

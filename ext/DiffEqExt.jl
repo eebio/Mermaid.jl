@@ -21,15 +21,19 @@ using OrderedCollections: OrderedDict
 - `time_step`: Time step for the component (default: 1.0)
 - `intkwargs`: Additional keyword arguments for the DE solver (default: empty tuple)
 """
-function Mermaid.DEComponent(model::DiffEqBase.AbstractDEProblem, alg::DiffEqBase.AbstractDEAlgorithm; name="DE Component",
-    state_names=Dict{String,Any}(),
-    time_step::Real=1.0,
-    intkwargs=())
+function Mermaid.DEComponent(model::DiffEqBase.AbstractDEProblem,
+        alg::DiffEqBase.AbstractDEAlgorithm; name = "DE Component",
+        state_names = Dict{String, Any}(),
+        time_step::Real = 1.0,
+        intkwargs = ())
     return Mermaid.DEComponent(model, name, state_names, time_step, alg, intkwargs)
 end
 
-function CommonSolve.init(c::Mermaid.DEComponent, conns::Vector{T}) where T<:Mermaid.AbstractConnector
-    integrator = Mermaid.DEComponentIntegrator(init(c.model, c.alg; dt=c.time_step, c.intkwargs...), c, OrderedDict{ConnectedVariable,Any}(), OrderedDict{ConnectedVariable,Any}())
+function CommonSolve.init(
+        c::Mermaid.DEComponent, conns::Vector{T}) where {T <: Mermaid.AbstractConnector}
+    integrator = Mermaid.DEComponentIntegrator(
+        init(c.model, c.alg; dt = c.time_step, c.intkwargs...), c,
+        OrderedDict{ConnectedVariable, Any}(), OrderedDict{ConnectedVariable, Any}())
     inputs, outputs = inputsandoutputs(integrator, conns)
     integrator.inputs = inputs
     integrator.outputs = outputs

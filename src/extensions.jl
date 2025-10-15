@@ -61,7 +61,8 @@ struct SurrogateComponent{A, B, C, D, E, F, G, H, I} <: AbstractTimeDependentCom
     n_epochs::I
 end
 
-mutable struct SurrogateComponentIntegrator{A, B, C, D, E, F, G} <: AbstractComponentIntegrator
+mutable struct SurrogateComponentIntegrator{A, B, C, D, E, F, G} <:
+               AbstractComponentIntegrator
     integrator::A
     component::B
     outputs::C

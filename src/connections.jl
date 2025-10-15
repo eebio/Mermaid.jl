@@ -12,8 +12,8 @@ Points to a variable that is connected between components.
 struct ConnectedVariable <: AbstractConnectedVariable
     component::String
     variable::String
-    variableindex::Union{Nothing,AbstractVector{Int},Int}
-    duplicatedindex::Union{Nothing,AbstractVector{Int},Int}
+    variableindex::Union{Nothing, AbstractVector{Int}, Int}
+    duplicatedindex::Union{Nothing, AbstractVector{Int}, Int}
 end
 
 """
@@ -44,7 +44,7 @@ Represents a connection between multiple [ConnectedVariables](@ref ConnectedVari
 struct Connector <: AbstractConnector
     inputs::Vector{AbstractConnectedVariable}
     outputs::Vector{AbstractConnectedVariable}
-    func::Union{Nothing,Function}
+    func::Union{Nothing, Function}
 end
 
 """
@@ -60,7 +60,8 @@ Construct a [Connector](@ref) from string names for inputs and outputs.
 # Returns
 - `Connector`: The constructed connector.
 """
-function Connector(; inputs::Vector{T}, outputs::Vector{S}, func=nothing) where T<:AbstractString where S<:AbstractString
+function Connector(; inputs::Vector{T}, outputs::Vector{S},
+        func = nothing) where {T <: AbstractString} where {S <: AbstractString}
     inputs = [ConnectedVariable(i) for i in inputs]
     outputs = [ConnectedVariable(o) for o in outputs]
     return Connector(inputs, outputs, func)
@@ -149,7 +150,8 @@ function update_inputs!(mermaidInt::AbstractMermaidIntegrator)
         inputs = []
         for input in conn.inputs
             # Find the corresponding integrator
-            index = findfirst(i -> i.component.name == input.component, mermaidInt.integrators)
+            index = findfirst(
+                i -> i.component.name == input.component, mermaidInt.integrators)
             if index !== nothing
                 integrator = mermaidInt.integrators[index]
                 # Get the value of the input from the integrator
@@ -168,7 +170,8 @@ function update_inputs!(mermaidInt::AbstractMermaidIntegrator)
         # Set the inputs of the corresponding integrators
         for output in conn.outputs
             # Find the corresponding integrator
-            index = findfirst(i -> i.component.name == output.component, mermaidInt.integrators)
+            index = findfirst(
+                i -> i.component.name == output.component, mermaidInt.integrators)
             if index !== nothing
                 integrator = mermaidInt.integrators[index]
                 # Set the input value for the integrator
@@ -191,9 +194,10 @@ Generates the inputs and outputs of a component integrator based on its connecti
 - `outputs::OrderedDict{ConnectedVariable,Any}`: An ordered dictionary mapping [ConnectedVariable](@ref) names to their initial values from the component.
 - `inputs::OrderedDict{ConnectedVariable,Any}`: An ordered dictionary mapping [ConnectedVariable](@ref) names to their current values (initially 0).
 """
-function inputsandoutputs(integrator::AbstractComponentIntegrator, conns::Vector{T}) where T<:Mermaid.AbstractConnector
-    outputs = OrderedDict{AbstractConnectedVariable,Any}() # Full variable name => Initial value from component
-    inputs = OrderedDict{AbstractConnectedVariable,Any}() # Full variable name => Value (initially 0)
+function inputsandoutputs(integrator::AbstractComponentIntegrator,
+        conns::Vector{T}) where {T <: Mermaid.AbstractConnector}
+    outputs = OrderedDict{AbstractConnectedVariable, Any}() # Full variable name => Initial value from component
+    inputs = OrderedDict{AbstractConnectedVariable, Any}() # Full variable name => Value (initially 0)
     for conn in conns
         # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
         for input in conn.inputs
@@ -203,7 +207,8 @@ function inputsandoutputs(integrator::AbstractComponentIntegrator, conns::Vector
         end
         for output in conn.outputs
             if output.component == integrator.component.name
-                inputs[output] = isnothing(output.variableindex) ? 0 : [0 for _ in output.variableindex]
+                inputs[output] = isnothing(output.variableindex) ? 0 :
+                                 [0 for _ in output.variableindex]
             end
         end
     end

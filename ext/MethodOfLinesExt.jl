@@ -21,15 +21,19 @@ using DiffEqBase
 - `time_step`: Time step for the component (default: 1.0)
 - `intkwargs`: Additional keyword arguments for the DE solver (default: empty tuple)
 """
-function Mermaid.MOLComponent(model::DiffEqBase.AbstractDEProblem, alg::DiffEqBase.AbstractDEAlgorithm; name="MOL Component",
-    state_names=Dict{String,Any}(),
-    time_step::Real=1.0,
-    intkwargs=())
+function Mermaid.MOLComponent(model::DiffEqBase.AbstractDEProblem,
+        alg::DiffEqBase.AbstractDEAlgorithm; name = "MOL Component",
+        state_names = Dict{String, Any}(),
+        time_step::Real = 1.0,
+        intkwargs = ())
     return Mermaid.MOLComponent(model, name, state_names, time_step, alg, intkwargs)
 end
 
-function CommonSolve.init(c::MOLComponent, conns::Vector{T}) where T<:Mermaid.AbstractConnector
-    integrator = MOLComponentIntegrator(CommonSolve.init(c.model, c.alg; dt=c.time_step, c.intkwargs...), c, OrderedDict{ConnectedVariable,Any}(), OrderedDict{ConnectedVariable,Any}())
+function CommonSolve.init(
+        c::MOLComponent, conns::Vector{T}) where {T <: Mermaid.AbstractConnector}
+    integrator = MOLComponentIntegrator(
+        CommonSolve.init(c.model, c.alg; dt = c.time_step, c.intkwargs...), c,
+        OrderedDict{ConnectedVariable, Any}(), OrderedDict{ConnectedVariable, Any}())
     inputs, outputs = inputsandoutputs(integrator, conns)
     integrator.inputs = inputs
     integrator.outputs = outputs
@@ -76,7 +80,8 @@ function Mermaid.setstate!(compInt::MOLComponentIntegrator, key, value)
         # No index for variable
         index = compInt.component.state_names[key.variable]
         compInt.integrator[index] = value
-    else key.variableindex isa AbstractVector
+    else
+        key.variableindex isa AbstractVector
         # Single index for one variable
         index = compInt.component.state_names[key.variable]
         if length(index[key.variableindex]) == 1

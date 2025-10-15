@@ -11,7 +11,8 @@
     tspan = (0.0, 1.0)
     prob = ODEProblem(f, u0, tspan)
     state_names = OrderedDict("x" => 1)
-    ode_comp = Mermaid.DEComponent(prob, Rodas5(); name="decay", state_names=state_names, time_step=0.1)
+    ode_comp = Mermaid.DEComponent(
+        prob, Rodas5(); name = "decay", state_names = state_names, time_step = 0.1)
 
     # Set bounds for surrogate sampling
     lower = [0.0]
@@ -19,15 +20,15 @@
 
     model = f64(Chain(
         Dense(1, 16, relu),
-        Dense(16, 1),
+        Dense(16, 1)
     ))
     # Create surrogate component
     surrogate_comp = SurrogateComponent(
         ode_comp,
         lower,
         upper;
-        n_epochs=4000,
-        model=model,
+        n_epochs = 4000,
+        model = model
     )
 
     # Dummy connector list (no connections for this test)
@@ -46,7 +47,7 @@
         step!(surrogate_int)
         orig = getstate(ode_int, ConnectedVariable("decay.x"))
         sur = getstate(surrogate_int, ConnectedVariable("decay.x"))
-        @test isapprox(sur, orig; atol=tol)
+        @test isapprox(sur, orig; atol = tol)
     end
 end
 
@@ -55,12 +56,13 @@ end
     using Random
     Random.seed!(0)
     # Define a simple ODE: dx/dt = -x, x(0) = 1
-    f(u, p, t) = [-u[1], u[2]-u[1]]
+    f(u, p, t) = [-u[1], u[2] - u[1]]
     u0 = [1.0, 0.5]
     tspan = (0.0, 1.0)
     prob = ODEProblem(f, u0, tspan)
     state_names = OrderedDict("x" => 1)
-    ode_comp = DEComponent(prob, Rodas5(); name="decay", state_names=state_names, time_step=0.1)
+    ode_comp = DEComponent(
+        prob, Rodas5(); name = "decay", state_names = state_names, time_step = 0.1)
 
     # Set bounds for surrogate sampling
     lower = [0.0, 0.0]
@@ -71,8 +73,8 @@ end
         ode_comp,
         lower,
         upper;
-        n_samples=2000,
-        n_epochs=4000,
+        n_samples = 2000,
+        n_epochs = 4000
     )
 
     # Dummy connector list (no connections for this test)
@@ -91,7 +93,7 @@ end
         step!(surrogate_int)
         orig = getstate(ode_int, ConnectedVariable("decay.x"))
         sur = getstate(surrogate_int, ConnectedVariable("decay.x"))
-        @test isapprox(sur, orig; atol=tol)
+        @test isapprox(sur, orig; atol = tol)
     end
 end
 
@@ -103,7 +105,8 @@ end
     tspan = (0.0, 1.0)
     prob = ODEProblem(f, u0, tspan)
     state_names = OrderedDict("x" => 1, "y" => 2)
-    ode_comp = DEComponent(prob, Rodas5(); name="decay", state_names=state_names, time_step=0.1)
+    ode_comp = DEComponent(
+        prob, Rodas5(); name = "decay", state_names = state_names, time_step = 0.1)
 
     # Set bounds for surrogate sampling
     lower = [0.0, 0.0]
@@ -114,8 +117,8 @@ end
         ode_comp,
         lower,
         upper;
-        n_samples=10,
-        n_epochs=10,
+        n_samples = 10,
+        n_epochs = 10
     )
 
     # Dummy connector list (no connections for this test)

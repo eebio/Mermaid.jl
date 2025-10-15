@@ -31,17 +31,20 @@ Represents a component that is replaced with a surrogate in the simulation, spee
 - `n_samples`: Number of samples to use for training the surrogate (default: 1000)
 - `n_epochs`: Number of training epochs for the surrogate (default: 1000)
 """
-function Mermaid.SurrogateComponent(component::AbstractTimeDependentComponent, lower_bound, upper_bound;
-    name=component.name,
-    time_step::Real=component.time_step,
-    state_names=component.state_names,
-    model=nothing,
-    n_samples=1000,
-    n_epochs=1000)
-    return Mermaid.SurrogateComponent(component, name, time_step, state_names, lower_bound, upper_bound, model, n_samples, n_epochs)
+function Mermaid.SurrogateComponent(
+        component::AbstractTimeDependentComponent, lower_bound, upper_bound;
+        name = component.name,
+        time_step::Real = component.time_step,
+        state_names = component.state_names,
+        model = nothing,
+        n_samples = 1000,
+        n_epochs = 1000)
+    return Mermaid.SurrogateComponent(component, name, time_step, state_names, lower_bound,
+        upper_bound, model, n_samples, n_epochs)
 end
 
-function CommonSolve.init(c::SurrogateComponent, conns::Vector{T}) where T<:Mermaid.AbstractConnector
+function CommonSolve.init(
+        c::SurrogateComponent, conns::Vector{T}) where {T <: Mermaid.AbstractConnector}
     lower_bound = c.lower_bound
     upper_bound = c.upper_bound
     n_samples = c.n_samples
@@ -75,10 +78,11 @@ function CommonSolve.init(c::SurrogateComponent, conns::Vector{T}) where T<:Merm
     learning_rate = 0.1
     optimizer = Descent(learning_rate)  # Simple gradient descent. See Flux documentation for other options.
 
-    sgt = NeuralSurrogate(xys, zs, lower_bound, upper_bound; model=model1,
-        opt=optimizer, n_epochs=c.n_epochs)
+    sgt = NeuralSurrogate(xys, zs, lower_bound, upper_bound; model = model1,
+        opt = optimizer, n_epochs = c.n_epochs)
 
-    return SurrogateComponentIntegrator(integrator, c, inputs, outputs, initial_state, 0.0, sgt)
+    return SurrogateComponentIntegrator(
+        integrator, c, inputs, outputs, initial_state, 0.0, sgt)
 end
 
 function CommonSolve.step!(compInt::SurrogateComponentIntegrator)

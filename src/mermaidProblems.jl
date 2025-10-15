@@ -53,9 +53,11 @@ Creates a [MermaidIntegrator](@ref) from a [MermaidProblem](@ref).
 # Returns
 - `MermaidIntegrator`: The initialized integrator for the problem.
 """
-function CommonSolve.init(prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars=[])
+function CommonSolve.init(
+        prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars = [])
     # Sort connectors so that the ones with # in outputs are first
-    connectors = sort(prob.connectors; by=x -> any([contains(conn.variable, "#") for conn in x.outputs]), rev=true)
+    connectors = sort(prob.connectors;
+        by = x -> any([contains(conn.variable, "#") for conn in x.outputs]), rev = true)
     # Initialize the solver
     integrators = Vector{Any}()
     for c in prob.components
@@ -143,7 +145,13 @@ function setstate!(merInt::AbstractMermaidIntegrator, key::AbstractConnectedVari
     end
 end
 
-gettime(integrator::AbstractComponentIntegrator) = getstate(integrator, ConnectedVariable(integrator.component.name, "#time", nothing, nothing))
-settime!(integrator::AbstractComponentIntegrator, t) = setstate!(integrator, ConnectedVariable(integrator.component.name, "#time", nothing, nothing), t)
+function gettime(integrator::AbstractComponentIntegrator)
+    getstate(
+        integrator, ConnectedVariable(integrator.component.name, "#time", nothing, nothing))
+end
+function settime!(integrator::AbstractComponentIntegrator, t)
+    setstate!(integrator,
+        ConnectedVariable(integrator.component.name, "#time", nothing, nothing), t)
+end
 
 variables(integrator::AbstractComponentIntegrator) = variables(integrator.component)

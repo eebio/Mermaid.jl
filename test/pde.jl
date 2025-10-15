@@ -31,7 +31,7 @@
     # Convert the PDE problem into an ODE problem
     prob = discretize(pdesys, discretization)
 
-    solPDE = solve(prob, Euler(), dt=0.0001, adaptive=false)
+    solPDE = solve(prob, Euler(), dt = 0.0001, adaptive = false)
 
     # Parameters, variables, and derivatives
     # 1D PDE and boundary conditions
@@ -64,10 +64,11 @@
     end
 
     c1 = MOLComponent(prob, Euler();
-        name="PDE",
-        state_names=OrderedDict("u" => [var_index("u[" * string(i) * "]") for i in 2:10], "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
-        time_step=0.0001,
-        intkwargs=(:adaptive => false,),
+        name = "PDE",
+        state_names = OrderedDict("u" => [var_index("u[" * string(i) * "]") for i in 2:10],
+            "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
+        time_step = 0.0001,
+        intkwargs = (:adaptive => false,)
     )
 
     function f2(u, p, t)
@@ -78,21 +79,21 @@
     prob = ODEProblem(f2, u0, tspan)
     c2 = DEComponent(
         prob, Euler();
-        name="G",
-        time_step=0.0001,
-        state_names=OrderedDict("g" => 1),
-        intkwargs=(:adaptive => false,),
+        name = "G",
+        time_step = 0.0001,
+        state_names = OrderedDict("g" => 1),
+        intkwargs = (:adaptive => false,)
     )
 
     conn = Connector(
-        inputs=["G.g"],
-        outputs=["PDE.g[1:9]"],
+        inputs = ["G.g"],
+        outputs = ["PDE.g[1:9]"]
     )
 
-    mp = MermaidProblem(components=[c1, c2], connectors=[conn], max_t=1.0)
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn], max_t = 1.0)
     sol = solve(mp, MinimumTimeStepper())
     finalsol = [0, sol(1)["PDE.u"]..., 0]
-    @test all(isapprox.(finalsol, solPDE[u(t, x)][end, :], atol=1e-8))
+    @test all(isapprox.(finalsol, solPDE[u(t, x)][end, :], atol = 1e-8))
 end
 
 @testitem "state control" begin
@@ -133,39 +134,45 @@ end
     end
 
     c1 = MOLComponent(prob, Tsit5();
-        name="PDE",
-        state_names=OrderedDict("u" => [var_index("u[" * string(i) * "]") for i in 2:10], "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
-        time_step=0.01,
+        name = "PDE",
+        state_names = OrderedDict("u" => [var_index("u[" * string(i) * "]") for i in 2:10],
+            "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
+        time_step = 0.01
     )
 
     conn1 = Connector(
-        inputs=["PDE.u[1:9]"],
-        outputs=["other.u"],
+        inputs = ["PDE.u[1:9]"],
+        outputs = ["other.u"]
     )
     conn2 = Connector(
-        inputs=["PDE.g[1:9]"],
-        outputs=["other.g"],
+        inputs = ["PDE.g[1:9]"],
+        outputs = ["other.g"]
     )
     integrator = init(c1, [conn1, conn2])
 
     @test issetequal(variables(integrator), ["u", "g"])
 
     # Check initial state
-    @test getstate(integrator, ConnectedVariable("PDE.u")) == [sin(pi * x) for x in 0.1:0.1:0.9]
+    @test getstate(integrator, ConnectedVariable("PDE.u")) ==
+          [sin(pi * x) for x in 0.1:0.1:0.9]
     @test getstate(integrator, ConnectedVariable("PDE.g")) == [0.5 for _ in 0.1:0.1:0.9]
-    @test getstate(integrator) == [[sin(pi * x) for x in [0.1:0.1:0.9...]]...; [0.5 for _ in [0.1:0.1:0.9...]]][[c1.state_names["u"]..., c1.state_names["g"]...]]
+    @test getstate(integrator) ==
+          [[sin(pi * x) for x in [0.1:0.1:0.9...]]...; [0.5 for _ in [0.1:0.1:0.9...]]][[
+        c1.state_names["u"]..., c1.state_names["g"]...]]
     @test getstate(integrator, ConnectedVariable("PDE.u[1]")) == sin(pi * 0.1)
     @test getstate(integrator, ConnectedVariable("PDE.g[1:3]")) == [0.5, 0.5, 0.5]
-    @test getstate(integrator, ConnectedVariable("PDE.u[2:4]")) == [sin(pi * 0.2), sin(pi * 0.3), sin(pi * 0.4)]
+    @test getstate(integrator, ConnectedVariable("PDE.u[2:4]")) ==
+          [sin(pi * 0.2), sin(pi * 0.3), sin(pi * 0.4)]
     # Check setting state
     setstate!(integrator, ConnectedVariable("PDE.u"), [1.0 for _ in 0.1:0.1:0.9])
     @test getstate(integrator, ConnectedVariable("PDE.u")) == [1.0 for _ in 0.1:0.1:0.9]
     @test getstate(integrator, ConnectedVariable("PDE.g")) == [0.5 for _ in 0.1:0.1:0.9]
     setstate!(integrator, ConnectedVariable("PDE.u[1]"), 0.0)
-    @test getstate(integrator, ConnectedVariable("PDE.u")) == [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    @test getstate(integrator, ConnectedVariable("PDE.u")) ==
+          [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     setstate!(integrator, ConnectedVariable("PDE.g[1:3]"), [0.0, 0.1, 0.2])
-    @test getstate(integrator, ConnectedVariable("PDE.g")) == [0.0, 0.1, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-
+    @test getstate(integrator, ConnectedVariable("PDE.g")) ==
+          [0.0, 0.1, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 
     # Check time control
     @test gettime(integrator) == 0.0
@@ -177,8 +184,10 @@ end
     @test gettime(integrator) == 0.11
 
     # Step means the state has changed
-    @test getstate(integrator, ConnectedVariable("PDE.u")) ≠ [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-    @test getstate(integrator, ConnectedVariable("PDE.g")) ≠ [0.0, 0.1, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    @test getstate(integrator, ConnectedVariable("PDE.u")) ≠
+          [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    @test getstate(integrator, ConnectedVariable("PDE.g")) ≠
+          [0.0, 0.1, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 
     # Global setstate!
     setstate!(integrator, [-1.0 for _ in 1:18])
@@ -187,9 +196,9 @@ end
 
     # Test error on symbolic indexing
     c1 = MOLComponent(prob, Tsit5();
-        name="PDE",
-        state_names=OrderedDict("u" => u, "g" => g),
-        time_step=0.01,
+        name = "PDE",
+        state_names = OrderedDict("u" => u, "g" => g),
+        time_step = 0.01
     )
     @test_throws ArgumentError init(c1, [conn1, conn2])
 end
