@@ -20,6 +20,16 @@ DiffEqExt = "DiffEqBase"
 MethodOfLinesExt = ["MethodOfLines", "DiffEqBase"]
 SurrogatesExt = ["Surrogates", "Flux"]
 
+[compat]
+Agents = "6.2.10"
+CommonSolve = "0.2.4"
+DiffEqBase = "6.190.2"
+Flux = "0.16.5"
+MethodOfLines = "0.11.9"
+OrderedCollections = "1.8.1"
+Surrogates = "7.0.1"
+julia = "1.11"
+
 [extras]
 Agents = "46ada45e-f475-11e8-01d0-f70cc89e6671"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
