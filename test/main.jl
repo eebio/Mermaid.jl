@@ -46,7 +46,7 @@ end
 
     c1 = AgentsComponent(model;
         name="Schelling",
-        state_names=Dict("min_to_be_happy" => :min_to_be_happy, "list_property" => :list_property, "mood" => :mood, "group" => :group),
+        state_names=OrderedDict("min_to_be_happy" => :min_to_be_happy, "list_property" => :list_property, "mood" => :mood, "group" => :group),
         time_step=1.0,
     )
 
@@ -115,7 +115,7 @@ end
         prob1, Euler();
         name="Prey",
         time_step=0.002,
-        state_names=Dict("prey" => 1, "predator" => 2),
+        state_names=OrderedDict("prey" => 1, "predator" => 2),
         intkwargs=(:adaptive => false,),
     )
 
@@ -123,7 +123,7 @@ end
         prob2, Euler();
         name="Predator",
         time_step=0.002,
-        state_names=Dict("predator" => 1, "prey" => 2),
+        state_names=OrderedDict("predator" => 1, "prey" => 2),
         intkwargs=(:adaptive => false,),
     )
 

@@ -10,7 +10,7 @@
     u0 = 1.0
     tspan = (0.0, 1.0)
     prob = ODEProblem(f, u0, tspan)
-    state_names = Dict("x" => 1)
+    state_names = OrderedDict("x" => 1)
     ode_comp = Mermaid.DEComponent(prob, Rodas5(); name="decay", state_names=state_names, time_step=0.1)
 
     # Set bounds for surrogate sampling
@@ -59,7 +59,7 @@ end
     u0 = [1.0, 0.5]
     tspan = (0.0, 1.0)
     prob = ODEProblem(f, u0, tspan)
-    state_names = Dict("x" => 1)
+    state_names = OrderedDict("x" => 1)
     ode_comp = DEComponent(prob, Rodas5(); name="decay", state_names=state_names, time_step=0.1)
 
     # Set bounds for surrogate sampling
@@ -102,7 +102,7 @@ end
     u0 = [1.0, 0.5]
     tspan = (0.0, 1.0)
     prob = ODEProblem(f, u0, tspan)
-    state_names = Dict("x" => 1, "y" => 2)
+    state_names = OrderedDict("x" => 1, "y" => 2)
     ode_comp = DEComponent(prob, Rodas5(); name="decay", state_names=state_names, time_step=0.1)
 
     # Set bounds for surrogate sampling

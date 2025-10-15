@@ -28,7 +28,7 @@
         prob1, Euler();
         name="Prey",
         time_step=0.002,
-        state_names=Dict("prey" => 1, "predator" => 2),
+        state_names=OrderedDict("prey" => 1, "predator" => 2),
         intkwargs=(:adaptive => false,),
     )
 
@@ -36,7 +36,7 @@
         prob2, Euler();
         name="Predator",
         time_step=0.002,
-        state_names=Dict("predator" => 1, "prey" => 2),
+        state_names=OrderedDict("predator" => 1, "prey" => 2),
         intkwargs=(:adaptive => false,),
     )
 
@@ -82,7 +82,7 @@ end
         prob, Euler();
         name="Prey",
         time_step=0.002,
-        state_names=Dict("prey" => x, "predator" => y),
+        state_names=OrderedDict("prey" => x, "predator" => y),
         intkwargs=(:adaptive => false,),
     )
 
@@ -95,7 +95,7 @@ end
         prob, Euler();
         name="Predator",
         time_step=0.002,
-        state_names=Dict("prey" => x, "predator" => y),
+        state_names=OrderedDict("prey" => x, "predator" => y),
         intkwargs=(:adaptive => false,),
     )
 
@@ -140,7 +140,7 @@ end
         prob, Rodas5();
         name="Lotka-Volterra",
         time_step=0.002,
-        state_names=Dict("prey" => 1, "predator" => 2),
+        state_names=OrderedDict("prey" => 1, "predator" => 2),
     )
 
     conn1 = Connector(

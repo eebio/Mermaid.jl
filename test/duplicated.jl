@@ -14,7 +14,7 @@
     comp1 = DEComponent(
         prob, Rodas5();
         name="tree",
-        state_names=Dict("heat" => 1, "life" => 2),
+        state_names=OrderedDict("heat" => 1, "life" => 2),
     )
     dup_comp = DuplicatedComponent(
         component=comp1,
@@ -64,7 +64,7 @@
 
     comp2 = AgentsComponent(forest;
         name="forest",
-        state_names=Dict("heat" => :heat, "life" => :life)
+        state_names=OrderedDict("heat" => :heat, "life" => :life)
     )
 
     conn1 = Connector(inputs=["forest.heat[1:640]"], outputs=["tree[1:640].heat"])
@@ -92,7 +92,7 @@ end
     comp1 = DEComponent(
         prob, Rodas5();
         name="decay",
-        state_names=Dict("val" => 1, "val2" => 2),
+        state_names=OrderedDict("val" => 1, "val2" => 2),
     )
 
     @agent struct Dummy(GridAgent{2})
@@ -117,7 +117,7 @@ end
     abm = dummy_abm()
     comp2 = AgentsComponent(abm;
         name="dummyabm",
-        state_names=Dict("val2" => :val2, "val" => :val)
+        state_names=OrderedDict("val2" => :val2, "val" => :val)
     )
 
     # Flexible duplicated component: no instances specified

@@ -61,8 +61,8 @@ function CommonSolve.init(c::DuplicatedComponent, conns::Vector{AbstractConnecto
         end
     end
     # Letting the internal integrator have inputs and outputs will break our setstate!
-    integrator.inputs = Dict{AbstractConnectedVariable, Any}()
-    integrator.outputs = Dict{AbstractConnectedVariable, Any}()
+    integrator.inputs = OrderedDict{AbstractConnectedVariable, Any}()
+    integrator.outputs = OrderedDict{AbstractConnectedVariable, Any}()
     # Create the DuplicatedComponentIntegrator
     integrator = DuplicatedComponentIntegrator(integrator, c, outputs, inputs, states, ids)
     return integrator

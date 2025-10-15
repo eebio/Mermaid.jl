@@ -39,7 +39,7 @@
 
     c1 = AgentsComponent(model;
         name="Schelling",
-        state_names=Dict("min_to_be_happy" => :min_to_be_happy),
+        state_names=OrderedDict("min_to_be_happy" => :min_to_be_happy),
         time_step=1.0,
     )
 
@@ -53,7 +53,7 @@
         prob, Tsit5();
         name="ode",
         time_step=1.0,
-        state_names=Dict("happy" => 1),
+        state_names=OrderedDict("happy" => 1),
     )
 
     conn = Connector(
@@ -131,7 +131,7 @@ end
 
     c1 = AgentsComponent(model;
         name="Schelling",
-        state_names=Dict("min_to_be_happy" => :min_to_be_happy, "list_property" => :list_property, "mood" => :mood, "group" => :group),
+        state_names=OrderedDict("min_to_be_happy" => :min_to_be_happy, "list_property" => :list_property, "mood" => :mood, "group" => :group),
         time_step=0.2,
     )
 

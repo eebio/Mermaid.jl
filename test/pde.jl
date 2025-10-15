@@ -65,7 +65,7 @@
 
     c1 = MOLComponent(prob, Euler();
         name="PDE",
-        state_names=Dict("u" => [var_index("u[" * string(i) * "]") for i in 2:10], "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
+        state_names=OrderedDict("u" => [var_index("u[" * string(i) * "]") for i in 2:10], "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
         time_step=0.0001,
         intkwargs=(:adaptive => false,),
     )
@@ -80,7 +80,7 @@
         prob, Euler();
         name="G",
         time_step=0.0001,
-        state_names=Dict("g" => 1),
+        state_names=OrderedDict("g" => 1),
         intkwargs=(:adaptive => false,),
     )
 
@@ -134,7 +134,7 @@ end
 
     c1 = MOLComponent(prob, Tsit5();
         name="PDE",
-        state_names=Dict("u" => [var_index("u[" * string(i) * "]") for i in 2:10], "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
+        state_names=OrderedDict("u" => [var_index("u[" * string(i) * "]") for i in 2:10], "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
         time_step=0.01,
     )
 
@@ -188,7 +188,7 @@ end
     # Test error on symbolic indexing
     c1 = MOLComponent(prob, Tsit5();
         name="PDE",
-        state_names=Dict("u" => u, "g" => g),
+        state_names=OrderedDict("u" => u, "g" => g),
         time_step=0.01,
     )
     @test_throws ArgumentError init(c1, [conn1, conn2])

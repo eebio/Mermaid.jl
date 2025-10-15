@@ -2,7 +2,8 @@ module Mermaid
 @doc read(joinpath(dirname(@__DIR__), "README.md"), String) Mermaid
 
 using CommonSolve
-using OrderedCollections
+using OrderedCollections: OrderedDict
+export OrderedDict
 
 export AbstractComponent, AbstractTimeDependentComponent, AbstractTimeIndependentComponent
 export ComponentIntegrator
