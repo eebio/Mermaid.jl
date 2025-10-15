@@ -143,14 +143,14 @@ end
     # Check #ids will be applied first
     @test int.connectors[1].inputs == [ConnectedVariable("dummyabm.#ids")]
     @test collect(keys(int.integrators[1].inputs))[1] == ConnectedVariable("decay.#ids")
-    step!(int, 1.0)
+    step!(int)
     # Add new agent and check that the number of duplicated states matches the number of agents at each step
     add_agent!(int.integrators[2].integrator; val2=1.0, val=0.0)
     for i in int.integrators
         # Update the outputs of the component
         Mermaid.update_outputs!(i)
     end
-    step!(int, 1.0)
+    step!(int)
     agent_int = int.integrators[2]
     dup_int = int.integrators[1]
     @test length(dup_int.states) == nagents(agent_int.integrator) == 4
@@ -181,7 +181,7 @@ end
     @test length(states3) == 2
 
     # Add new agents doesnt break step!
-    step!(int, 1.0)
+    step!(int)
 
     # Check that solving isn't broken
     sol = solve(mp, alg)

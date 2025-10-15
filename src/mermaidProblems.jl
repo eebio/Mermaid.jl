@@ -74,8 +74,8 @@ Steps the integrator for the given time step. The method is defined by the `alg`
 - `int::MermaidIntegrator`: The integrator to be stepped.
 - `dt::Float64`: The time step for the integrator.
 """
-function CommonSolve.step!(merInt::AbstractMermaidIntegrator, dt)
-    merInt.alg(merInt, dt)
+function CommonSolve.step!(merInt::AbstractMermaidIntegrator)
+    CommonSolve.step!(merInt, merInt.alg)
 end
 
 """
@@ -96,7 +96,7 @@ function CommonSolve.solve!(int::AbstractMermaidIntegrator)
     sol = MermaidSolution(int)
     update_solution!(sol, int)
     while int.currtime < int.maxt
-        CommonSolve.step!(int, dt)
+        CommonSolve.step!(int)
         update_solution!(sol, int)
     end
     return sol

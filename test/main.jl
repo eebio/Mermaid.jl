@@ -146,7 +146,7 @@ end
     @test getstate(integrator, ConnectedVariable("Prey.prey")) == 5.0
     @test getstate(integrator, ConnectedVariable("Predator.predator")) == 2.0
     @test getstate(integrator.integrators[1], ConnectedVariable("Prey.prey")) == 5.0
-    step!(integrator, 0.01)
+    step!(integrator)
     @test getstate(integrator, ConnectedVariable("Prey.prey")) ≠ 5.0
     @test getstate(integrator, ConnectedVariable("Predator.predator")) ≠ 2.0
 

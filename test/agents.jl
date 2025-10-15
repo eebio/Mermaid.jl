@@ -71,19 +71,19 @@
 
     intMer = init(mp, alg)
     for _ in 1:10
-        step!(intMer, 1.0)
+        step!(intMer)
     end
     # Early on, min_to_be_happy is high, so lots of agents moving
     pos = [intMer.integrators[1].integrator[i].pos for i in 1:300]
-    step!(intMer, 1.0)
+    step!(intMer)
     pos2 = [intMer.integrators[1].integrator[i].pos for i in 1:300]
     @test any(pos != pos2)
     for _ in 1:35
-        step!(intMer, 1.0)
+        step!(intMer)
     end
     # Later, min_to_be_happy is low, so agents aren't moving
     pos3 = [intMer.integrators[1].integrator[i].pos for i in 1:300]
-    step!(intMer, 1.0)
+    step!(intMer)
     pos4 = [intMer.integrators[1].integrator[i].pos for i in 1:300]
     @test all(pos3 == pos4)
     # And all agents are happy
