@@ -8,37 +8,29 @@ using OrderedCollections: OrderedDict
 # TODO time dependence: what if an ODE non-autonomous? want an option to include time in the surrogate?
 
 """
-    SurrogateComponent(component::AbstractTimeDependentComponent, lower_bound, upper_bound; name=component.name,
-    time_step::Float64=component.time_step,
-    state_names::Dict{String,Any}=component.state_names,
-    model=nothing,
-    n_samples=1000,
-    n_epochs=1000)
+    SurrogateComponent(args...; kwargs...)
 
 Represents a component that is replaced with a surrogate in the simulation, speeding up computation of a complex step! function.
 
 # Arguments
-- `component`: The original component to be replaced with a surrogate.
+- `component::AbstractTimeDependentComponent`: The original component to be replaced with a surrogate.
 - `lower_bound`: Lower bounds for each state variable for surrogate sampling.
 - `upper_bound`: Upper bounds for each state variable for surrogate sampling.
 
 # Keyword Arguments
-- `name`: Name of the component (default: same as original component)
-- `time_step`: Time step for the component (default: same as original component)
-- `state_names`: Dictionary mapping variable names (as strings) to their corresponding indices in the
-    state vector or symbols from ModelingToolkit/Symbolics (default: same as original component)
+- `name::AbstractString`: Name of the component. Defaults to the same as the original component.
+- `time_step::Real`: Time step for the component. Defaults to the same as the original component.
 - `model`: A Flux.jl model to use as the surrogate. If `nothing`, a default feedforward neural network is created.
-- `n_samples`: Number of samples to use for training the surrogate (default: 1000)
-- `n_epochs`: Number of training epochs for the surrogate (default: 1000)
+- `state_names`: Dictionary mapping variable names (as strings) to their corresponding indices in the
+    state vector or symbols from ModelingToolkit/Symbolics. Defaults to the same as the original component.
+- `n_samples::Integer`: Number of samples to use for training the surrogate. Defaults to 1000.
+- `n_epochs::Integer`: Number of training epochs for the surrogate. Defaults to 1000.
 """
 function Mermaid.SurrogateComponent(
         component::AbstractTimeDependentComponent, lower_bound, upper_bound;
-        name = component.name,
-        time_step::Real = component.time_step,
-        state_names = component.state_names,
-        model = nothing,
-        n_samples = 1000,
-        n_epochs = 1000)
+        name::AbstractString = component.name, time_step::Real = component.time_step,
+        model = nothing, state_names = component.state_names, n_samples::Integer = 1000,
+        n_epochs::Integer = 1000)
     return Mermaid.SurrogateComponent(component, name, time_step, state_names, lower_bound,
         upper_bound, model, n_samples, n_epochs)
 end

@@ -6,33 +6,33 @@ using OrderedCollections: OrderedDict
 using DiffEqBase
 
 """
-    MOLComponent(model::AbstractDEProblem, alg::AbstractDEAlgorithm; name::String="MOL Component",
-                     state_names::Dict{String,Any}=Dict{String,Any}(),
-                     time_step::Float64=1.0,
-                     intkwargs::Tuple=())
+    MOLComponent(model::DiffEqBase.AbstractDEProblem, alg::DiffEqBase.AbstractDEAlgorithm;
+                 name::String="MOL Component", time_step::Real=1.0, intkwargs::Tuple=(),
+                 state_names::Dict{String,Any}=Dict{String,Any}())
 
 # Arguments
-- `model`: The discretized DEProblem to be solved.
-- `alg`: Algorithm from DifferentialEquations.jl to be used for solving the DEProblem.
+- `model::DiffEqBase.AbstractDEProblem`: SciML DE problem (e.g., ODEProblem, etc.)
+- `alg::DiffEqBase.AbstractDEAlgorithm`: Algorithm from DifferentialEquations.jl to be used
+    for solving the DEProblem.
 
 # Keyword Arguments
-- `name`: Name of the component (default: "MOL Component")
-- `state_names`: Dictionary mapping variable names (as strings) to their corresponding indices in the state vector or symbols from ModelingToolkit/Symbolics (default: empty dictionary)
-- `time_step`: Time step for the component (default: 1.0)
-- `intkwargs`: Additional keyword arguments for the DE solver (default: empty tuple)
+- `name::AbstractString`: Name of the component. Defaults to "MOL Component".
+- `time_step::Real`: Time step for the component. Defaults to 1.0.
+- `intkwargs`: Additional keyword arguments for the DE solver. Defaults to no keywords.
+- `state_names`: Dictionary mapping variable names (as strings) to their corresponding
+    indices in the state vector or symbols from Symbolics.jl. Defaults to an empty
+    dictionary.
 """
 function Mermaid.MOLComponent(model::DiffEqBase.AbstractDEProblem,
         alg::DiffEqBase.AbstractDEAlgorithm; name = "MOL Component",
-        state_names = Dict{String, Any}(),
-        time_step::Real = 1.0,
-        intkwargs = ())
+        time_step::Real = 1.0, intkwargs = (), state_names = Dict{String, Any}())
     return Mermaid.MOLComponent(model, name, state_names, time_step, alg, intkwargs)
 end
 
 function CommonSolve.init(
         c::MOLComponent, conns::Vector{T}) where {T <: Mermaid.AbstractConnector}
     integrator = MOLComponentIntegrator(
-        CommonSolve.init(c.model, c.alg; dt = c.time_step, c.intkwargs...), c,
+        init(c.model, c.alg; dt = c.time_step, c.intkwargs...), c,
         OrderedDict{ConnectedVariable, Any}(), OrderedDict{ConnectedVariable, Any}())
     inputs, outputs = inputsandoutputs(integrator, conns)
     integrator.inputs = inputs
@@ -100,7 +100,7 @@ function Mermaid.setstate!(compInt::MOLComponentIntegrator, value)
 end
 
 function Mermaid.variables(component::MOLComponent)
-    return keys(component.state_names)
+    return union(keys(component.state_names), ["#time"])
 end
 
 end

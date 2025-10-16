@@ -148,7 +148,7 @@ end
     integrator = init(c1, [conn1, conn2])
 
     @test issetequal(variables(integrator),
-        ["min_to_be_happy", "group", "mood", "list_property", "#model"])
+        ["min_to_be_happy", "group", "mood", "list_property", "#model", "#time"])
 
     # Check initial state
     @test getstate(integrator, ConnectedVariable("Schelling.min_to_be_happy")) == 3.0

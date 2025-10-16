@@ -6,26 +6,26 @@ using DiffEqBase
 using OrderedCollections: OrderedDict
 
 """
-    DEComponent(model::DiffEqBase.AbstractDEProblem, alg::AbstractDEAlgorithm; name::String="DE Component",
-                     state_names::Dict{String,Any}=Dict{String,Any}(),
-                     time_step::Float64=1.0,
-                     intkwargs::Tuple=())
+    DEComponent(model::DiffEqBase.AbstractDEProblem, alg::DiffEqBase.AbstractDEAlgorithm;
+                name::String="DE Component", time_step::Float64=1.0, intkwargs::Tuple=(),
+                state_names::Dict{String,Any}=Dict{String,Any}())
 
 # Arguments
-- `model`: SciML DE problem (e.g., ODEProblem, SDEProblem, DAEProblem, etc.)
-- `alg`: Algorithm from DifferentialEquations.jl to be used for solving the DEProblem.
+- `model::DiffEqBase.AbstractDEProblem`: SciML DE problem (e.g., ODEProblem, etc.)
+- `alg::DiffEqBase.AbstractDEAlgorithm`: Algorithm from DifferentialEquations.jl to be used
+    for solving the DEProblem.
 
 # Keyword Arguments
-- `name`: Name of the component (default: "DE Component")
-- `state_names`: Dictionary mapping variable names (as strings) to their corresponding indices in the state vector or symbols from ModelingToolkit/Symbolics (default: empty dictionary)
-- `time_step`: Time step for the component (default: 1.0)
-- `intkwargs`: Additional keyword arguments for the DE solver (default: empty tuple)
+- `name::AbstractString`: Name of the component. Defaults to "DE Component".
+- `time_step::Real`: Time step for the component. Defaults to 1.0.
+- `intkwargs`: Additional keyword arguments for the DE solver. Defaults to no keywords.
+- `state_names`: Dictionary mapping variable names (as strings) to their corresponding
+    indices in the state vector or symbols from Symbolics.jl. Defaults to an empty
+    dictionary.
 """
 function Mermaid.DEComponent(model::DiffEqBase.AbstractDEProblem,
         alg::DiffEqBase.AbstractDEAlgorithm; name = "DE Component",
-        state_names = Dict{String, Any}(),
-        time_step::Real = 1.0,
-        intkwargs = ())
+        time_step::Real = 1.0, intkwargs = (), state_names = Dict{String, Any}())
     return Mermaid.DEComponent(model, name, state_names, time_step, alg, intkwargs)
 end
 
@@ -79,7 +79,7 @@ function Mermaid.setstate!(compInt::Mermaid.DEComponentIntegrator, value)
 end
 
 function Mermaid.variables(component::Mermaid.DEComponent)
-    return keys(component.state_names)
+    return union(keys(component.state_names), ["#time"])
 end
 
 end

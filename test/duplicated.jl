@@ -16,11 +16,8 @@
         name = "tree",
         state_names = OrderedDict("heat" => 1, "life" => 2)
     )
-    dup_comp = DuplicatedComponent(
-        component = comp1,
-        instances = 640,
-        initial_states = [copy(u0) for _ in 1:640]
-    )
+    dup_comp = DuplicatedComponent(comp1, [copy(u0) for _ in 1:640]; instances = 640)
+
     using Agents, Random
     @agent struct Tree(GridAgent{2})
         heat::Float64 # Heat is averaged across neighbors, passed to ODE model
@@ -123,10 +120,7 @@ end
     )
 
     # Flexible duplicated component: no instances specified
-    dup_comp = DuplicatedComponent(
-        component = comp1,
-        initial_states = [],
-        default_state = [5.0, 1.0]
+    dup_comp = DuplicatedComponent(comp1, []; default_state = [5.0, 1.0]
     ) # TODO How can we set the initial states to be different for each instance?
 
     # Connect agent ids to duplicated component ids, val2 to ODE, val from ODE to agent

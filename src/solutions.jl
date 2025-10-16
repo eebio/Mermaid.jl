@@ -1,28 +1,29 @@
-
 """
-    MermaidSolution
+    MermaidSolution{X, Y} <: AbstractMermaidSolution
 
-Struct for storing the solution of a hybrid Mermaid simulation.
+Stores the solution of a [MermaidProblem](@ref) over time.
 
 # Fields
-- `t::Vector`: Time points.
-- `u::Dict`: Dictionary mapping variables to their solution arrays.
+- `t::X`: Time points at which the solution is saved.
+- `u::Y`: Dictionary mapping variables to their solution arrays.
 """
-struct MermaidSolution <: AbstractMermaidSolution
-    t::Vector
-    u::Dict
+struct MermaidSolution{X, Y} <: AbstractMermaidSolution
+    t::X
+    u::Y
 end
 
 """
-    MermaidSolution(int::MermaidIntegrator)
+    MermaidSolution(int::MermaidIntegrator) <: AbstractMermaidSolution
 
-Construct a [MermaidSolution](@ref) from a [MermaidIntegrator](@ref).
+Create a [MermaidSolution](@ref) object initialized for the `save_vars`/variables in the
+    given [MermaidIntegrator](@ref).
 
 # Arguments
 - `int::MermaidIntegrator`: The integrator to extract solution structure from.
 
 # Returns
-- `MermaidSolution`: The initialized solution object.
+- `MermaidSolution`: A new [MermaidSolution](@ref) object with empty time and state arrays
+    for each variable to be saved.
 """
 function MermaidSolution(int::AbstractMermaidIntegrator)
     u = Dict()
@@ -33,12 +34,12 @@ function MermaidSolution(int::AbstractMermaidIntegrator)
                     continue
                 end
                 fullname = join([i.component.name, key], ".")
-                u[parsevariable(fullname)] = []
+                u[ConnectedVariable(fullname)] = []
             end
         end
     else
         for var in int.save_vars
-            u[parsevariable(var)] = []
+            u[ConnectedVariable(var)] = []
         end
     end
     return MermaidSolution([], u)
@@ -47,17 +48,15 @@ end
 """
     update_solution!(sol::MermaidSolution, merInt::MermaidIntegrator)
 
-Update the [MermaidSolution](@ref) `sol` with the current time and state from the [MermaidIntegrator](@ref).
+Update the [MermaidSolution](@ref) `sol` with the current time and state from the
+    [MermaidIntegrator](@ref).
 
 # Arguments
-- `sol::MermaidSolution`: The [MermaidSolution](@ref) to be updated. It contains time points (`t`) and a dictionary of state histories (`u`).
-- `merInt::MermaidIntegrator`: The integrator object providing the current time (`currtime`) and state access via `getstate`.
-
-# Description
-Appends the current time from `merInt` to `sol.t`. For each key in `sol.u`, retrieves the corresponding state from `merInt` using `getstate` and appends it to the respective vector in `sol.u`.
+- `sol::MermaidSolution`: The [MermaidSolution](@ref) to be updated.
+- `merInt::MermaidIntegrator`: The integrator object providing the current time (`currtime`)
+    and states to access via `getstate`.
 """
 function update_solution!(sol::AbstractMermaidSolution, merInt::AbstractMermaidIntegrator)
-    # Update the solution with the current time and state
     push!(sol.t, merInt.currtime)
     for key in keys(sol.u)
         push!(sol.u[key], getstate(merInt, key))
@@ -65,40 +64,36 @@ function update_solution!(sol::AbstractMermaidSolution, merInt::AbstractMermaidI
 end
 
 """
-    Base.getindex(sol::MermaidSolution, var::AbstractString)
+    Base.getindex(sol::AbstractMermaidSolution, var::AbstractString)
+    Base.getindex(sol::AbstractMermaidSolution, var::AbstractConnectedVariable)
+    Base.getindex(sol::AbstractMermaidSolution, index::Int)
 
-Get the solution array for a variable from a [MermaidSolution](@ref).
+Get the solution for a variable `var` or at a time index `index` from a
+    [MermaidSolution](@ref).
 
 # Arguments
-- `sol::MermaidSolution`: The solution object.
-- `var::AbstractString`: The variable name.
+- `sol::AbstractMermaidSolution`: The solution object.
+- `var::Union{AbstractString, AbstractConnectedVariable}`: The variable name.
+- `index::Int`: The time index of the variable.
 
 # Returns
-- The solution array for the specified variable.
+- If `var` is provided, returns the [MermaidSolution](@ref) for that variable.
+- If `index` is provided, returns the [MermaidSolution](@ref) at time `sol.t[index]`.
 """
+function Base.getindex(sol::AbstractMermaidSolution) end
+
 function Base.getindex(sol::AbstractMermaidSolution, var::AbstractString)
-    var = parsevariable(var)
+    var = ConnectedVariable(var)
     return Base.getindex(sol, var)
 end
 
-"""
-    Base.getindex(sol::MermaidSolution, var::ConnectedVariable)
-
-Get the solution array for a variable from a [MermaidSolution](@ref).
-
-# Arguments
-- `sol::MermaidSolution`: The solution object.
-- `var::ConnectedVariable`: The variable name.
-
-# Returns
-- The solution array for the specified variable.
-"""
 function Base.getindex(sol::AbstractMermaidSolution, var::AbstractConnectedVariable)
     if haskey(sol.u, var)
         return sol.u[var]
     else
         # See if we have a key without an index
-        var_no_index = ConnectedVariable(var.component, var.variable, nothing, nothing) # TODO I'm not sure how the duplicatedindex data is stored in the solution
+        # TODO I'm not sure how the duplicatedindex data is stored in the solution
+        var_no_index = ConnectedVariable(var.component, var.variable, nothing, nothing)
         if haskey(sol.u, var_no_index)
             return [i[var.variableindex] for i in sol.u[var_no_index]]
         end
@@ -107,7 +102,7 @@ function Base.getindex(sol::AbstractMermaidSolution, var::AbstractConnectedVaria
                 if key.variable == var.variable && key.component == var.component &&
                    issubset(var.variableindex, key.variableindex)
                     if length(var.variableindex) == 1
-                        # If the variableindex is a single value, return the corresponding value
+                        # If the variableindex is a single value, return at that index
                         return [i[findfirst(
                                     x -> x == var.variableindex[1], key.variableindex)]
                                 for i in sol.u[key]]
@@ -122,19 +117,7 @@ function Base.getindex(sol::AbstractMermaidSolution, var::AbstractConnectedVaria
     throw(KeyError(var))
 end
 
-"""
-    Base.getindex(sol::MermaidSolution, index::Int)
-
-Get the solution array for a variable from a [MermaidSolution](@ref) at time sol.t[index].
-
-# Arguments
-- `sol::MermaidSolution`: The solution object.
-- `index::Int`: The time index of the variable.
-
-# Returns
-- The solution array for the specified index.
-"""
-function Base.getindex(sol::AbstractMermaidSolution, index::Int)
+function Base.getindex(sol::AbstractMermaidSolution, index::Integer)
     if index < 1 || index > length(sol.t)
         throw(BoundsError(sol.t, index))
     end
@@ -152,11 +135,18 @@ Interpolates the solution at a given time `t` using linear interpolation.
 - `t::Real`: The time at which to interpolate the solution.
 
 # Returns
-- `MermaidSolution`: A new [MermaidSolution](@ref) object containing the interpolated time and state.
+- `MermaidSolution`: A new [MermaidSolution](@ref) object containing only that time and the
+    interpolated time and state.
 """
 function (sol::AbstractMermaidSolution)(t::Real)
     if t < sol.t[1] || t > sol.t[end]
-        throw("Time $t is out of bounds for the solution range [$(sol.t[1]), $(sol.t[end])].")
+        throw(BoundsError(
+            "Time $t is out of bounds for the solution range " *
+            "[$(sol.t[1]), $(sol.t[end])]."
+        ))
+    end
+    function interpolate_state(state1, state2, alpha)
+        return state1 .+ alpha .* (state2 .- state1)
     end
     lb = findlast(x -> x <= t, sol.t)
     ub = findfirst(x -> x >= t, sol.t)
@@ -164,9 +154,9 @@ function (sol::AbstractMermaidSolution)(t::Real)
         return sol[lb]
     end
     change = (t - sol.t[lb]) / (sol.t[ub] - sol.t[lb])
-    return MermaidSolution(
-        [sol.t[lb] + change * (sol.t[ub] - sol.t[lb])],
-        Dict([var => sol.u[var][lb] .+ change * (sol.u[var][ub] .- sol.u[var][lb])
-              for var in keys(sol.u)])
-    )
+    states = Dict()
+    for var in keys(sol.u)
+        states[var] = interpolate_state(sol.u[var][lb], sol.u[var][ub], change)
+    end
+    return MermaidSolution([t], states)
 end

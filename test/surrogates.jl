@@ -151,6 +151,5 @@ end
     @test gettime(surrogate_int) == 0.5
     step!(surrogate_int)
     @test gettime(surrogate_int) == 0.6
-
-    @test all(variables(surrogate_int) .== ["x", "y"])
+    @test issetequal(variables(surrogate_int), ["x", "y", "#time"])
 end

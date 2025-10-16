@@ -60,12 +60,12 @@ end
     @test sol["Schelling.min_to_be_happy"] == [3.0 for _ in sol.t]
     @test sol["Schelling.list_property"] == [[1, 2, 3, 4, 5] for _ in sol.t]
     @test sol["Schelling.list_property[2:3]"] == [[2, 3] for _ in sol.t]
-    @test sol["Schelling.mood"] == sol[parsevariable("Schelling.mood")]
+    @test sol["Schelling.mood"] == sol[ConnectedVariable("Schelling.mood")]
 
     # Test indexing
     @test sol[2].t[1] == sol.t[2]
     @test length(sol[2].t) == 1
-    @test (sol[2].u)[parsevariable("Schelling.min_to_be_happy")] ==
+    @test (sol[2].u)[ConnectedVariable("Schelling.min_to_be_happy")] ==
           sol["Schelling.min_to_be_happy"][2]
     @test sol[2] isa MermaidSolution
     @test keys(sol[2].u) == keys(sol.u)
@@ -73,18 +73,18 @@ end
     # Test interpolation
     @test sol(2) isa MermaidSolution
     @test sol(2).t[1] == 2.0
-    sol.u[parsevariable("Schelling.min_to_be_happy")][4] = rand()
+    sol.u[ConnectedVariable("Schelling.min_to_be_happy")][4] = rand()
     @test sol(2.75).t[1] == 2.75
     @test length(sol(2.75).t) == 1
     @test sol(2.75)["Schelling.min_to_be_happy"] ≈
-          (sol.u[parsevariable("Schelling.min_to_be_happy")][3] +
-           3 * sol.u[parsevariable("Schelling.min_to_be_happy")][4]) / 4
+          (sol.u[ConnectedVariable("Schelling.min_to_be_happy")][3] +
+           3 * sol.u[ConnectedVariable("Schelling.min_to_be_happy")][4]) / 4
     @test sol(2)["Schelling.min_to_be_happy"] == 3.0
     @test sol(3)["Schelling.min_to_be_happy"] ≠ 3.0
 
     # Test error handling
     @test_throws BoundsError sol[1000]
-    @test_throws "Time " sol(1000)
+    @test_throws BoundsError sol(1000)
 
     # save_vars
     mp = MermaidProblem(components = [c1], connectors = [], max_t = 10.0)
@@ -93,7 +93,7 @@ end
     @test sol["Schelling.min_to_be_happy"] == [3.0 for _ in sol.t]
     @test_throws KeyError sol["Schelling.mood"]
     @test issetequal(keys(sol.u),
-        parsevariable.(["Schelling.min_to_be_happy", "Schelling.list_property[2:4]"]))
+        ConnectedVariable.(["Schelling.min_to_be_happy", "Schelling.list_property[2:4]"]))
     @test sol["Schelling.list_property[2:3]"] == [[2, 3] for _ in sol.t]
     @test sol["Schelling.list_property[2]"] == [2 for _ in sol.t]
     @test sol["Schelling.list_property[3]"] == [3 for _ in sol.t]

@@ -1,13 +1,15 @@
 """
-    ConnectedVariable
+    ConnectedVariable <: AbstractConnectedVariable
 
-Points to a variable that is connected between components.
+Points to a variable within a component.
 
 # Fields
 - `component::String`: Name of the component.
 - `variable::String`: Name of the variable.
-- `variableindex::Union{Nothing,AbstractVector{Int},Int}`: Index or range for the variable, if applicable.
-- `duplicatedindex::Union{Nothing,AbstractVector{Int},Int}`: Index for duplicated components, if applicable.
+- `variableindex::Union{Nothing,AbstractVector{Int},Int}`: Index or range for the variable,
+    if applicable.
+- `duplicatedindex::Union{Nothing,AbstractVector{Int},Int}`: Index for duplicated
+    components, if applicable.
 """
 struct ConnectedVariable <: AbstractConnectedVariable
     component::String
@@ -23,62 +25,8 @@ Construct a [ConnectedVariable](@ref) from a string name.
 
 # Arguments
 - `name::AbstractString`: The full variable name.
-
-# Returns
-- `ConnectedVariable`: The parsed connected variable.
 """
 function ConnectedVariable(name::AbstractString)
-    return parsevariable(name)
-end
-
-"""
-    Connector
-
-Represents a connection between multiple [ConnectedVariables](@ref ConnectedVariable), possibly with a transformation function.
-
-# Fields
-- `inputs::Vector{ConnectedVariable}`: Input variables for the connector.
-- `outputs::Vector{ConnectedVariable}`: Output variables for the connector.
-- `func::Union{Nothing,Function}`: Optional function to transform inputs to outputs.
-"""
-struct Connector <: AbstractConnector
-    inputs::Vector{AbstractConnectedVariable}
-    outputs::Vector{AbstractConnectedVariable}
-    func::Union{Nothing, Function}
-end
-
-"""
-    Connector(;inputs, outputs, func=nothing)
-
-Construct a [Connector](@ref) from string names for inputs and outputs.
-
-# Keyword Arguments
-- `inputs::Vector{<:AbstractString}`: Names of input variables.
-- `outputs::Vector{<:AbstractString}`: Names of output variables.
-- `func`: Optional function for transformation (default: `nothing`).
-
-# Returns
-- `Connector`: The constructed connector.
-"""
-function Connector(; inputs::Vector{T}, outputs::Vector{S},
-        func = nothing) where {T <: AbstractString} where {S <: AbstractString}
-    inputs = [ConnectedVariable(i) for i in inputs]
-    outputs = [ConnectedVariable(o) for o in outputs]
-    return Connector(inputs, outputs, func)
-end
-
-"""
-    parsevariable(name::AbstractString) -> ConnectedVariable
-
-Parses a variable name as a foramtted string to a [ConnectedVariable](@ref).
-
-# Arguments
-- `name::AbstractString`: The variable name to parse. It can include an optional index, which may be a single integer (e.g., `"comp.var[3]"`) or a range (e.g., `"comp.var[1:5]"`).
-
-# Returns
-- `ConnectedVariable`: The corresponding [ConnectedVariable](@ref), containing a `component`, `variable`, `index` (which can be `nothing`, an `Int`, or a `UnitRange{Int}`), and the original `name`.
-"""
-function parsevariable(name)
     # Parse the variable name to extract its parts
     component, variable = split(name, ".")
     # Is there a variable index
@@ -105,6 +53,54 @@ function parsevariable(name)
     return ConnectedVariable(component, variable, index, dupindex)
 end
 
+"""
+    Connector <: AbstractConnector
+
+Represents a connection between multiple [ConnectedVariables](@ref ConnectedVariable),
+possibly with a transformation function.
+
+# Fields
+- `inputs::Vector{<:AbstractConnectedVariable}`: Input variables for the connector.
+- `outputs::Vector{<:AbstractConnectedVariable}`: Output variables for the connector.
+- `func::Union{Nothing,Function}`: Optional function to transform inputs to outputs.
+"""
+struct Connector <: AbstractConnector
+    inputs::Vector{T} where {T <: AbstractConnectedVariable}
+    outputs::Vector{U} where {U <: AbstractConnectedVariable}
+    func::Union{Nothing, Function}
+end
+
+"""
+    Connector(inputs, outputs; func=nothing)
+
+Construct a [Connector](@ref) from string names for inputs and outputs.
+
+# Arguments
+- `inputs::Vector{<:AbstractString}`: Names of input variables.
+- `outputs::Vector{<:AbstractString}`: Names of output variables.
+
+# Keyword Arguments
+- `func`: Function for mapping inputs to outputs. Defaults to `nothing` which passes a
+    single input, to all outputs.
+"""
+function Connector(; inputs::Vector{T}, outputs::Vector{S},
+        func = nothing) where {T <: AbstractString} where {S <: AbstractString}
+    inputs = [ConnectedVariable(i) for i in inputs]
+    outputs = [ConnectedVariable(o) for o in outputs]
+    return Connector(inputs, outputs, func)
+end
+
+"""
+    fullname(var::AbstractConnectedVariable)
+
+Return the full name of a [ConnectedVariable](@ref) as a string.
+
+# Arguments
+- `var::AbstractConnectedVariable`: The connected variable to get the full name for.
+
+# Returns
+- `String`: The full name of the connected variable.
+"""
 function Base.fullname(var::AbstractConnectedVariable)
     # Construct the full name of the variable
     comp = var.component
@@ -115,12 +111,13 @@ function Base.fullname(var::AbstractConnectedVariable)
 end
 
 """
-    update_outputs!(compInt::ComponentIntegrator)
+    update_outputs!(compInt::AbstractComponentIntegrator)
 
-Update the outputs field of a [ComponentIntegrator](@ref) based on its current state.
+Update the outputs of a [ComponentIntegrator](@ref) based on its current state.
 
 # Arguments
-- `compInt::ComponentIntegrator`: The component integrator whose outputs are to be updated.
+- `compInt::AbstractComponentIntegrator`: The component integrator whose outputs are to be
+    updated.
 """
 function update_outputs!(compInt::AbstractComponentIntegrator)
     # Update the outputs of the component based on the current state
@@ -130,30 +127,27 @@ function update_outputs!(compInt::AbstractComponentIntegrator)
 end
 
 """
-    update_inputs!(mermaidInt::MermaidIntegrator)
+    update_inputs!(merInt::AbstractMermaidIntegrator)
 
-Updates the input values of each [ComponentIntegrator](@ref) within the given [MermaidIntegrator](@ref) instance based on the outputs of other components and the defined [Connectors](@ref Connector).
+Updates the inputs of each [ComponentIntegrator](@ref) within the given
+    [MermaidIntegrator](@ref) instance based on the outputs of other components and the
+    defined [Connectors](@ref Connector).
 
 # Arguments
-- `mermaidInt::MermaidIntegrator`: The integrator containing components, connectors, and their current states.
-
-# Description
-For each connector in `mermaidInt.connectors`, this function:
-- Collects the outputs from the source components specified in the connector's inputs.
-- If a function (`conn.func`) is defined for the connector, applies it to the collected inputs to compute the outputs; otherwise, passes the inputs directly.
-- Assigns the resulting outputs to the appropriate input fields of the destination components specified in the connector's outputs.
+- `merInt::AbstractMermaidIntegrator`: The integrator containing components, connectors,
+    and their current states.
 """
-function update_inputs!(mermaidInt::AbstractMermaidIntegrator)
+function update_inputs!(merInt::AbstractMermaidIntegrator)
     # Update the inputs of the ODE component based on the outputs of other components
-    for conn in mermaidInt.connectors
+    for conn in merInt.connectors
         # Get the values of the connectors inputs
         inputs = []
         for input in conn.inputs
             # Find the corresponding integrator
             index = findfirst(
-                i -> i.component.name == input.component, mermaidInt.integrators)
+                i -> i.component.name == input.component, merInt.integrators)
             if index !== nothing
-                integrator = mermaidInt.integrators[index]
+                integrator = merInt.integrators[index]
                 # Get the value of the input from the integrator
                 push!(inputs, integrator.outputs[input])
             end
@@ -171,9 +165,9 @@ function update_inputs!(mermaidInt::AbstractMermaidIntegrator)
         for output in conn.outputs
             # Find the corresponding integrator
             index = findfirst(
-                i -> i.component.name == output.component, mermaidInt.integrators)
+                i -> i.component.name == output.component, merInt.integrators)
             if index !== nothing
-                integrator = mermaidInt.integrators[index]
+                integrator = merInt.integrators[index]
                 # Set the input value for the integrator
                 integrator.inputs[output] = outputs
             end
@@ -184,27 +178,33 @@ end
 """
     inputsandoutputs(integrator::ComponentIntegrator, conns::Vector{Connector}, compName::AbstractString)
 
-Generates the inputs and outputs of a component integrator based on its connections.
+Generates the input and output dictionaries of a component integrator based on its
+    connections.
 
 # Arguments
-- `integrator::ComponentIntegrator`: The component integrator whose inputs and outputs are to be extracted.
-- `conns::Vector{Connector}`: The connectors that define the inputs and outputs of the component.
+- `integrator::AbstractComponentIntegrator`: The component integrator whose inputs and
+    outputs are to be extracted.
+- `conns::Vector{<:AbstractConnector}`: The connectors that define the inputs and outputs of
+    the component. Extra connections not involving the `integrator` will be ignored.
 
 # Returns
-- `outputs::OrderedDict{ConnectedVariable,Any}`: An ordered dictionary mapping [ConnectedVariable](@ref) names to their initial values from the component.
-- `inputs::OrderedDict{ConnectedVariable,Any}`: An ordered dictionary mapping [ConnectedVariable](@ref) names to their current values (initially 0).
+- `outputs::OrderedDict{AbstractConnectedVariable,Any}`: An ordered dictionary mapping
+    [ConnectedVariable](@ref) names to their initial values from the component.
+- `inputs::OrderedDict{AbstractConnectedVariable,Any}`: An ordered dictionary mapping
+    [ConnectedVariable](@ref) names to their current values (initially 0).
 """
 function inputsandoutputs(integrator::AbstractComponentIntegrator,
         conns::Vector{T}) where {T <: Mermaid.AbstractConnector}
-    outputs = OrderedDict{AbstractConnectedVariable, Any}() # Full variable name => Initial value from component
-    inputs = OrderedDict{AbstractConnectedVariable, Any}() # Full variable name => Value (initially 0)
+    outputs = OrderedDict{AbstractConnectedVariable, Any}()
+    inputs = OrderedDict{AbstractConnectedVariable, Any}()
     for conn in conns
-        # If connection has an input from this component, store its index and function as a ComponentIntegrator.output
+        # If connection has an input from this component, its an output of the component
         for input in conn.inputs
             if input.component == integrator.component.name
                 outputs[input] = getstate(integrator, input)
             end
         end
+        # If connection has an output to this component, its an input of the component
         for output in conn.outputs
             if output.component == integrator.component.name
                 inputs[output] = isnothing(output.variableindex) ? 0 :
