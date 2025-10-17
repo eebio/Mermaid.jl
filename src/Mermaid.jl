@@ -2,7 +2,7 @@ module Mermaid
 @doc read(joinpath(dirname(@__DIR__), "README.md"), String) Mermaid
 
 # Imports, Usings and Reexports
-using CommonSolve
+import CommonSolve: solve!, solve, init, step!
 using OrderedCollections: OrderedDict
 export OrderedDict
 
@@ -69,5 +69,39 @@ Retrieve the variable names of a component.
     all special variables such as `#time` and `#model` if applicable.
 """
 function variables end
+
+"""
+    step!(int::AbstractMermaidIntegrator)
+    step!(int::AbstractComponentIntegrator)
+
+Advance the state of the integrator `int` by one time step.
+
+# Arguments
+- `int::Union{AbstractMermaidIntegrator, AbstractComponentIntegrator}`: The integrator to
+    advance.
+"""
+function step! end
+
+"""
+    init(prob::MermaidProblem, alg::MermaidSolver; save_vars=[])
+    init(comp::AbstractComponent, connectors::Vector{<:AbstractConnector})
+
+Initialises an integrator ([MermaidIntegrator](@ref) or [AbstractComponentIntegrator](@ref))
+    for the given [MermaidProblem](@ref)/[AbstractComponent](@ref).
+
+# Arguments
+- `prob::MermaidProblem`: The hybrid problem to be solved.
+- `alg::AbstractMermaidSolver`: The [AbstractMermaidSolver](@ref) algorithm to be used for
+    solving the problem.
+- `comp::AbstractComponent`: The component to be initialised.
+
+# Keyword Arguments
+- `save_vars=[]`: Which variables to save in the solution. Defaults to all non-special
+    variables.
+
+# Returns
+- `MermaidIntegrator`: The initialized integrator for the problem.
+"""
+function init end
 
 end

@@ -29,23 +29,6 @@ mutable struct MermaidIntegrator <: AbstractMermaidIntegrator
     save_vars::Vector{String}
 end
 
-"""
-    init(prob::MermaidProblem, alg::MermaidSolver; save_vars=[])
-
-Creates a [MermaidIntegrator](@ref) from a [MermaidProblem](@ref).
-
-# Arguments
-- `prob::MermaidProblem`: The hybrid problem to be solved.
-- `alg::AbstractMermaidSolver`: The [AbstractMermaidSolver](@ref) algorithm to be used for
-    solving the problem.
-
-# Keyword Arguments
-- `save_vars=[]`: Which variables to save in the solution. Defaults to all non-special
-    variables.
-
-# Returns
-- `MermaidIntegrator`: The initialized integrator for the problem.
-"""
 function CommonSolve.init(
         prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars = [])
     # Sort connectors so that the ones with # in outputs are first
@@ -56,15 +39,6 @@ function CommonSolve.init(
     return MermaidIntegrator(integrators, connectors, prob.max_t, 0.0, alg, save_vars)
 end
 
-"""
-    step!(merInt::AbstractMermaidIntegrator)
-
-Advances the integrator forward in time. The method used is defined by the `alg` field of
-    the [MermaidIntegrator](@ref).
-
-# Arguments
-- `merInt::AbstractMermaidIntegrator`: The integrator to be stepped.
-"""
 function CommonSolve.step!(merInt::AbstractMermaidIntegrator)
     CommonSolve.step!(merInt, merInt.alg)
 end
