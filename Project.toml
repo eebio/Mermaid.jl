@@ -22,6 +22,7 @@ SurrogatesExt = ["Surrogates", "Flux"]
 
 [compat]
 Agents = "6.2.10"
+Aqua = "0.8"
 CommonSolve = "0.2.4"
 DiffEqBase = "6.190.2"
 Flux = "0.16.5"
@@ -32,6 +33,7 @@ julia = "1.11"
 
 [extras]
 Agents = "46ada45e-f475-11e8-01d0-f70cc89e6671"
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
 DomainSets = "5b8099bc-c8ec-5219-889f-1d9e522a28bf"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
@@ -47,4 +49,4 @@ TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
 TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
 
 [targets]
-test = ["Test", "TestItems", "TestItemRunner", "Random", "Statistics", "DiffEqBase", "Agents", "MethodOfLines", "OrdinaryDiffEq", "Surrogates", "Flux", "ModelingToolkit", "DomainSets", "SymbolicIndexingInterface"]
+test = ["Test", "TestItems", "TestItemRunner", "Random", "Statistics", "DiffEqBase", "Agents", "MethodOfLines", "OrdinaryDiffEq", "Surrogates", "Flux", "ModelingToolkit", "DomainSets", "SymbolicIndexingInterface", "Aqua"]
