@@ -8,14 +8,14 @@ export OrderedDict
 
 # Exports
 export AbstractComponent, AbstractTimeDependentComponent, AbstractTimeIndependentComponent
-export ComponentIntegrator
-export DEComponent, DuplicatedComponent, PDEComponent, AgentsComponent, SurrogateComponent
+export AbstractComponentIntegrator
+export DEComponent, DuplicatedComponent, MOLComponent, AgentsComponent, SurrogateComponent
 export Connector, ConnectedVariable, MermaidProblem
 export AbstractMermaidSolver, MinimumTimeStepper
 export MermaidSolution
-export solve!, solve, init
-export getstate, setstate!, gettime, settime!, step!, variables
-export inputsandoutputs, parsevariable, fullname
+export solve!, solve, init, step!
+export getstate, setstate!, gettime, settime!, variables
+export inputsandoutputs, fullname
 
 # Include src files
 include("abstracts.jl")
