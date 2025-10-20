@@ -65,14 +65,4 @@ Simply returns the current simulated time of a `ComponentIntegrator`.
 !!! todo "Code example"
     We should include the code of the Agents component here too. probably with literate
 
-```@docs; canonical=false
-AgentsComponent
-Mermaid.AgentsComponentIntegrator
-Mermaid.step!(::Mermaid.AgentsComponentIntegrator)
-CommonSolve.init(::Mermaid.AgentsComponent, ::Vector{Connector})
-Mermaid.getstate(::Mermaid.AgentsComponentIntegrator, ::Mermaid.ConnectedVariable)
-Mermaid.setstate!(::Mermaid.AgentsComponentIntegrator, ::Mermaid.ConnectedVariable, value)
-Mermaid.gettime(::Mermaid.AgentsComponentIntegrator)
-```
-
 ## Variable Names

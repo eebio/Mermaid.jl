@@ -19,13 +19,13 @@ To begin, we need to define our components. These will be an ODE model component
 To define the ODE model, let's have a look at how to define an ODE Component.
 
 ```@docs; canonical=false
-ODEComponent
+DEComponent
 ```
 
 We see that we need to define an `ODEProblem` to use in the component, so let's create one.
 
 ```@example tutorial
-using DifferentialEquations
+using OrdinaryDiffEq
 function tree!(du, u, p, t)
     heat, life = u
     du[1] = 0
@@ -36,15 +36,13 @@ tspan = (0.0, 150.0)
 prob = ODEProblem(tree!, u0, tspan)
 ```
 
-Next, we want to wrap this ODEProblem inside an ODEComponent.
+Next, we want to wrap this ODEProblem inside an DEComponent.
 For this, we will need to define the `state_names` field, and should generally provide a value for the `name` field (since component names in a hybrid simulation should be unique).
 
 ```@example tutorial
 using Mermaid
-comp1 = ODEComponent(
-    model=prob,
-    name="tree",
-    state_names=Dict("heat" => 1, "life" => 2),
+comp1 = DEComponent(prob, Rodas5();
+    name="tree", state_names=Dict("heat" => 1, "life" => 2),
 )
 ```
 
@@ -60,16 +58,14 @@ DuplicatedComponent
 ```
 
 ```@example tutorial
-dup_comp = DuplicatedComponent(
-    component=comp1,
+dup_comp = DuplicatedComponent(comp1, [copy(u0) for _ in 1:640];
     instances=640,
-    initial_states=[copy(u0) for _ in 1:640]
 )
 ```
 
 ### Agents.jl Components
 
-Now that we have created our [ODEComponent](@ref), we can move on to the [AgentsComponent](@ref), so let's have a look at its documentation.
+Now that we have created our [DEComponent](@ref), we can move on to the [AgentsComponent](@ref), so let's have a look at its documentation.
 
 ```@docs; canonical=false
 AgentsComponent
@@ -119,10 +115,8 @@ end
 
 forest = forest_fire()
 
-comp2 = AgentsComponent(
-    model=forest,
-    name="forest",
-    state_names=Dict("heat" => :heat, "life" => :life)
+comp2 = AgentsComponent(forest;
+    name="forest", state_names=Dict("heat" => :heat, "life" => :life)
 )
 ```
 

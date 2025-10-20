@@ -13,7 +13,7 @@ For this reason, it is also possible to create duplicated components with a vari
 For this example, we are going to create an agent-based model of a cell population with each cell goverened by a simple growth model tracking protein mass which is dependent on a spatial nutrient distribution and the number of nearby cells.
 
 ```@example dupcomp
-using DifferentialEquations, Agents, Random, Mermaid, CairoMakie
+using OrdinaryDiffEq, Agents, Random, Mermaid, CairoMakie
 using LinearAlgebra: norm
 Random.seed!(1) # hide
 
@@ -29,10 +29,8 @@ u0 = [1.0, 1.0]
 tspan = (0.0, 250.0)
 prob = ODEProblem(cell!, u0, tspan)
 using Mermaid
-comp1 = ODEComponent(
-    model=prob,
-    name="cell",
-    state_names=Dict("nutrients" => 1, "mass" => 2),
+comp1 = DEComponent(prob, Rodas5();
+    name="cell", state_names=Dict("nutrients" => 1, "mass" => 2),
 )
 
 @agent struct Cell(ContinuousAgent{2,Float64})
@@ -113,10 +111,8 @@ end
 
 pop = colony()
 
-comp2 = AgentsComponent(
-    model=pop,
-    name="colony",
-    state_names=Dict("mass" => :mass, "nutrients" => :nutrients)
+comp2 = AgentsComponent(pop;
+    name="colony", state_names=Dict("mass" => :mass, "nutrients" => :nutrients)
 )
 
 conn1 = Connector(inputs=["colony.nutrients"], outputs=["cell.nutrients"])
@@ -131,9 +127,7 @@ If we don't provide any value for the `instances` field when creating the duplic
 Some components, like AgentComponents, already have pre-made special outputs for the `#ids` which we can use to couple duplicated components to an Agent-based model.
 
 ```@example dupcomp
-dup_comp = DuplicatedComponent(
-    component=comp1,
-    initial_states=[],
+dup_comp = DuplicatedComponent(comp1, [];
     default_state=u0,
 )
 conn3 = Connector(inputs=["colony.#ids"], outputs=["cell.#ids"])

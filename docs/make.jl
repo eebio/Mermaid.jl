@@ -1,5 +1,7 @@
 using Documenter, Mermaid, CommonSolve
 using DocumenterInterLinks
+# Load extensions to be documented
+using Agents, OrdinaryDiffEq, MethodOfLines, Surrogates, Flux
 
 links = InterLinks(
     "CommonSolve" => "https://docs.sciml.ai/CommonSolve/dev/",
@@ -21,7 +23,14 @@ PAGES = [
     "API" => "API.md",
 ]
 
-makedocs(sitename="Mermaid.jl", repo=Remotes.GitHub("mjowen", "Mermaid.jl"), modules=[CommonSolve, Mermaid], checkdocs = :exports,
+modules = [CommonSolve, Mermaid,
+    Base.get_extension(Mermaid, :AgentsExt),
+    Base.get_extension(Mermaid, :DiffEqExt),
+    Base.get_extension(Mermaid, :MethodOfLinesExt),
+    Base.get_extension(Mermaid, :SurrogatesExt),
+]
+
+makedocs(sitename="Mermaid.jl", repo=Remotes.GitHub("mjowen", "Mermaid.jl"), modules=modules, checkdocs = :exports,
     pages = PAGES, plugins = [links])
 
 deploydocs(

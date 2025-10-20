@@ -20,6 +20,26 @@ Defines a Mermaid hybrid simulation problem.
     max_t::Float64 = 1.0
 end
 
+"""
+    MermaidIntegrator <: AbstractMermaidIntegrator
+    MermaidIntegrator(
+        integrators::Vector{AbstractComponentIntegrator},
+        connectors::Vector{AbstractConnector},
+        maxt::Float64,
+        currtime::Float64,
+        alg::AbstractMermaidSolver,
+        save_vars::Vector{String})
+
+Defines the integrator for a Mermaid hybrid simulation.
+
+# Fields
+- `integrators::Vector{<:AbstractComponentIntegrator}`: Vector of component integrators.
+- `connectors::Vector{<:AbstractConnector}`: Vector of [Connector](@ref) between components.
+- `maxt::Float64`: Maximum simulation time.
+- `currtime::Float64`: Current simulation time.
+- `alg::AbstractMermaidSolver`: The Mermaid solver algorithm to be used.
+- `save_vars::Vector{String}`: Variables to be saved during the simulation.
+"""
 mutable struct MermaidIntegrator <: AbstractMermaidIntegrator
     integrators::Vector{AbstractComponentIntegrator}
     connectors::Vector{AbstractConnector}

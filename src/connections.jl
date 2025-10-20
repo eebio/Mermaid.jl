@@ -113,7 +113,7 @@ end
 """
     update_outputs!(compInt::AbstractComponentIntegrator)
 
-Update the outputs of a [ComponentIntegrator](@ref) based on its current state.
+Update the outputs of an [AbstractComponentIntegrator](@ref) based on its current state.
 
 # Arguments
 - `compInt::AbstractComponentIntegrator`: The component integrator whose outputs are to be
@@ -129,7 +129,7 @@ end
 """
     update_inputs!(merInt::AbstractMermaidIntegrator)
 
-Updates the inputs of each [ComponentIntegrator](@ref) within the given
+Updates the inputs of each [AbstractComponentIntegrator](@ref) within the given
     [MermaidIntegrator](@ref) instance based on the outputs of other components and the
     defined [Connectors](@ref Connector).
 
