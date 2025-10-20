@@ -107,7 +107,7 @@ function CommonSolve.step!(compInt::DuplicatedComponentIntegrator)
     end
     for i in eachindex(compInt.ids)
         # Set the time for this instance
-        settime!(compInt.integrator, t)
+        settime!(compInt, t)
         # Set the instances state
         setstate!(compInt.integrator, compInt.states[i])
         # Step the integrator for this instance
