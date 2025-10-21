@@ -80,8 +80,6 @@ Get the solution for a variable `var` or at a time index `index` from a
 - If `var` is provided, returns the [MermaidSolution](@ref) for that variable.
 - If `index` is provided, returns the [MermaidSolution](@ref) at time `sol.t[index]`.
 """
-function Base.getindex(sol::AbstractMermaidSolution) end
-
 function Base.getindex(sol::AbstractMermaidSolution, var::AbstractString)
     var = ConnectedVariable(var)
     return Base.getindex(sol, var)
