@@ -6,9 +6,11 @@ Represents a component that is duplicated in the simulation, allowing a single c
 
 # Fields
 - `component::AbstractTimeDependentComponent`: The original component to be duplicated.
-- `instances::Union{Int,Nothing}`: Number of instances of the component. If `nothing`, then the number is variable and determined by the simulation.
+- `instances::Union{Int,Nothing}`: Number of instances of the component. If `nothing`, then
+    the number is variable and determined by the simulation.
 - `name::String`: Name of the duplicated component.
-- `initial_states::Vector`: Vector of states for the duplicated component, where each state corresponds to a particular instance.
+- `initial_states::Vector`: Vector of states for the duplicated component, where each state
+    corresponds to a particular instance.
 """
 struct DuplicatedComponent{T, U, V, W} <:
        AbstractTimeDependentComponent where {T <: AbstractTimeDependentComponent}
@@ -51,22 +53,24 @@ function DuplicatedComponent(component::AbstractTimeDependentComponent,
         state_names, default_state)
 end
 
-mutable struct DuplicatedComponentIntegrator <: AbstractComponentIntegrator
-    integrator::AbstractComponentIntegrator
+mutable struct DuplicatedComponentIntegrator{T <: AbstractComponentIntegrator} <:
+               AbstractComponentIntegrator
+    integrator::T
     component::DuplicatedComponent
     outputs::OrderedDict{ConnectedVariable, Any}
     inputs::OrderedDict{ConnectedVariable, Any}
     states::Vector
-    ids::Union{Vector, Nothing}
+    ids::Vector{Int}
 end
 
-function CommonSolve.init(c::DuplicatedComponent, conns::Vector{AbstractConnector})
+function CommonSolve.init(
+        c::DuplicatedComponent, conns::Vector{T}) where {T <: AbstractConnector}
     integrator = CommonSolve.init(c.component, conns)
     states = deepcopy(c.initial_states)
     ids = isnothing(c.instances) ? [] : 1:(c.instances)
 
-    outputs = OrderedDict{AbstractConnectedVariable, Any}()
-    inputs = OrderedDict{AbstractConnectedVariable, Any}()
+    outputs = OrderedDict{ConnectedVariable, Any}()
+    inputs = OrderedDict{ConnectedVariable, Any}()
     for conn in conns
         for input in conn.inputs
             if input.component == c.name
@@ -80,7 +84,6 @@ function CommonSolve.init(c::DuplicatedComponent, conns::Vector{AbstractConnecto
         end
     end
 
-    # Values in outputs will be set based on the current state, but should instead match initial_states
     if !isnothing(c.instances)
         for i in 1:(c.instances)
             # Set the state according to initial_states
@@ -92,11 +95,11 @@ function CommonSolve.init(c::DuplicatedComponent, conns::Vector{AbstractConnecto
         end
     end
     # Letting the internal integrator have inputs and outputs will break our setstate!
-    integrator.inputs = OrderedDict{AbstractConnectedVariable, Any}()
-    integrator.outputs = OrderedDict{AbstractConnectedVariable, Any}()
+    integrator.inputs = OrderedDict{ConnectedVariable, Any}()
+    integrator.outputs = OrderedDict{ConnectedVariable, Any}()
     # Create the DuplicatedComponentIntegrator
-    integrator = DuplicatedComponentIntegrator(integrator, c, outputs, inputs, states, ids)
-    return integrator
+    return DuplicatedComponentIntegrator{typeof(integrator)}(
+        integrator, c, outputs, inputs, states, ids)
 end
 
 function CommonSolve.step!(compInt::DuplicatedComponentIntegrator)
