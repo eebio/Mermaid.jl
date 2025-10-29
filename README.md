@@ -3,8 +3,13 @@
 [![Run tests](https://github.com/mjowen/Mermaid.jl/actions/workflows/test.yml/badge.svg)](https://github.com/mjowen/Mermaid.jl/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/mjowen/Mermaid.jl/graph/badge.svg?token=XRLUZB8FQS)](https://codecov.io/gh/mjowen/Mermaid.jl)
 
-Mermaid.jl is a general purpose component-based simulation tool in Julia.
-It allows users to connect arbitrary Julia models from a wide range of packages to produce complex coupled simulations.
+Mermaid.jl is a hybrid and multiscale simulation enviroment in Julia.
 
-* Any simulation that can be performed in Julia can be included as a component, from DifferentialEquations.jl, to Agents.jl and beyond.
-* Simple interface for extending components to tools not yet supported.
+Complex simulations can be produced by connecting together components from a wide range of Julia modeling tools.
+
+Its key features are:
+
+1. It is particularly well suited towards hybrid (continuous and discrete time), multiscale and nested systems. With direct support for nesting models within other models (Agent-based models where each agent solves an ODE, for example).
+2. Models can be specified as arbitrary Julia code, include calls to other programming languages such as C or Python.
+3. Out-of-the-box support for Agents.jl, DifferentialEquations.jl (and related packages), Surrogates.jl, and MethodOfLines.jl.
+4. A simple integrator interface allows extensions to previously unsupported components.
