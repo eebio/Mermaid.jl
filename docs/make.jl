@@ -30,7 +30,9 @@ modules = [CommonSolve, Mermaid,
     Base.get_extension(Mermaid, :SurrogatesExt),
 ]
 
-makedocs(sitename="Mermaid.jl", repo=Remotes.GitHub("mjowen", "Mermaid.jl"), modules=modules, checkdocs = :exports,
+format = Documenter.HTML(assets = ["assets/logo.ico"])
+
+makedocs(sitename="Mermaid.jl", format = format, repo=Remotes.GitHub("mjowen", "Mermaid.jl"), modules=modules, checkdocs = :exports,
     pages = PAGES, plugins = [links])
 
 deploydocs(
