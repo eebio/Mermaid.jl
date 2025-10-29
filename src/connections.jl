@@ -25,6 +25,12 @@ Construct a [ConnectedVariable](@ref) from a string name.
 
 # Arguments
 - `name::AbstractString`: The full variable name.
+
+# Examples
+`ConnectedVariable("comp.var")`
+`ConnectedVariable("comp.var[1:5]")` where 1:5 is the variableindex
+`ConnectedVariable("comp[2].var")` where 2 is the duplicatedindex
+`ConnectedVariable("comp[1:3].var[4]")`
 """
 function ConnectedVariable(name::AbstractString)
     # Parse the variable name to extract its parts

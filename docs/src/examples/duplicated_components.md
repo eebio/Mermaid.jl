@@ -1,12 +1,14 @@
 # Advanced Duplicated Components
 
 You may have seen us use duplicated components in the [Tutorial](@ref).
-This is a very powerful tool that lets you efficiently create many instances of a component integrator, each with their own independent state that can be stepped independently.
+This is a very powerful tool that lets you efficiently create many instances of a component integrator, each with their own state that can be stepped independently.
 In the [Tutorial](@ref), we used duplicated components to create lots of instances of the tree ODE model, so every tree could be tracked independently.
 Rather than creating 640 components, each with its own integrator - we create 640 state vectors, reducing the memory requirements for the duplicated component.
 
 However, while this functionality is useful, it is not always possible to specify the number of instances *a priori*.
-For this reason, it is also possible to create duplicated components with a variable number of instances.
+For example, we may have wanted trees that die to be removed from the simulation, or new trees to be created over time.
+
+For this reason, it is also possible to create duplicated components with a variable/unknown number of instances.
 
 ## Setup
 
@@ -92,7 +94,7 @@ function cell_step!(cell, colony)
         # If nutrients decrease, random direction on next iteration
         cell.vel += rand(2) .- 0.5
     end
-    # Update nutrients and mass
+    # Update nutrients of cell, sharing between neighboring
     cell.nutrients = nutrients(cell.pos, colony)/(length(collect(nearby_ids(cell, colony, 0.5)))+1)
     # If large mass, split into two
     splitmass = 15

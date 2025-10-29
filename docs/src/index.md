@@ -10,7 +10,7 @@ CurrentModule = Mermaid
 Mermaid
 ```
 
-## Installation (Coming soon)
+## Installation
 
 Mermaid can be installed from Julia with:
 

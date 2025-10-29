@@ -4,7 +4,7 @@ In this tutorial, we will:
 
 * Create a hybrid simulation between an Agent-based model, defined in Agents.jl, and an ODE system defined through DifferentialEquations.jl.
 * Introduce Mermaid Components for Agents.jl and DifferentialEquations.jl.
-* Demonstrate how these Components can be connected together through Connections.
+* Demonstrate how these Components can be connected together through Connectors.
 * Solve the hybrid model.
 * Visualise the results of the simulation.
 
@@ -34,6 +34,8 @@ end
 u0 = [4.0, 2.0]
 tspan = (0.0, 150.0)
 prob = ODEProblem(tree!, u0, tspan)
+
+nothing #hide
 ```
 
 Next, we want to wrap this ODEProblem inside an DEComponent.
@@ -44,12 +46,14 @@ using Mermaid
 comp1 = DEComponent(prob, Rodas5();
     name="tree", state_names=Dict("heat" => 1, "life" => 2),
 )
+
+nothing #hide
 ```
 
 ### Duplicated Components
 
-Since the `ODEProblem` is defined for only a single tree, we can efficiently simulate the ODE by generating a duplicated component.
-This component stores a single `ODEProblem` will solve across many different states.
+Since the `ODEProblem` is defined for only a single tree, we can efficiently simulate time ODE system many times by generating a duplicated component.
+This component stores a single `ODEProblem` that it will solve across many different states.
 In this case, we can have a state for each tree in the Agent-based model.
 Let's have a look at how to define a [DuplicatedComponent](@ref).
 
@@ -61,6 +65,8 @@ DuplicatedComponent
 dup_comp = DuplicatedComponent(comp1, [copy(u0) for _ in 1:640];
     instances=640,
 )
+
+nothing #hide
 ```
 
 ### Agents.jl Components
@@ -128,6 +134,8 @@ We can now set up the connections between the variables in the two components.
 Connector
 ```
 
+The format for specifying a [ConnectedVariable](@ref) is given in [Mermaid Interface](@ref), but in short, it is a string containing a component name and a variable/state name. It can also contain optional indices for only accessing part of a variable (given at the end of the ConnectedVariable), or for only accessing some subcomponents, such as for DuplicatedComponents (given at the end of the component name).
+
 ```@example tutorial
 conn1 = Connector(inputs=["forest.heat[1:640]"], outputs=["tree[1:640].heat"])
 conn2 = Connector(inputs=["tree[1:640].life"], outputs=["forest.life[1:640]"])
@@ -169,8 +177,11 @@ plot!(sol.t, sol["forest.heat[1]"], color=:red, label="Heat")
 While we can plot the variables from the ODE component easily, the Agent-based model is a bit more challenging.
 But default, we only store the variables given in state\_names in the solution.
 This can be changed by providing `save_vars=["forest.#model"]` to `solve`, in which case the full Agent-based model state will be visable in the solution at all timepoints.
-However, this can be wasteful if we know we only want an animation of the model (which can be generated during simulation).
 
+!!! tip "#model and Special Variables"
+    `"#model"` is a special variable for AgentsComponents. Special variables, denoted by starting with `#` are not saved by default but can be used with connectors, `getstate`, `setstate!`, or `save_vars`. To view the special variables of a component, you can call `variables(component)`.
+
+However, this can be wasteful if we know we only want an animation of the model (which can be generated during simulation).
 We will set up a [Connector](@ref) which takes an input of the model's current state, and instead of a transformation, we will use a function which adds the current state to a video.
 
 ```@example tutorial
@@ -197,6 +208,8 @@ mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn1, conn2, conn
 sol = solve(mp, alg)
 
 save("forest_fire.mp4", io)
+
+nothing #hide
 ```
 
 ![An animation of the forest fire simulation](forest_fire.mp4)
