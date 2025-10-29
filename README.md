@@ -1,5 +1,6 @@
 # Mermaid.jl
 
+![Mermaid.jl](https://raw.githubusercontent.com/eebio/Mermaid.jl/refs/heads/registry-prep/docs/assets/logo-full.svg)
 [![Run tests](https://github.com/mjowen/Mermaid.jl/actions/workflows/test.yml/badge.svg)](https://github.com/mjowen/Mermaid.jl/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/mjowen/Mermaid.jl/graph/badge.svg?token=XRLUZB8FQS)](https://codecov.io/gh/mjowen/Mermaid.jl)
 
