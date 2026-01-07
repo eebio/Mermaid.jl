@@ -50,7 +50,7 @@ function CommonSolve.init(
         end
         setstate!(integrator, x)
         CommonSolve.step!(integrator)
-        return getstate(integrator)
+        return collect(getstate(integrator))
     end
     if isnothing(c.model)
         model1 = f64(Chain(
@@ -67,11 +67,18 @@ function CommonSolve.init(
         xys = [[x] for x in xys]
     end
 
-    learning_rate = 0.1
-    optimizer = Descent(learning_rate)  # Simple gradient descent. See Flux documentation for other options.
+    #sgt = NeuralSurrogate(xys, zs, lower_bound, upper_bound; model = model1,
+    #    n_epochs = c.n_epochs)
 
-    sgt = NeuralSurrogate(xys, zs, lower_bound, upper_bound; model = model1,
-        opt = optimizer, n_epochs = c.n_epochs)
+    sgt = SecondOrderPolynomialSurrogate(xys, zs, lower_bound, upper_bound)
+
+    println("Training complete")
+    # x = copy(sgt.x)
+    # for i in axes(x, 2)
+    #     x[:,i] = sgt(x[:,i])
+    # end
+
+    #println("Surrogate training loss: ", Flux.mse(x, sgt.y))
 
     return SurrogateComponentIntegrator(
         integrator, c, inputs, outputs, initial_state, 0.0, sgt)
@@ -105,7 +112,7 @@ function Mermaid.setstate!(compInt::SurrogateComponentIntegrator, state)
     compInt.state = state
 end
 
-function Mermaid.setstate!(compInt::SurrogateComponentIntegrator, key, value)
+function Mermaid.setstate!(compInt::SurrogateComponentIntegrator, key::Mermaid.AbstractConnectedVariable, value)
     if first(key.variable) == '#'
         if key.variable == "#time"
             compInt.time = value
