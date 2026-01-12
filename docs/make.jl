@@ -9,18 +9,23 @@ links = InterLinks(
     "ModelingToolkit" => "https://docs.sciml.ai/ModelingToolkit/stable/",
     "Symbolics" => "https://docs.sciml.ai/Symbolics/stable/",
     "MethodOfLines" => "https://docs.sciml.ai/MethodOfLines/dev/",
-    "PythonCall" => "https://juliapy.github.io/PythonCall.jl/stable/",
+    "PythonCall" => "https://juliapy.github.io/PythonCall.jl/stable/"
 )
 
 PAGES = [
     "Introduction" => "index.md",
     "Tutorial" => "tutorial.md",
-    "Examples" => ["examples/mtk.md", "examples/duplicated_components.md",
-                    "examples/out_of_sync.md", "examples/spatial_maps.md",
-                    "examples/surrogates.md", "examples/external_components.md"],
+    "Examples" => [
+        "examples/mtk.md",
+        "examples/duplicated_components.md",
+        "examples/out_of_sync.md",
+        "examples/spatial_maps.md",
+        "examples/surrogates.md",
+        "examples/external_components.md",
+    ],
     "Mermaid Interface" => "interface.md",
     "Is Mermaid right for me?" => "is_mermaid_right_for_me.md",
-    "API" => "API.md",
+    "API" => "API.md"
 ]
 
 modules = [CommonSolve, Mermaid,
@@ -32,7 +37,8 @@ modules = [CommonSolve, Mermaid,
 
 format = Documenter.HTML(assets = ["assets/logo.ico"])
 
-makedocs(sitename="Mermaid.jl", format = format, repo=Remotes.GitHub("mjowen", "Mermaid.jl"), modules=modules, checkdocs = :exports,
+makedocs(sitename = "Mermaid.jl", format = format,
+    repo = Remotes.GitHub("mjowen", "Mermaid.jl"), modules = modules, checkdocs = :exports,
     pages = PAGES, plugins = [links])
 
 deploydocs(

@@ -170,6 +170,8 @@ using Plots
 
 plot(sol.t, sol["forest.life[1]"], color=:green, label="Life")
 plot!(sol.t, sol["forest.heat[1]"], color=:red, label="Heat")
+
+nothing # hide
 ```
 
 ## Advanced Visualisations

@@ -61,7 +61,6 @@ function CommonSolve.init(
 
     #sgt = NeuralSurrogate(xys, zs, lower_bound, upper_bound; model = c.model,
     #    n_epochs = c.n_epochs)
-
     sgt = SecondOrderPolynomialSurrogate(xys, zs, lower_bound, upper_bound)
 
     # x = copy(sgt.x)
