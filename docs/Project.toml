@@ -1,6 +1,8 @@
 [deps]
 Agents = "46ada45e-f475-11e8-01d0-f70cc89e6671"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+CellMLToolkit = "03cb29e0-1ef4-4721-aa24-cf58a006576f"
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
 DocInventories = "43dc2714-ed3b-44b5-b226-857eda1aa7de"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"

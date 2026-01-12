@@ -2,7 +2,6 @@ module SurrogatesExt
 
 using Mermaid
 using Surrogates
-using Flux
 using CommonSolve
 using OrderedCollections: OrderedDict
 # TODO time dependence: what if an ODE non-autonomous? want an option to include time in the surrogate?
@@ -14,6 +13,7 @@ Represents a component that is replaced with a surrogate in the simulation, spee
 
 # Arguments
 - `component::AbstractTimeDependentComponent`: The original component to be replaced with a surrogate.
+- `surrogate`: The surrogate model or method to use for the component.
 - `lower_bound`: Lower bounds for each state variable for surrogate sampling.
 - `upper_bound`: Upper bounds for each state variable for surrogate sampling.
 
@@ -27,7 +27,7 @@ Represents a component that is replaced with a surrogate in the simulation, spee
 - `n_epochs::Integer`: Number of training epochs for the surrogate. Defaults to 1000.
 """
 function Mermaid.SurrogateComponent(
-        component::AbstractTimeDependentComponent, lower_bound, upper_bound;
+        component::AbstractTimeDependentComponent, surrogate, lower_bound, upper_bound;
         name::AbstractString = component.name, time_step::Real = component.time_step,
         model = nothing, state_names = component.state_names, n_samples::Integer = 1000,
         n_epochs::Integer = 1000)
@@ -52,27 +52,18 @@ function CommonSolve.init(
         CommonSolve.step!(integrator)
         return collect(getstate(integrator))
     end
-    if isnothing(c.model)
-        model1 = f64(Chain(
-            Dense(length(lower_bound), 32, relu),
-            Dense(32, 32, relu),
-            Dense(32, length(lower_bound))
-        ))
-    else
-        model1 = c.model
-    end
+
     xys = sample(n_samples, lower_bound, upper_bound, SobolSample())
     zs = step.(xys)
     if length(lower_bound) == 1
         xys = [[x] for x in xys]
     end
 
-    #sgt = NeuralSurrogate(xys, zs, lower_bound, upper_bound; model = model1,
+    #sgt = NeuralSurrogate(xys, zs, lower_bound, upper_bound; model = c.model,
     #    n_epochs = c.n_epochs)
 
     sgt = SecondOrderPolynomialSurrogate(xys, zs, lower_bound, upper_bound)
 
-    println("Training complete")
     # x = copy(sgt.x)
     # for i in axes(x, 2)
     #     x[:,i] = sgt(x[:,i])

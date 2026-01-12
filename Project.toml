@@ -19,7 +19,7 @@ Surrogates = "6fc51010-71bc-11e9-0e15-a3fcc6593c49"
 AgentsExt = "Agents"
 DiffEqExt = "DiffEqBase"
 MethodOfLinesExt = ["MethodOfLines", "DiffEqBase"]
-SurrogatesExt = ["Surrogates", "Flux"]
+SurrogatesExt = "Surrogates"
 
 [compat]
 Agents = "6.2.10"
