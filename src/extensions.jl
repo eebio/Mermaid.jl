@@ -52,13 +52,13 @@ end
 struct SurrogateComponent{A, B, C, D, E, F, G, H, I} <: AbstractTimeDependentComponent
     component::A
     name::B
-    time_step::C
-    state_names::D
-    lower_bound::E
-    upper_bound::F
-    model::G
+    surrogate::C
+    time_step::D
+    state_names::E
+    lower_bound::F
+    upper_bound::G
     n_samples::H
-    n_epochs::I
+    kwargs::I
 end
 
 mutable struct SurrogateComponentIntegrator{A, B, C, D, E, F, G} <:

@@ -25,10 +25,10 @@
     # Create surrogate component
     surrogate_comp = SurrogateComponent(
         ode_comp,
+        NeuralSurrogate,
         lower,
         upper;
-        n_epochs = 4000,
-        model = model
+        kwargs = (model = model, n_epochs = 4000)
     )
 
     # Dummy connector list (no connections for this test)
@@ -53,6 +53,7 @@ end
 
 @testitem "surrogate integrator 2d" begin
     using OrdinaryDiffEq
+    using Surrogates, Flux
     using Random
     Random.seed!(0)
     # Define a simple ODE: dx/dt = -x, x(0) = 1
@@ -71,10 +72,11 @@ end
     # Create surrogate component
     surrogate_comp = SurrogateComponent(
         ode_comp,
+        NeuralSurrogate,
         lower,
         upper;
         n_samples = 2000,
-        n_epochs = 4000
+        kwargs = (n_epochs = 4000, model = Chain(Dense(2, 16, relu), Dense(16, 2)))
     )
 
     # Dummy connector list (no connections for this test)
@@ -99,6 +101,7 @@ end
 
 @testitem "state control" begin
     using OrdinaryDiffEq
+    using Surrogates, Flux
     # Define a simple ODE: dx/dt = -x, x(0) = 1
     f(u, p, t) = [-u[1], u[2] - u[1]]
     u0 = [1.0, 0.5]
@@ -115,10 +118,11 @@ end
     # Create surrogate component
     surrogate_comp = SurrogateComponent(
         ode_comp,
+        NeuralSurrogate,
         lower,
         upper;
         n_samples = 10,
-        n_epochs = 10
+        kwargs = (n_epochs = 100, model = Chain(Dense(2, 8, relu), Dense(8, 2)))
     )
 
     # Dummy connector list (no connections for this test)

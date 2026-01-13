@@ -29,10 +29,10 @@ Represents a component that is replaced with a surrogate in the simulation, spee
 function Mermaid.SurrogateComponent(
         component::AbstractTimeDependentComponent, surrogate, lower_bound, upper_bound;
         name::AbstractString = component.name, time_step::Real = component.time_step,
-        model = nothing, state_names = component.state_names, n_samples::Integer = 1000,
-        n_epochs::Integer = 1000)
-    return Mermaid.SurrogateComponent(component, name, time_step, state_names, lower_bound,
-        upper_bound, model, n_samples, n_epochs)
+        state_names = component.state_names, n_samples::Integer = 1000, kwargs = ())
+    return Mermaid.SurrogateComponent(
+        component, name, surrogate, time_step, state_names, lower_bound,
+        upper_bound, n_samples, kwargs)
 end
 
 function CommonSolve.init(
@@ -59,16 +59,7 @@ function CommonSolve.init(
         xys = [[x] for x in xys]
     end
 
-    #sgt = NeuralSurrogate(xys, zs, lower_bound, upper_bound; model = c.model,
-    #    n_epochs = c.n_epochs)
-    sgt = SecondOrderPolynomialSurrogate(xys, zs, lower_bound, upper_bound)
-
-    # x = copy(sgt.x)
-    # for i in axes(x, 2)
-    #     x[:,i] = sgt(x[:,i])
-    # end
-
-    #println("Surrogate training loss: ", Flux.mse(x, sgt.y))
+    sgt = c.surrogate(xys, zs, lower_bound, upper_bound; c.kwargs...)
 
     return SurrogateComponentIntegrator(
         integrator, c, inputs, outputs, initial_state, 0.0, sgt)
@@ -102,7 +93,8 @@ function Mermaid.setstate!(compInt::SurrogateComponentIntegrator, state)
     compInt.state = state
 end
 
-function Mermaid.setstate!(compInt::SurrogateComponentIntegrator, key::Mermaid.AbstractConnectedVariable, value)
+function Mermaid.setstate!(compInt::SurrogateComponentIntegrator,
+        key::Mermaid.AbstractConnectedVariable, value)
     if first(key.variable) == '#'
         if key.variable == "#time"
             compInt.time = value
