@@ -198,10 +198,10 @@ end
           [7, 8, 6]
 
     # getstate and setstate! for duplicated AgentsComponent
-    @test Mermaid.getstate(integrator) isa StandardABM
-    @test Mermaid.gettime(integrator) ≈ 0.2
-    state = Mermaid.getstate(integrator; copy=true) # Get a copy of the state
-    state2 = Mermaid.getstate(integrator) # Default is don't copy, just return reference
+    @test getstate(integrator) isa StandardABM
+    @test gettime(integrator) ≈ 0.2
+    state = getstate(integrator; copy=true) # Get a copy of the state
+    state2 = getstate(integrator) # Default is don't copy, just return reference
     step!(integrator)
     @test gettime(integrator) ≈ 0.4
     setstate!(integrator, state)
