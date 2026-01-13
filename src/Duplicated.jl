@@ -120,6 +120,9 @@ function CommonSolve.step!(compInt::DuplicatedComponentIntegrator)
             if key.variable ∉ ["#init_states", "#states", "#ids"]
                 compInt.outputs[key][i] = getstate(compInt.integrator, newkey)
             end
+            if key.variable ∉ ["#init_states", "#states", "#ids"]
+                compInt.outputs[key][i] = getstate(compInt.integrator, newkey)
+            end
         end
         # Store the state for this instance
         compInt.states[i] = getstate(compInt.integrator; copy = true)
