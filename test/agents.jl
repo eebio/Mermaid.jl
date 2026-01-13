@@ -200,7 +200,7 @@ end
     # getstate and setstate! for duplicated AgentsComponent
     @test getstate(integrator) isa StandardABM
     @test gettime(integrator) ≈ 0.2
-    state = getstate(integrator, true) # Get a copy of the state
+    state = getstate(integrator; copy = true) # Get a copy of the state
     state2 = getstate(integrator) # Default is don't copy, just return reference
     step!(integrator)
     @test gettime(integrator) ≈ 0.4

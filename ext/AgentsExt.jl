@@ -54,7 +54,7 @@ function Mermaid.getstate(compInt::AgentsComponentIntegrator, key::ConnectedVari
             return abmtime(compInt.integrator) * compInt.component.time_step
         end
         if key.variable == "#model"
-            return getstate(compInt, true)
+            return getstate(compInt; copy = true)
         end
         if key.variable == "#ids"
             return collect(allids(compInt.integrator))
@@ -130,12 +130,8 @@ function Mermaid.setstate!(
     return nothing
 end
 
-function Mermaid.getstate(compInt::AgentsComponentIntegrator, copy::Bool = false)
-    if copy
-        return deepcopy(compInt.integrator)
-    else
-        return compInt.integrator
-    end
+function Mermaid.getstate(compInt::AgentsComponentIntegrator)
+    return compInt.integrator
 end
 
 function Mermaid.setstate!(compInt::AgentsComponentIntegrator, state::StandardABM)
