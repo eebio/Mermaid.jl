@@ -135,3 +135,11 @@ function settime!(int::AbstractComponentIntegrator, t)
 end
 
 variables(integrator::AbstractComponentIntegrator) = variables(integrator.component)
+
+function getstate(int::AbstractComponentIntegrator; copy = false)
+    if copy
+        return deepcopy(getstate(int))
+    else
+        return getstate(int)
+    end
+end
