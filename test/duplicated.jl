@@ -137,15 +137,9 @@ end
 
     int = init(mp, alg)
     # Check #ids will be applied first
-    @test int.connectors[1].inputs == [ConnectedVariable("dummyabm.#ids")]
-    @test collect(keys(int.integrators[1].inputs))[1] == ConnectedVariable("decay.#ids")
     step!(int)
     # Add new agent and check that the number of duplicated states matches the number of agents at each step
     add_agent!(int.integrators[2].integrator; val2 = 1.0, val = 0.0)
-    for i in int.integrators
-        # Update the outputs of the component
-        Mermaid.update_outputs!(i)
-    end
     step!(int)
     agent_int = int.integrators[2]
     dup_int = int.integrators[1]

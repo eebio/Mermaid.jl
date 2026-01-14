@@ -160,9 +160,12 @@ end
 
     # update_inputs!
     integrator = init(mp, MinimumTimeStepper())
-    Mermaid.update_inputs!(integrator)
-    @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == 2.0
-    @test integrator.integrators[2].inputs[ConnectedVariable("Predator.prey")] == 4.0
+    for conn in integrator.connectors
+        runconnection!(integrator, conn)
+    end
+    @test getstate(integrator, ConnectedVariable("Prey.predator")) == 2.0
+    @test getstate(integrator, ConnectedVariable("Predator.prey")) == 4.0
+
     conn1 = Connector(
         inputs = ["Predator.predator"],
         outputs = ["Prey.predator"],
@@ -173,25 +176,28 @@ end
         outputs = ["Predator.prey"],
         func = x -> x / 1.5
     )
-
     mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0)
     integrator = init(mp, MinimumTimeStepper())
-    Mermaid.update_inputs!(integrator)
-    @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == 8.0
-    @test integrator.integrators[2].inputs[ConnectedVariable("Predator.prey")] == 4.0 / 1.5
+    for conn in integrator.connectors
+        runconnection!(integrator, conn)
+    end
+    @test getstate(integrator, ConnectedVariable("Prey.predator")) == 8.0
+    @test getstate(integrator, ConnectedVariable("Predator.prey")) == 4.0 / 1.5
+
     conn1 = Connector(
         inputs = ["Predator.predator", "Predator.prey"],
         outputs = ["Prey.predator", "Prey.prey"],
         func = (x, y) -> x * y
     )
-
     mp = MermaidProblem(components = [c1, c2], connectors = [conn1], max_t = 10.0)
     integrator = init(mp, MinimumTimeStepper())
     setstate!(integrator, ConnectedVariable("Predator.predator"), 2.0)
     setstate!(integrator, ConnectedVariable("Predator.prey"), 4.0)
-    Mermaid.update_inputs!(integrator)
-    @test integrator.integrators[1].inputs[ConnectedVariable("Prey.predator")] == 8.0
-    @test integrator.integrators[1].inputs[ConnectedVariable("Prey.prey")] == 8.0
+    for conn in integrator.connectors
+        runconnection!(integrator, conn)
+    end
+    @test getstate(integrator, ConnectedVariable("Prey.predator")) == 8.0
+    @test getstate(integrator, ConnectedVariable("Prey.prey")) == 8.0
 
     # Incorrect connectors
     conn1 = Connector(
