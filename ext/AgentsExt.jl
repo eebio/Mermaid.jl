@@ -34,16 +34,10 @@ function CommonSolve.init(
         c::AgentsComponent, conns::Vector{T}) where {T <: Mermaid.AbstractConnector}
     integrator = AgentsComponentIntegrator(deepcopy(c.model), c,
         OrderedDict{ConnectedVariable, Any}(), OrderedDict{ConnectedVariable, Any}())
-    inputs, outputs = inputsandoutputs(integrator, conns)
-    integrator.inputs = inputs
-    integrator.outputs = outputs
     return integrator
 end
 
 function CommonSolve.step!(compInt::AgentsComponentIntegrator)
-    for (key, value) in compInt.inputs
-        setstate!(compInt, key, value)
-    end
     step!(compInt.integrator)
 end
 

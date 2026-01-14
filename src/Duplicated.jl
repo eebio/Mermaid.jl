@@ -57,8 +57,6 @@ mutable struct DuplicatedComponentIntegrator{T <: AbstractComponentIntegrator} <
                AbstractComponentIntegrator
     integrator::T
     component::DuplicatedComponent
-    outputs::OrderedDict{ConnectedVariable, Any}
-    inputs::OrderedDict{ConnectedVariable, Any}
     states::Vector
     ids::Vector{Int}
     init_states::Dict
@@ -70,43 +68,13 @@ function CommonSolve.init(
     states = deepcopy(c.initial_states)
     ids = isnothing(c.instances) ? [] : 1:(c.instances)
 
-    outputs = OrderedDict{ConnectedVariable, Any}()
-    inputs = OrderedDict{ConnectedVariable, Any}()
-    for conn in conns
-        for input in conn.inputs
-            if input.component == c.name
-                outputs[input] = isnothing(c.instances) ? [] : zeros(c.instances)
-            end
-        end
-        for output in conn.outputs
-            if output.component == c.name
-                inputs[output] = isnothing(c.instances) ? [] : zeros(c.instances)
-            end
-        end
-    end
-
-    if !isnothing(c.instances)
-        for i in 1:(c.instances)
-            # Set the state according to initial_states
-            setstate!(integrator, states[i])
-            for key in keys(outputs)
-                newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
-                outputs[key][i] = getstate(integrator, newkey)
-            end
-        end
-    end
-
     # Create the DuplicatedComponentIntegrator
     return DuplicatedComponentIntegrator{typeof(integrator)}(
-        integrator, c, outputs, inputs, states, ids, Dict())
+        integrator, c, states, ids, Dict())
 end
 
 function CommonSolve.step!(compInt::DuplicatedComponentIntegrator)
     t = gettime(compInt)
-    # Set the inputs for all states
-    for (key, value) in compInt.inputs
-        setstate!(compInt, key, value)
-    end
     for i in eachindex(compInt.ids)
         # Set the time for this instance
         settime!(compInt, t)
@@ -114,23 +82,8 @@ function CommonSolve.step!(compInt::DuplicatedComponentIntegrator)
         setstate!(compInt.integrator, compInt.states[i])
         # Step the integrator for this instance
         CommonSolve.step!(compInt.integrator)
-        # Get the outputs for this instance
-        for key in keys(compInt.outputs)
-            newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
-            if key.variable ∉ ["#init_states", "#states", "#ids"]
-                compInt.outputs[key][i] = getstate(compInt.integrator, newkey)
-            end
-            if key.variable ∉ ["#init_states", "#states", "#ids"]
-                compInt.outputs[key][i] = getstate(compInt.integrator, newkey)
-            end
-        end
         # Store the state for this instance
         compInt.states[i] = getstate(compInt.integrator; copy = true)
-    end
-    for key in keys(compInt.outputs)
-        if key.variable ∈ ["#init_states", "#states", "#ids"]
-            compInt.outputs[key] = getstate(compInt, key)
-        end
     end
 end
 
@@ -187,16 +140,6 @@ function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
             end
             compInt.ids = value
             compInt.states = states
-            for key in keys(compInt.outputs)
-                if compInt.outputs[key] isa AbstractVector
-                    resize!(compInt.outputs[key], length(compInt.ids))
-                end
-            end
-            for key in keys(compInt.inputs)
-                if compInt.inputs[key] isa AbstractVector
-                    resize!(compInt.inputs[key], length(compInt.ids))
-                end
-            end
             return nothing
         end
         if key.variable == "#states"

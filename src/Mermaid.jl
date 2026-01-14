@@ -15,7 +15,7 @@ export AbstractMermaidSolver, MinimumTimeStepper
 export MermaidSolution
 export solve!, solve, init, step!
 export getstate, setstate!, gettime, settime!, variables
-export inputsandoutputs, fullname
+export fullname
 
 # Include src files
 include("abstracts.jl")

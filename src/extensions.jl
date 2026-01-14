@@ -12,11 +12,9 @@ struct DEComponent{A, B, C, D, E, F} <: AbstractTimeDependentComponent
     intkwargs::F
 end
 
-mutable struct DEComponentIntegrator{A, B, C, D} <: AbstractComponentIntegrator
+mutable struct DEComponentIntegrator{A, B} <: AbstractComponentIntegrator
     integrator::A
     component::B
-    outputs::C
-    inputs::D
 end
 
 struct AgentsComponent{A, B, C, D} <: AbstractTimeDependentComponent
@@ -26,11 +24,9 @@ struct AgentsComponent{A, B, C, D} <: AbstractTimeDependentComponent
     time_step::D
 end
 
-mutable struct AgentsComponentIntegrator{A, B, C, D} <: AbstractComponentIntegrator
+mutable struct AgentsComponentIntegrator{A, B} <: AbstractComponentIntegrator
     integrator::A
     component::B
-    outputs::C
-    inputs::D
 end
 
 struct MOLComponent{A, B, C, D, E, F} <: AbstractTimeDependentComponent
@@ -42,11 +38,9 @@ struct MOLComponent{A, B, C, D, E, F} <: AbstractTimeDependentComponent
     intkwargs::F
 end
 
-mutable struct MOLComponentIntegrator{A, B, C, D} <: AbstractComponentIntegrator
+mutable struct MOLComponentIntegrator{A, B} <: AbstractComponentIntegrator
     integrator::A
     component::B
-    outputs::C
-    inputs::D
 end
 
 struct SurrogateComponent{A, B, C, D, E, F, G, H, I} <: AbstractTimeDependentComponent
@@ -61,13 +55,10 @@ struct SurrogateComponent{A, B, C, D, E, F, G, H, I} <: AbstractTimeDependentCom
     kwargs::I
 end
 
-mutable struct SurrogateComponentIntegrator{A, B, C, D, E, F, G} <:
-               AbstractComponentIntegrator
+mutable struct SurrogateComponentIntegrator{A, B, C, D, E} <: AbstractComponentIntegrator
     integrator::A
     component::B
-    outputs::C
-    inputs::D
-    state::E
-    time::F
-    surrogate::G
+    state::C
+    time::D
+    surrogate::E
 end

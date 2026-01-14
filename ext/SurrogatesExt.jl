@@ -41,8 +41,6 @@ function CommonSolve.init(
     upper_bound = c.upper_bound
     n_samples = c.n_samples
     integrator = CommonSolve.init(c.component, conns)
-    inputs = integrator.inputs
-    outputs = integrator.outputs
     initial_state = getstate(integrator)
     function step(x)
         if x isa Tuple
@@ -62,7 +60,7 @@ function CommonSolve.init(
     sgt = c.surrogate(xys, zs, lower_bound, upper_bound; c.kwargs...)
 
     return SurrogateComponentIntegrator(
-        integrator, c, inputs, outputs, initial_state, 0.0, sgt)
+        integrator, c, initial_state, 0.0, sgt)
 end
 
 function CommonSolve.step!(compInt::SurrogateComponentIntegrator)

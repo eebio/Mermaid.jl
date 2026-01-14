@@ -34,16 +34,10 @@ function CommonSolve.init(
     integrator = Mermaid.DEComponentIntegrator(
         init(c.model, c.alg; dt = c.time_step, c.intkwargs...), c,
         OrderedDict{ConnectedVariable, Any}(), OrderedDict{ConnectedVariable, Any}())
-    inputs, outputs = inputsandoutputs(integrator, conns)
-    integrator.inputs = inputs
-    integrator.outputs = outputs
     return integrator
 end
 
 function CommonSolve.step!(compInt::Mermaid.DEComponentIntegrator)
-    for (key, value) in compInt.inputs
-        setstate!(compInt, key, value)
-    end
     CommonSolve.step!(compInt.integrator, compInt.component.time_step, true)
 end
 
