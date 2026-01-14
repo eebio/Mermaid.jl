@@ -206,4 +206,41 @@ end
     )
     mp = MermaidProblem(components = [c1, c2], connectors = [conn1], max_t = 10.0)
     @test_throws KeyError solve(mp, MinimumTimeStepper())
+
+    using Agents
+    space = GridSpace((20, 20))
+
+    @agent struct Schelling(GridAgent{2})
+        mood::Vector{Float64} = Float64[]
+        group::Int
+    end
+    function schelling_step!(agent, model)
+        return nothing
+    end
+    properties = Dict(:min_to_be_happy => 3.0, :list_property => [1, 2, 3, 4, 5])
+    model = StandardABM(
+        Schelling,
+        space;
+        (agent_step!) = schelling_step!, properties
+    )
+    for n in 1:300
+        add_agent_single!(model; group = n < 300 / 2 ? 1 : 2)
+    end
+    c1 = AgentsComponent(model;
+        name = "Schelling",
+        state_names = OrderedDict("min_to_be_happy" => :min_to_be_happy,
+            "list_property" => :list_property, "mood" => :mood, "group" => :group),
+        time_step = 1.0
+    )
+    conn1 = Connector(
+        inputs = ["Schelling.group[1]", "Schelling.group[2]", "Schelling.group[3]"],
+        outputs = ["Schelling.list_property"],
+    )
+    mp = MermaidProblem(components = [c1], connectors = [conn1], max_t = 10.0)
+    alg = MinimumTimeStepper()
+
+    int = init(mp, alg)
+    @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1,2,3,4,5]
+    step!(int)
+    @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1,1,1]
 end
