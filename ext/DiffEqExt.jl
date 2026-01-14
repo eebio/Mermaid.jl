@@ -29,11 +29,9 @@ function Mermaid.DEComponent(model::DiffEqBase.AbstractDEProblem,
     return Mermaid.DEComponent(model, name, state_names, time_step, alg, intkwargs)
 end
 
-function CommonSolve.init(
-        c::Mermaid.DEComponent, conns::Vector{T}) where {T <: Mermaid.AbstractConnector}
+function CommonSolve.init(c::Mermaid.DEComponent)
     integrator = Mermaid.DEComponentIntegrator(
-        init(c.model, c.alg; dt = c.time_step, c.intkwargs...), c,
-        OrderedDict{ConnectedVariable, Any}(), OrderedDict{ConnectedVariable, Any}())
+        init(c.model, c.alg; dt = c.time_step, c.intkwargs...), c)
     return integrator
 end
 

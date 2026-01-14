@@ -30,10 +30,8 @@ function Mermaid.AgentsComponent(model::StandardABM;
     return Mermaid.AgentsComponent(model, name, state_names, time_step)
 end
 
-function CommonSolve.init(
-        c::AgentsComponent, conns::Vector{T}) where {T <: Mermaid.AbstractConnector}
-    integrator = AgentsComponentIntegrator(deepcopy(c.model), c,
-        OrderedDict{ConnectedVariable, Any}(), OrderedDict{ConnectedVariable, Any}())
+function CommonSolve.init(c::AgentsComponent)
+    integrator = AgentsComponentIntegrator(deepcopy(c.model), c)
     return integrator
 end
 

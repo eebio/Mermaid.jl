@@ -35,12 +35,11 @@ function Mermaid.SurrogateComponent(
         upper_bound, n_samples, kwargs)
 end
 
-function CommonSolve.init(
-        c::SurrogateComponent, conns::Vector{T}) where {T <: Mermaid.AbstractConnector}
+function CommonSolve.init(c::SurrogateComponent)
     lower_bound = c.lower_bound
     upper_bound = c.upper_bound
     n_samples = c.n_samples
-    integrator = CommonSolve.init(c.component, conns)
+    integrator = CommonSolve.init(c.component)
     initial_state = getstate(integrator)
     function step(x)
         if x isa Tuple

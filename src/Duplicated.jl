@@ -62,9 +62,8 @@ mutable struct DuplicatedComponentIntegrator{T <: AbstractComponentIntegrator} <
     init_states::Dict
 end
 
-function CommonSolve.init(
-        c::DuplicatedComponent, conns::Vector{T}) where {T <: AbstractConnector}
-    integrator = CommonSolve.init(c.component, Connector[])
+function CommonSolve.init(c::DuplicatedComponent)
+    integrator = CommonSolve.init(c.component)
     states = deepcopy(c.initial_states)
     ids = isnothing(c.instances) ? [] : 1:(c.instances)
 

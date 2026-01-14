@@ -15,7 +15,7 @@ export AbstractMermaidSolver, MinimumTimeStepper
 export MermaidSolution
 export solve!, solve, init, step!
 export getstate, setstate!, gettime, settime!, variables
-export fullname
+export fullname, runconnection, runconnection!
 
 # Include src files
 include("abstracts.jl")
@@ -84,7 +84,7 @@ function step! end
 
 """
     init(prob::MermaidProblem, alg::MermaidSolver; save_vars=[])
-    init(comp::AbstractComponent, connectors::Vector{<:AbstractConnector})
+    init(comp::AbstractComponent)
 
 Initialises an integrator ([MermaidIntegrator](@ref) or [AbstractComponentIntegrator](@ref))
     for the given [MermaidProblem](@ref)/[AbstractComponent](@ref).
