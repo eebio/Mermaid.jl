@@ -115,3 +115,63 @@ function Base.fullname(var::AbstractConnectedVariable)
     index = isnothing(var.variableindex) ? "" : "[" * string(var.variableindex) * "]"
     return comp * dupindex * "." * variable * index
 end
+
+"""
+    runconnection(merInt::AbstractMermaidIntegrator, conn::AbstractConnector)
+
+Extract all the input states from `merInt`, apply the connection function, and return the
+output.
+
+# Arguments
+- `merInt::AbstractMermaidIntegrator`: The Mermaid integrator containing the components.
+- `conn::AbstractConnector`: The connector defining the connection.
+"""
+function runconnection(merInt::AbstractMermaidIntegrator, conn::AbstractConnector)
+    # Get the values of the connectors inputs
+    inputs = []
+    for input in conn.inputs
+        # Find the corresponding integrator
+        index = findfirst(
+            i -> i.component.name == input.component, merInt.integrators)
+        if index !== nothing
+            integrator = merInt.integrators[index]
+            # Get the value of the input from the integrator
+            push!(inputs, getstate(integrator, input))
+        end
+    end
+    if isnothing(conn.func)
+        if length(inputs) == 1
+            outputs = inputs[1]
+        else
+            outputs = inputs
+        end
+    else
+        outputs = conn.func(inputs...)
+    end
+    return outputs
+end
+
+"""
+    runconnection!(merInt::AbstractMermaidIntegrator, conn::AbstractConnector)
+
+Extract all the input states from `merInt`, apply the connection function, and set the output
+states in `merInt`.
+
+# Arguments
+- `merInt::AbstractMermaidIntegrator`: The Mermaid integrator containing the components.
+- `conn::AbstractConnector`: The connector defining the connection.
+"""
+function runconnection!(merInt::AbstractMermaidIntegrator, conn::AbstractConnector)
+    outputs = runconnection(merInt, conn)
+    # Set the outputs in the corresponding integrators
+    for output in conn.outputs
+        # Find the corresponding integrator
+        index = findfirst(
+            i -> i.component.name == output.component, merInt.integrators)
+        if index !== nothing
+            integrator = merInt.integrators[index]
+            # Set the input value for the integrator
+            setstate!(integrator, output, outputs)
+        end
+    end
+end

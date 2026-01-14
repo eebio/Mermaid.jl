@@ -18,16 +18,15 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
         end
     end
     merInt.currtime = min_t
+    # Apply connections
+    for conn in merInt.connectors
+        runconnection!(merInt, conn)
+    end
     # Step the integrator
     for int in merInt.integrators
         if gettime(int) + int.component.time_step <= merInt.currtime
             # Step the integrator
             CommonSolve.step!(int)
         end
-    end
-    # Apply all connections
-    for int in merInt.integrators
-        # Update the outputs of the component
-        update_outputs!(int)
     end
 end
