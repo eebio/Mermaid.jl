@@ -165,14 +165,14 @@ end
     @test getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 5.0
     @test getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 2.0
     @test getstate(integrator) == [5.0, 2.0]
-    setstate!(integrator, ConnectedVariable("Lotka-Volterra.predator"), 3.0)
-    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 5.0
-    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 3.0
-    @test getstate(integrator) == [5.0, 3.0]
     setstate!(integrator, [1.0, 1.0])
     @test getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 1.0
     @test getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 1.0
     @test getstate(integrator) == [1.0, 1.0]
+    setstate!(integrator, ConnectedVariable("Lotka-Volterra.predator"), 3.0)
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 1.0
+    @test getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) == 3.0
+    @test getstate(integrator) == [1.0, 3.0]
 
     # Check time control
     @test gettime(integrator) == 0.0
