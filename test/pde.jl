@@ -148,7 +148,7 @@ end
         inputs = ["PDE.g[1:9]"],
         outputs = ["other.g"]
     )
-    integrator = init(c1, [conn1, conn2])
+    integrator = init(c1)
 
     @test issetequal(variables(integrator), ["u", "g", "#time"])
 
@@ -200,5 +200,6 @@ end
         state_names = OrderedDict("u" => u, "g" => g),
         time_step = 0.01
     )
-    @test_throws ArgumentError init(c1, [conn1, conn2])
+    int = init(c1)
+    @test_throws ArgumentError getstate(int, ConnectedVariable("PDE.u"))
 end

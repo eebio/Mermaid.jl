@@ -145,7 +145,7 @@ end
         outputs = ["Schelling.group[1:300]"]
     )
 
-    integrator = init(c1, [conn1, conn2])
+    integrator = init(c1)
 
     @test issetequal(variables(integrator),
         ["min_to_be_happy", "group", "mood", "list_property", "#model", "#time"])

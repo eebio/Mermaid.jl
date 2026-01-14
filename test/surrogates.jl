@@ -31,12 +31,9 @@
         kwargs = (model = model, n_epochs = 4000)
     )
 
-    # Dummy connector list (no connections for this test)
-    conns = Connector[]
-
     # Initialize both components
-    ode_int = init(ode_comp, conns)
-    surrogate_int = init(surrogate_comp, conns)
+    ode_int = init(ode_comp)
+    surrogate_int = init(surrogate_comp)
 
     # Step both integrators and compare
     n_steps = 20
@@ -79,12 +76,9 @@ end
         kwargs = (n_epochs = 4000, model = Chain(Dense(2, 16, relu), Dense(16, 2)))
     )
 
-    # Dummy connector list (no connections for this test)
-    conns = Connector[]
-
     # Initialize both components
-    ode_int = init(ode_comp, conns)
-    surrogate_int = init(surrogate_comp, conns)
+    ode_int = init(ode_comp)
+    surrogate_int = init(surrogate_comp)
 
     # Step both integrators and compare
     n_steps = 20
@@ -130,8 +124,8 @@ end
     conns = Connector[]
 
     # Initialize both components
-    ode_int = init(ode_comp, conns)
-    surrogate_int = init(surrogate_comp, conns)
+    ode_int = init(ode_comp)
+    surrogate_int = init(surrogate_comp)
 
     # Step both integrators and compare
     n_steps = 20
@@ -172,11 +166,8 @@ end
         kwargs = (n_epochs = 100, model = Chain(Dense(2, 8, relu), Dense(8, 2)))
     )
 
-    # Dummy connector list (no connections for this test)
-    conns = Connector[]
-
     # Initialize both components
-    surrogate_int = init(surrogate_comp, conns)
+    surrogate_int = init(surrogate_comp)
 
     @test getstate(surrogate_int, ConnectedVariable("decay.x")) == 1.0
     @test getstate(surrogate_int, ConnectedVariable("decay.y")) == 0.5

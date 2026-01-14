@@ -151,7 +151,7 @@ end
         inputs = ["other.prey"],
         outputs = ["Lotka-Volterra.prey"]
     )
-    integrator = init(c1, [conn1, conn2])
+    integrator = init(c1)
 
     @test issetequal(variables(integrator), ["prey", "predator", "#time"])
 
