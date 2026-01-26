@@ -9,7 +9,7 @@ Represents a component that is duplicated in the simulation, allowing a single c
 - `instances::Union{Int,Nothing}`: Number of instances of the component. If `nothing`, then
     the number is variable and determined by the simulation.
 - `name::String`: Name of the duplicated component.
-- `initial_states::Vector`: Vector of states for the duplicated component, where each state
+- `init_states::Vector`: Vector of states for the duplicated component, where each state
     corresponds to a particular instance.
 """
 struct DuplicatedComponent{T, U, V, W} <:
@@ -17,7 +17,7 @@ struct DuplicatedComponent{T, U, V, W} <:
     component::T
     instances::Union{Int, Nothing}
     name::String
-    initial_states::U
+    init_states::U
     time_step::Float64
     state_names::V
     default_state::W
@@ -30,7 +30,7 @@ Duplicate an existing component into a [DuplicatedComponent](@ref).
 
 # Arguments
 - `component::AbstractTimeDependentComponent`: The component to be duplicated.
-- `initial_states::AbstractVector`: A vector of initial states for the duplicated component.
+- `init_states::AbstractVector`: A vector of initial states for the duplicated component.
 
 # Keyword Arguments
 - `instances::Union{Int, Nothing}`: Number of instances of the component. If `nothing`, then
@@ -45,11 +45,11 @@ Duplicate an existing component into a [DuplicatedComponent](@ref).
     zero vector of the same length as the first initial state.
 """
 function DuplicatedComponent(component::AbstractTimeDependentComponent,
-        initial_states::AbstractVector; instances::Union{Int, Nothing} = nothing,
+        init_states::AbstractVector; instances::Union{Int, Nothing} = nothing,
         name::AbstractString = component.name, time_step::Real = component.time_step,
         state_names = component.state_names,
-        default_state = zeros(length(initial_states[1])))
-    return DuplicatedComponent(component, instances, name, initial_states, time_step,
+        default_state = zeros(length(init_states[1])))
+    return DuplicatedComponent(component, instances, name, init_states, time_step,
         state_names, default_state)
 end
 
@@ -64,7 +64,7 @@ end
 
 function CommonSolve.init(c::DuplicatedComponent)
     integrator = CommonSolve.init(c.component)
-    states = deepcopy(c.initial_states)
+    states = deepcopy(c.init_states)
     ids = isnothing(c.instances) ? [] : 1:(c.instances)
 
     # Create the DuplicatedComponentIntegrator
@@ -98,7 +98,7 @@ function getstate(compInt::DuplicatedComponentIntegrator, key)
             return compInt.states
         end
         if key.variable == "#init_states"
-            return compInt.initial_states
+            return compInt.init_states
         end
     end
     out = Vector{Any}(nothing, length(compInt.ids))
@@ -146,7 +146,7 @@ function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
             return nothing
         end
         if key.variable == "#init_states"
-            compInt.initial_states = value
+            compInt.init_states = value
             return nothing
         end
     end
