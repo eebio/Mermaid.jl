@@ -209,7 +209,7 @@ end
     @test gettime(integrator) ≈ 0.2
     setstate!(integrator, state2)
     @test gettime(integrator) ≈ 0.4
-    @setstate!(integrator, state3)
+    setstate!(integrator, state3)
     @test gettime(integrator) ≈ 0.4
 
     # Settime does nothing since Agents.jl does not support setting time directly but rather stores it within the state
