@@ -202,11 +202,14 @@ end
     @test gettime(integrator) ≈ 0.2
     state = getstate(integrator; copy=true) # Get a copy of the state
     state2 = getstate(integrator) # Default is don't copy, just return reference
+    state3 = getstate(integrator; copy=false)
     step!(integrator)
     @test gettime(integrator) ≈ 0.4
     setstate!(integrator, state)
     @test gettime(integrator) ≈ 0.2
     setstate!(integrator, state2)
+    @test gettime(integrator) ≈ 0.4
+    @setstate!(integrator, state3)
     @test gettime(integrator) ≈ 0.4
 
     # Settime does nothing since Agents.jl does not support setting time directly but rather stores it within the state
