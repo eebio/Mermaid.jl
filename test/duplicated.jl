@@ -170,8 +170,21 @@ end
     @test states3[ids3 .== 5] == [5.0]
     @test length(states3) == 2
 
+    # init_states
+    setstate!(dup_int, ConnectedVariable("decay.#states"), [[1.0, 0.5], [2.0, 1.5]])
+    @test getstate(dup_int, ConnectedVariable("decay.#ids")) == [1, 5]
+    setstate!(dup_int, ConnectedVariable("decay.#init_states"), Dict(10 => [10.0, 2.0]))
+    @test getstate(dup_int, ConnectedVariable("decay.#init_states")) == Dict(10 => [10.0, 2.0])
+    setstate!(dup_int, ConnectedVariable("decay.#ids"), [1, 3, 5, 10])
+    @test getstate(dup_int, ConnectedVariable("decay.val")) == [1.0, 5.0, 2.0, 10.0]
+    @test getstate(dup_int, ConnectedVariable("decay.val2")) == [0.5, 1.0, 1.5, 2.0]
+    @test getstate(dup_int, ConnectedVariable("decay.#states")) == [[1.0, 0.5], [5.0, 1.0], [2.0, 1.5], [10.0, 2.0]]
+    @test getstate(dup_int, ConnectedVariable("decay.#ids")) == [1, 3, 5, 10]
+
     # Add new agents doesnt break step!
     step!(int)
+
+    @test getstate(dup_int, ConnectedVariable("decay.#ids")) ≠ [1, 3, 5, 10]
 
     # Check that solving isn't broken
     sol = solve(mp, alg)
