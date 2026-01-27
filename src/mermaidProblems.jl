@@ -51,12 +51,9 @@ end
 
 function CommonSolve.init(
         prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars = [])
-    # Sort connectors so that the ones with # in outputs are first
-    connectors = sort(prob.connectors;
-        by = x -> any([contains(conn.variable, "#") for conn in x.outputs]), rev = true)
     # Initialize the solver
     integrators = [CommonSolve.init(c) for c in prob.components]
-    return MermaidIntegrator(integrators, connectors, prob.max_t, 0.0, alg, save_vars)
+    return MermaidIntegrator(integrators, prob.connectors, prob.max_t, 0.0, alg, save_vars)
 end
 
 function CommonSolve.step!(merInt::AbstractMermaidIntegrator)

@@ -130,13 +130,12 @@ end
 
     mp = MermaidProblem(
         components = [dup_comp, comp2],
-        connectors = [conn_val2, conn_val, conn_ids],
+        connectors = [conn_ids, conn_val2, conn_val],
         max_t = 5.0
     )
     alg = MinimumTimeStepper()
 
     int = init(mp, alg)
-    # Check #ids will be applied first
     step!(int)
     # Add new agent and check that the number of duplicated states matches the number of agents at each step
     add_agent!(int.integrators[2].integrator; val2 = 1.0, val = 0.0)
