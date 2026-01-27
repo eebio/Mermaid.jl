@@ -26,7 +26,7 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
     for int in merInt.integrators
         if gettime(int) + time_step(int) <= merInt.currtime
             # Step the integrator
-            CommonSolve.step!(int)
+            step!(int)
         end
     end
 end

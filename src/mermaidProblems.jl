@@ -52,12 +52,12 @@ end
 function CommonSolve.init(
         prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars = [])
     # Initialize the solver
-    integrators = [CommonSolve.init(c) for c in prob.components]
+    integrators = [init(c) for c in prob.components]
     return MermaidIntegrator(integrators, prob.connectors, prob.max_t, 0.0, alg, save_vars)
 end
 
 function CommonSolve.step!(merInt::AbstractMermaidIntegrator)
-    CommonSolve.step!(merInt, merInt.alg)
+    step!(merInt, merInt.alg)
 end
 
 """
@@ -76,7 +76,7 @@ function CommonSolve.solve!(merInt::AbstractMermaidIntegrator)
     sol = MermaidSolution(merInt)
     update_solution!(sol, merInt)
     while merInt.currtime < merInt.maxt
-        CommonSolve.step!(merInt)
+        step!(merInt)
         update_solution!(sol, merInt)
     end
     return sol
