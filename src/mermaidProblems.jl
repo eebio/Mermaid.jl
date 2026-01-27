@@ -88,7 +88,7 @@ end
 function getstate(merInt::AbstractMermaidIntegrator, key::AbstractConnectedVariable)
     # Get the state of the component based on the key
     for integrator in merInt.integrators
-        if integrator.component.name == key.component
+        if name(integrator) == key.component
             return getstate(integrator, key)
         end
     end
@@ -97,7 +97,7 @@ end
 function setstate!(merInt::AbstractMermaidIntegrator, key::AbstractConnectedVariable, value)
     # Set the state of the component based on the key
     for integrator in merInt.integrators
-        if integrator.component.name == key.component
+        if name(integrator) == key.component
             setstate!(integrator, key, value)
             return nothing
         end
@@ -117,7 +117,7 @@ Get the current time of the integrator.
 """
 function gettime(int::AbstractComponentIntegrator)
     getstate(
-        int, ConnectedVariable(int.component.name, "#time", nothing, nothing))
+        int, ConnectedVariable(name(int), "#time", nothing, nothing))
 end
 
 """
@@ -131,9 +131,16 @@ Set the current time of the integrator.
 """
 function settime!(int::AbstractComponentIntegrator, t)
     setstate!(int,
-        ConnectedVariable(int.component.name, "#time", nothing, nothing), t)
+        ConnectedVariable(name(int), "#time", nothing, nothing), t)
 end
 
+"""
+    variables(integrator::AbstractComponent)
+    variables(integrator::AbstractComponentIntegrator)
+
+Get the variables names of the component or integrator that can be accessed through getstate
+    and setstate!. This includes special variables like `#time`.
+"""
 variables(integrator::AbstractComponentIntegrator) = variables(integrator.component)
 
 function getstate(int::AbstractComponentIntegrator; copy = false)
@@ -143,3 +150,22 @@ function getstate(int::AbstractComponentIntegrator; copy = false)
         return getstate(int)
     end
 end
+
+"""
+    time_step(int::AbstractComponent)
+    time_step(comp::AbstractComponentIntegrator)
+
+Get the proposed time step of the integrator or component. It can depend on the current
+    state.
+"""
+time_step(comp::AbstractComponent) = comp.time_step
+time_step(int::AbstractComponentIntegrator) = time_step(int.component)
+
+"""
+    name(int::AbstractComponentIntegrator)
+    name(comp::AbstractComponent)
+
+Get the name of the integrator or component.
+"""
+name(comp::AbstractComponent) = comp.name
+name(int::AbstractComponentIntegrator) = name(int.component)

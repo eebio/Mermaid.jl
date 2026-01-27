@@ -132,7 +132,7 @@ function runconnection(merInt::AbstractMermaidIntegrator, conn::AbstractConnecto
     for input in conn.inputs
         # Find the corresponding integrator
         index = findfirst(
-            i -> i.component.name == input.component, merInt.integrators)
+            i -> name(i) == input.component, merInt.integrators)
         if index !== nothing
             integrator = merInt.integrators[index]
             # Get the value of the input from the integrator
@@ -167,7 +167,7 @@ function runconnection!(merInt::AbstractMermaidIntegrator, conn::AbstractConnect
     for output in conn.outputs
         # Find the corresponding integrator
         index = findfirst(
-            i -> i.component.name == output.component, merInt.integrators)
+            i -> name(i) == output.component, merInt.integrators)
         if index !== nothing
             integrator = merInt.integrators[index]
             # Set the input value for the integrator

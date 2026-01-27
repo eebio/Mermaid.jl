@@ -12,7 +12,7 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
     # Update the current time
     min_t = Inf
     for int in merInt.integrators
-        next_t = gettime(int) + int.component.time_step
+        next_t = gettime(int) + time_step(int)
         if next_t < min_t
             min_t = next_t
         end
@@ -24,7 +24,7 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
     end
     # Step the integrator
     for int in merInt.integrators
-        if gettime(int) + int.component.time_step <= merInt.currtime
+        if gettime(int) + time_step(int) <= merInt.currtime
             # Step the integrator
             CommonSolve.step!(int)
         end
