@@ -25,41 +25,28 @@ agents = initialize_cell_model()
 growth = ode_growth()
 g_model = get_growth_model()
 
-rep = DEComponent(model=sde, name="repressilator", state_names=Dict("gfp" => repressilator.gfp,
+rep = DEComponent(sde, EM(); name="repressilator", state_names=Dict("gfp" => repressilator.gfp,
     "growth_rate" => repressilator.gr, "volume" => repressilator.V),
-    alg=EM(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :save_everystep => false))
+    time_step=agents.dt, intkwargs=(:maxiters => Inf, :save_everystep => false))
 
-rep_imp = DEComponent(model=sde_improved, name="repressilator", state_names=Dict("gfp" => improved.gfp,
+rep_imp = DEComponent(sde_improved, EM(); name="repressilator", state_names=Dict("gfp" => improved.gfp,
         "growth_rate" => improved.gr, "volume" => improved.V),
-    alg=EM(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :save_everystep => false))
+    time_step=agents.dt, intkwargs=(:maxiters => Inf, :save_everystep => false))
 
-abm = AgentsComponent(
-    model=agents,
+abm = AgentsComponent(agents;
     name="cells",
     state_names=Dict("gfp" => :gfp, "size" => :size, "nutrients" => :nuts, "nut_import_rate" => :nut_import_rate),
     time_step=agents.dt
 )
 
-gro = DEComponent(model=growth, name="growth", state_names=Dict("s" => g_model.s, "λ" => g_model.λ, "mass" => g_model.M, "import" => g_model.ν_imp),
-    alg=Rosenbrock23(), time_step=agents.dt, intkwargs=(:maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u), :save_everystep => false))
+gro = DEComponent(growth, Rosenbrock23(); name="growth", state_names=Dict("s" => g_model.s, "λ" => g_model.λ, "mass" => g_model.M, "import" => g_model.ν_imp),
+    time_step=agents.dt, intkwargs=(:maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u), :save_everystep => false))
 
-dup_r = DuplicatedComponent(
-    component=rep,
-    default_state=sde.u0,
-    initial_states=[],
-)
+dup_r = DuplicatedComponent(rep, []; default_state = sde.u0)
 
-dup_i = DuplicatedComponent(
-    component=rep_imp,
-    default_state=sde_improved.u0,
-    initial_states=[],
-)
+dup_i = DuplicatedComponent(rep_imp, []; default_state = sde_improved.u0)
 
-dup_g = DuplicatedComponent(
-    component=gro,
-    default_state=growth.u0,
-    initial_states=[],
-)
+dup_g = DuplicatedComponent(gro, []; default_state = growth.u0)
 
 conn_ids_1 = Connector(
     inputs=["cells.#ids"],

@@ -2,7 +2,7 @@ using Catalyst
 using DifferentialEquations, StochasticDiffEq
 using Plots
 using JumpProcesses
-using Distributions: Geometric
+import Distributions: Geometric
 using Polynomials
 using Random
 
