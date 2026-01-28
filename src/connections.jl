@@ -6,16 +6,21 @@ Points to a variable within a component.
 # Fields
 - `component::String`: Name of the component.
 - `variable::String`: Name of the variable.
-- `variableindex::Union{Nothing,AbstractVector{Int},Int}`: Index or range for the variable,
+- `variableindex::Union{Nothing,Vector{Int},Int}`: Index or range for the variable,
     if applicable.
-- `duplicatedindex::Union{Nothing,AbstractVector{Int},Int}`: Index for duplicated
+- `duplicatedindex::Union{Nothing,Vector{Int},Int}`: Index for duplicated
     components, if applicable.
 """
-struct ConnectedVariable <: AbstractConnectedVariable
-    component::String
-    variable::String
-    variableindex::Union{Nothing, AbstractVector{Int}, Int}
-    duplicatedindex::Union{Nothing, AbstractVector{Int}, Int}
+struct ConnectedVariable{U <: AbstractString, V <: AbstractString, X <: Union{Nothing, AbstractVector{Int}, Int}, Y <: Union{Nothing, AbstractVector{Int}, Int}} <: AbstractConnectedVariable
+    component::U
+    variable::V
+    variableindex::X
+    duplicatedindex::Y
+end
+
+function Base.hash(cv::ConnectedVariable, h::UInt) return hash(fullname(cv), h) end
+function Base.isequal(cv1::ConnectedVariable, cv2::ConnectedVariable)
+    return fullname(cv1) == fullname(cv2)
 end
 
 """
@@ -71,8 +76,8 @@ possibly with a transformation function.
 - `func::Union{Nothing,Function}`: Optional function to transform inputs to outputs.
 """
 struct Connector <: AbstractConnector
-    inputs::Vector{T} where {T <: AbstractConnectedVariable}
-    outputs::Vector{U} where {U <: AbstractConnectedVariable}
+    inputs::Vector{ConnectedVariable}
+    outputs::Vector{ConnectedVariable}
     func::Union{Nothing, Function}
 end
 
