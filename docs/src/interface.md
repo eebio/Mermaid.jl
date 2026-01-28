@@ -13,22 +13,22 @@ We then also have an Integrator for each Component which stores the current stat
 
 ## Component
 
-There are two categories of Components in Mermaid.
-`AbstractTimeDependentComponent`s and `AbstractTimeIndependentComponent`s, both of which are `AbstractComponent`s.
+A component should be immutable and store all of the information required to solve a given sub-problem/model:
 
-A component must contain the following fields:
+It should also have implementations of the following functions:
 
-* `name` which is a subtype of `AbstractString`,
-* `time_step` which is a `Float64`,
-* `state_names` which is a `Dict` which maps from variable names in the form of a `String` ([variable name format](@ref "Variable Names")) to some other object (typically a numerical index or symbol) which can be used to identify that variable internally.
+```@docs; canonical=false
+name
+time_step
+variables
+```
+
+If the component has fields for `name` and `time_step`, then those functions don't need to be implemented.
 
 ## Integrator
 
 A `ComponentIntegrator` is a mutable struct which can be freely modified over a simulation, since it will be typically discarded at the end.
 It only stores the current state of that component, and has some associated functions for handling this state.
-
-!!! warning
-    An Integrator is required for all Components, even `TimeIndependentComponent`s. They just store the state that they were last called with.
 
 ## Functions
 
@@ -36,15 +36,19 @@ Most of the interface for Mermaid is built around functions that manipulate the 
 
 ### step!
 
-The `step!` function should advance the `ComponentIntegrator` one time step (defined by `Component.time_step`).
+The `step!` function should advance the `ComponentIntegrator` one time step (defined by `time_step(ComponentIntegrator)`).
 
-Its signature should be `step!(comp)`.
+```@docs; canonical=false
+step!
+```
 
 ### init
 
 The `init` function takes as inputs a `Component` and returns the corresponding `ComponentIntegrator`.
 
-Its function signature should be `init(comp)` and return a subtype of [AbstractComponentIntegrator](@ref).
+```@docs; canonical=false
+init
+```
 
 ### getstate and setstate!
 
@@ -54,17 +58,27 @@ Additionally, `getstate` and `setstate!` should have methods that do not take a 
 
 The function signatures should be `getstate(integrator, variable)/setstate!(integrator, variable, value)` and `getstate(integrator)/setstate!(integrator, state)`.
 
+```@docs; canonical=false
+getstate
+setstate!
+```
+
 ### gettime and settime!
 
 Simply returns the current simulated time of a `ComponentIntegrator`. Defaults to calling `getstate` and `setstate!` with the special variable `"#time"`.
 
-The function signatures should be `gettime(integrator, variable)/settime!(integrator, variable, value)`.
+These functions don't need to be defined for new components, but `getstate` and `setstate!` should handle the `"#time"` special variable.
 
-### variables
+```@docs; canonical=false
+gettime
+settime!
+```
 
-This function should return all the variables supported by the component, including special variables.
+### Other functions
 
-The function signature should be `variables(component)` and return an iterable through strings.
+The interface for a `Component` is also required to be satisfied for a `ComponentIntegrator`. That is, implementations of `name`, `time_step`, and `variables` should exist.
+
+If the `ComponentIntegrator` has a field/property for the `Component` called `component`, then these functions don't need new implementations.
 
 ## Variable Names
 
