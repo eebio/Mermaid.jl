@@ -53,22 +53,22 @@ function DuplicatedComponent(component::AbstractTimeDependentComponent,
         state_names, default_state)
 end
 
-mutable struct DuplicatedComponentIntegrator{T <: AbstractComponentIntegrator} <:
+mutable struct DuplicatedComponentIntegrator{T <: AbstractComponentIntegrator, U, V} <:
                AbstractComponentIntegrator
     integrator::T
     component::DuplicatedComponent
-    states::Vector
+    states::U
     ids::Vector{Int}
-    init_states::Dict
+    init_states::V
 end
 
 function CommonSolve.init(c::DuplicatedComponent)
     integrator = CommonSolve.init(c.component)
     states = deepcopy(c.init_states)
-    ids = isnothing(c.instances) ? [] : 1:(c.instances)
+    ids = isnothing(c.instances) ? Int[] : collect(1:(c.instances))
 
     # Create the DuplicatedComponentIntegrator
-    return DuplicatedComponentIntegrator{typeof(integrator)}(
+    return DuplicatedComponentIntegrator(
         integrator, c, states, ids, Dict())
 end
 
