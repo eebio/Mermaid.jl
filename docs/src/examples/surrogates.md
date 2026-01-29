@@ -36,8 +36,6 @@ comp1 = DEComponent(prob, Tsit5();
 lb = prob.u0 - 0.01*abs.(prob.u0)
 ub = prob.u0 + 0.01*abs.(prob.u0)
 
-lb, ub = vec(lb - 0.1*(ub-lb)), vec(ub + 0.1*(ub-lb))
-
 # Create a surrogate component
 surrogate_comp = SurrogateComponent(comp1, SecondOrderPolynomialSurrogate, lb, ub;
     n_samples = n_samples)
