@@ -138,7 +138,7 @@ nothing # hide
 ```
 
 !!! note "Sorting of Connectors"
-    You may wonder about the order that connectors are applied. If we adjusted the IDs after applying `conn2`, we would be using an old value for IDs. Generally, we utilise the order specified in the MermaidProblem. However, special variable outputs (variables beginning with `"#"`) are an exception to this rule and are always applied first.
+    You may wonder about the order that connectors are applied. If we adjusted the IDs after applying `conn2`, we would be using an old value for IDs. Generally, we utilise the order specified in the MermaidProblem. For this reason, the `#ids` from `conn3` is applied first, as will be specified in the order of the connectors vector.
 
 ## Solving and visualisation
 
@@ -170,7 +170,7 @@ conn4 = Connector(
     func=(model) -> plot_input(model)
 )
 
-mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn1, conn2, conn3, conn4], max_t=tspan[2])
+mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn3, conn1, conn2, conn4], max_t=tspan[2])
 alg = MinimumTimeStepper()
 sol = solve(mp, alg)
 
