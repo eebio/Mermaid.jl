@@ -4,20 +4,60 @@ authors = ["Matt J. Owen <matt.owen@bristol.ac.uk>"]
 version = "0.1.0"
 
 [deps]
-Agents = "46ada45e-f475-11e8-01d0-f70cc89e6671"
-BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
-DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
+
+[weakdeps]
+Agents = "46ada45e-f475-11e8-01d0-f70cc89e6671"
+DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+MethodOfLines = "94925ecb-adb7-4558-8ed8-f975c56a0bf4"
+Surrogates = "6fc51010-71bc-11e9-0e15-a3fcc6593c49"
+
+[extensions]
+AgentsExt = "Agents"
+DiffEqExt = "DiffEqBase"
+MethodOfLinesExt = ["MethodOfLines", "DiffEqBase"]
+SurrogatesExt = "Surrogates"
+
+[compat]
+Agents = "6.2.10"
+Aqua = "0.8"
+CommonSolve = "0.2.4"
+DiffEqBase = "6.190.2"
+DocStringExtensions = "0.9.5"
+DomainSets = "0.7.16"
+Flux = "0.16.5"
+MethodOfLines = "0.11.9"
+ModelingToolkit = "10.26.0"
+OrderedCollections = "1.8.1"
+OrdinaryDiffEq = "6.102.1"
+Random = "1.10"
+Statistics = "1.10"
+Surrogates = "7.0.1"
+SymbolicIndexingInterface = "0.3.46"
+Test = "1.10"
+TestItemRunner = "1.1.0"
+TestItems = "1.0.0"
+julia = "1"
+
+[extras]
+Agents = "46ada45e-f475-11e8-01d0-f70cc89e6671"
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
 DomainSets = "5b8099bc-c8ec-5219-889f-1d9e522a28bf"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
-Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
 MethodOfLines = "94925ecb-adb7-4558-8ed8-f975c56a0bf4"
 ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
-OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-OrdinaryDiffEqCore = "bbf590c4-e513-4bbe-9b18-05decba2e5d8"
-Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Surrogates = "6fc51010-71bc-11e9-0e15-a3fcc6593c49"
 SymbolicIndexingInterface = "2efcf032-c050-4f8e-a9bb-153293bab1f5"
-SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
-StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
+TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
+
+[targets]
+test = ["Test", "TestItems", "TestItemRunner", "Random", "Statistics", "DiffEqBase", "Agents", "MethodOfLines", "OrdinaryDiffEq", "Surrogates", "Flux", "ModelingToolkit", "DomainSets", "SymbolicIndexingInterface", "Aqua"]

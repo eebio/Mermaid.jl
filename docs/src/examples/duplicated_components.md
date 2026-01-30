@@ -1,19 +1,21 @@
 # Advanced Duplicated Components
 
 You may have seen us use duplicated components in the [Tutorial](@ref).
-This is a very powerful tool that lets you efficiently create many instances of a component integrator, each with their own independent state that can be stepped independently.
+This is a very powerful tool that lets you efficiently create many instances of a component integrator, each with their own state that can be stepped independently.
 In the [Tutorial](@ref), we used duplicated components to create lots of instances of the tree ODE model, so every tree could be tracked independently.
 Rather than creating 640 components, each with its own integrator - we create 640 state vectors, reducing the memory requirements for the duplicated component.
 
 However, while this functionality is useful, it is not always possible to specify the number of instances *a priori*.
-For this reason, it is also possible to create duplicated components with a variable number of instances.
+For example, we may have wanted trees that die to be removed from the simulation, or new trees to be created over time.
+
+For this reason, it is also possible to create duplicated components with a variable/unknown number of instances.
 
 ## Setup
 
 For this example, we are going to create an agent-based model of a cell population with each cell goverened by a simple growth model tracking protein mass which is dependent on a spatial nutrient distribution and the number of nearby cells.
 
 ```@example dupcomp
-using DifferentialEquations, Agents, Random, Mermaid, CairoMakie
+using OrdinaryDiffEq, Agents, Random, Mermaid, CairoMakie
 using LinearAlgebra: norm
 Random.seed!(1) # hide
 
@@ -29,10 +31,8 @@ u0 = [1.0, 1.0]
 tspan = (0.0, 250.0)
 prob = ODEProblem(cell!, u0, tspan)
 using Mermaid
-comp1 = ODEComponent(
-    model=prob,
-    name="cell",
-    state_names=Dict("nutrients" => 1, "mass" => 2),
+comp1 = DEComponent(prob, Rodas5();
+    name="cell", state_names=Dict("nutrients" => 1, "mass" => 2),
 )
 
 @agent struct Cell(ContinuousAgent{2,Float64})
@@ -94,7 +94,7 @@ function cell_step!(cell, colony)
         # If nutrients decrease, random direction on next iteration
         cell.vel += rand(2) .- 0.5
     end
-    # Update nutrients and mass
+    # Update nutrients of cell, sharing between neighboring
     cell.nutrients = nutrients(cell.pos, colony)/(length(collect(nearby_ids(cell, colony, 0.5)))+1)
     # If large mass, split into two
     splitmass = 15
@@ -113,10 +113,8 @@ end
 
 pop = colony()
 
-comp2 = AgentsComponent(
-    model=pop,
-    name="colony",
-    state_names=Dict("mass" => :mass, "nutrients" => :nutrients)
+comp2 = AgentsComponent(pop;
+    name="colony", state_names=Dict("mass" => :mass, "nutrients" => :nutrients)
 )
 
 conn1 = Connector(inputs=["colony.nutrients"], outputs=["cell.nutrients"])
@@ -131,9 +129,7 @@ If we don't provide any value for the `instances` field when creating the duplic
 Some components, like AgentComponents, already have pre-made special outputs for the `#ids` which we can use to couple duplicated components to an Agent-based model.
 
 ```@example dupcomp
-dup_comp = DuplicatedComponent(
-    component=comp1,
-    initial_states=[],
+dup_comp = DuplicatedComponent(comp1, [];
     default_state=u0,
 )
 conn3 = Connector(inputs=["colony.#ids"], outputs=["cell.#ids"])
@@ -142,7 +138,7 @@ nothing # hide
 ```
 
 !!! note "Sorting of Connectors"
-    You may wonder about the order that connectors are applied. If we adjusted the IDs after applying `conn2`, we would be using an old value for IDs. Generally, we utilise the order specified in the MermaidProblem. However, special variable outputs (variables beginning with `"#"`) are an exception to this rule and are always applied first.
+    You may wonder about the order that connectors are applied. If we adjusted the IDs after applying `conn2`, we would be using an old value for IDs. Generally, we utilise the order specified in the MermaidProblem. For this reason, the `#ids` from `conn3` is applied first, as will be specified in the order of the connectors vector.
 
 ## Solving and visualisation
 
@@ -174,7 +170,7 @@ conn4 = Connector(
     func=(model) -> plot_input(model)
 )
 
-mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn1, conn2, conn3, conn4], max_t=tspan[2])
+mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn3, conn1, conn2, conn4], max_t=tspan[2])
 alg = MinimumTimeStepper()
 sol = solve(mp, alg)
 

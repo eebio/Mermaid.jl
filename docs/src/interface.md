@@ -4,75 +4,104 @@ In this section, we will:
 
 * See the integrator interface that Mermaid uses,
 * Find out how this fits with [CommonSolve](@extref CommonSolve index),
-* Look at how the [AgentsComponent](@ref) is defined, as an example.
 
 ## Interface requirements
 
-The interface used is Mermaid is compatible with, and uses, the SciML [CommonSolve](@extref CommonSolve index) interface.
+The interface used in Mermaid is compatible with, and uses, the SciML [CommonSolve](@extref CommonSolve index) interface.
 In particular, each Component is some immutable problem type that stores required data to solve a Component (for example, an [ODEProblem](@extref DiffEq types/ode_types)).
 We then also have an Integrator for each Component which stores the current state and handles solving over time.
 
 ## Component
 
-There are two categories of Components in Mermaid.
-`AbstractTimeDependentComponent`s and `AbstractTimeIndependentComponent`s, both of which are `AbstractComponent`s.
+A component should be immutable and store all of the information required to solve a given sub-problem/model:
 
-A component must contain the following fields:
+It should also have implementations of the following functions:
 
-* `name` which is a subtype of `AbstractString`,
-* `time_step` which is a `Float64`,
-* `state_names` which is a `Dict` which maps from variable names in the form of a `String` ([variable name format](@ref "Variable Names")) to some other object (typically a numerical index or symbol) which can be used to identify that variable internally.
+```@docs; canonical=false
+name
+time_step
+variables
+```
+
+If the component has fields for `name` and `time_step`, then those functions don't need to be implemented.
 
 ## Integrator
 
 A `ComponentIntegrator` is a mutable struct which can be freely modified over a simulation, since it will be typically discarded at the end.
-It typically only stores the current state of that component, and has some associated functions for handling this state.
-
-In addition to having some functions defined on the integrator, we also have some required fields.
-
-* `outputs` and `inputs` are `Dict`s for mapping from a [ConnectedVariable](@ref) to its current value. The values in these `Dict`s are set by Mermaid but the initial creation of this `Dict` (in particular, its keys) need to be defined in the `init` function. The values from `inputs` should be used to set the state during the `step!` function.
-* The original `Component` should also be stored under the field name `component`. This allows access to any problem settings, or other fields like the `name`.
-
-!!! todo "setstate! and inputs"
-    Couldn't the state be set by mermaid, rather than in the step function?
-
-!!! warning
-    An Integrator is required for all Components, even `TimeIndependentComponent`s. They just store the state that they were last called with.
+It only stores the current state of that component, and has some associated functions for handling this state.
 
 ## Functions
 
+Most of the interface for Mermaid is built around functions that manipulate the integrator state.
+
 ### step!
 
-The `step!` function should advance the `ComponentIntegrator` (its only input) one time step (defined by `Component.time_step`).
-This should also include reading the `inputs` field and updating the integrators internal state accordingly.
+The `step!` function should advance the `ComponentIntegrator` one time step (defined by `time_step(ComponentIntegrator)`).
+
+```@docs; canonical=false
+step!
+```
 
 ### init
 
-The `init` function takes as inputs a `Component` and a `Vector{Connector}` and returns the corresponding `ComponentIntegrator`.
-This includes the process of creating the `inputs` and `outputs` `Dict`s which require the keys to be specified, i.e. the `init` function should read through the `Vector{Connector}` and look for any outputs or inputs into this component, and add the `ConnectedVariable`s as keys to the `inputs` and `outputs` `Dict`s.
+The `init` function takes as inputs a `Component` and returns the corresponding `ComponentIntegrator`.
+
+```@docs; canonical=false
+init
+```
 
 ### getstate and setstate!
 
-The function `getstate` function reads the state of a `ComponentIntegrator` at a given `ConnectedVariable` and returns it.
+The function `getstate` reads the state of an `AbstractComponentIntegrator` at a given `ConnectedVariable` and returns it.
 The `setstate!` function similarly mutates the current state of the `ComponentIntegrator` to assign an inputted value to the `ConnectedVariable`.
+Additionally, `getstate` and `setstate!` should have methods that do not take a `ConnectedVariable`, and instead return the full state (in a form that should be compatible between the two functions, but need not be documented).
 
-### gettime
-
-Simply returns the current simulated time of a `ComponentIntegrator`.
-
-## AgentsComponent Example
-
-!!! todo "Code example"
-    We should include the code of the Agents component here too. probably with literate
+The function signatures should be `getstate(integrator, variable)/setstate!(integrator, variable, value)` and `getstate(integrator)/setstate!(integrator, state)`.
 
 ```@docs; canonical=false
-AgentsComponent
-Mermaid.AgentsComponentIntegrator
-Mermaid.step!(::Mermaid.AgentsComponentIntegrator)
-CommonSolve.init(::Mermaid.AgentsComponent, ::Vector{Connector})
-Mermaid.getstate(::Mermaid.AgentsComponentIntegrator, ::Mermaid.ConnectedVariable)
-Mermaid.setstate!(::Mermaid.AgentsComponentIntegrator, ::Mermaid.ConnectedVariable, value)
-Mermaid.gettime(::Mermaid.AgentsComponentIntegrator)
+getstate
+setstate!
 ```
 
+### gettime and settime!
+
+Simply returns the current simulated time of a `ComponentIntegrator`. Defaults to calling `getstate` and `setstate!` with the special variable `"#time"`.
+
+These functions don't need to be defined for new components, but `getstate` and `setstate!` should handle the `"#time"` special variable.
+
+```@docs; canonical=false
+gettime
+settime!
+```
+
+### Other functions
+
+The interface for a `Component` is also required to be satisfied for a `ComponentIntegrator`. That is, implementations of `name`, `time_step`, and `variables` should exist.
+
+If the `ComponentIntegrator` has a field/property for the `Component` called `component`, then these functions don't need new implementations.
+
 ## Variable Names
+
+Mermaid has its own interface for connections too.
+A [Connector](@ref) uses instances of [ConnectedVariables](@ref ConnectedVariable) as part of applying the connections.
+If you want to write your own components, it is worth learning how the [ConnectedVariables](@ref ConnectedVariable) are defined.
+
+```@docs; canonical=false
+ConnectedVariable
+```
+
+We can see that each `ConnectedVariable` has two names, the first is the component name and the second is the variable name (which should match `state_names` for that component).
+
+It also has a variable index, which allows you to access only some parts of a full vector. For example, you may index on only some agents in an AgentsComponent.
+
+Finally, it has a duplicated index. Like the variable index, it allows you to act on some subset, but in this case, it is a subset of integrators from a [DuplicatedComponent](@ref).
+
+A `ConnectedVariable` can also be constructed from a single string input, ie `ConnectedVariable("component[duplicatedindex].variable[variableindex]")`.
+
+```@docs; canonical=false
+ConnectedVariable(::AbstractString)
+```
+
+## Examples
+
+To see some examples, look in the `ext` directory on GitHub.

@@ -1,25 +1,32 @@
+using CommonSolve
+
 """
     MinimumTimeStepper()
 
-A solver that steps the integrators in a `MermaidIntegrator` at the minimum time step of all components.
+A solver that steps the integrators in a `MermaidIntegrator` advancing to the next event.
 """
 struct MinimumTimeStepper <: AbstractMermaidSolver
 end
 
-function (m::MinimumTimeStepper)(merInt::MermaidIntegrator, dt::Float64)
+function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
     # Update the current time
-    merInt.currtime += dt
-    # Update the inputs of all components
-    update_inputs!(merInt)
-    # Step the integrator
+    min_t = Inf
     for int in merInt.integrators
-        while gettime(int) + int.component.time_step <= merInt.currtime
-            # Step the integrator
-            CommonSolve.step!(int)
+        next_t = gettime(int) + time_step(int)
+        if next_t < min_t
+            min_t = next_t
         end
     end
+    merInt.currtime = min_t
+    # Apply connections
+    for conn in merInt.connectors
+        runconnection!(merInt, conn)
+    end
+    # Step the integrator
     for int in merInt.integrators
-        # Update the outputs of the component
-        update_outputs!(int)
+        if gettime(int) + time_step(int) <= merInt.currtime
+            # Step the integrator
+            step!(int)
+        end
     end
 end
