@@ -59,6 +59,17 @@
     predatorODE = [solODE(t)[2] for t in solMer.t]
     @test all(solMer["Prey.prey"] .≈ preyODE)
     @test all(solMer["Predator.predator"] .≈ predatorODE)
+
+    # If you don't specify algorithm, DE decides for you
+    c2 = DEComponent(
+        prob2;
+        name = "Predator",
+        time_step = 0.002,
+        state_names = OrderedDict("predator" => 1, "prey" => 2),
+        intkwargs = ()
+    )
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0)
+    solve(mp, alg)
 end
 
 @testitem "mtk" begin

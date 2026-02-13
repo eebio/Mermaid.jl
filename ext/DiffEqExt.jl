@@ -6,14 +6,16 @@ using DiffEqBase
 using OrderedCollections: OrderedDict
 
 """
-    DEComponent(model::DiffEqBase.AbstractDEProblem, alg::DiffEqBase.AbstractDEAlgorithm;
+    DEComponent(model::DiffEqBase.AbstractDEProblem, alg;
                 name::String="DE Component", time_step::Float64=1.0, intkwargs::Tuple=(),
                 state_names::Dict{String,Any}=Dict{String,Any}())
+    DEComponent(model::DiffEqBase.AbstractDEProblem; kwargs...)
 
 # Arguments
 - `model::DiffEqBase.AbstractDEProblem`: SciML DE problem (e.g., ODEProblem, etc.)
-- `alg::DiffEqBase.AbstractDEAlgorithm`: Algorithm from DifferentialEquations.jl to be used
-    for solving the DEProblem.
+- `alg`: Algorithm from DifferentialEquations.jl to be used
+    for solving the DEProblem. If no algorithm is provided, the algorithm will be
+    automatically chosen by DifferentialEquations.jl.
 
 # Keyword Arguments
 - `name::AbstractString`: Name of the component. Defaults to "DE Component".
@@ -24,9 +26,13 @@ using OrderedCollections: OrderedDict
     dictionary.
 """
 function Mermaid.DEComponent(model::DiffEqBase.AbstractDEProblem,
-        alg::DiffEqBase.AbstractDEAlgorithm; name = "DE Component",
-        time_step::Real = 1.0, intkwargs = (), state_names = Dict{String, Any}())
+        alg; name = "DE Component", time_step::Real = 1.0, intkwargs = (),
+        state_names = Dict{String, Any}())
     return Mermaid.DEComponent(model, name, state_names, time_step, alg, intkwargs)
+end
+
+function Mermaid.DEComponent(model::DiffEqBase.AbstractDEProblem; kwargs...)
+    return Mermaid.DEComponent(model, nothing; kwargs...)
 end
 
 function CommonSolve.init(c::Mermaid.DEComponent)
