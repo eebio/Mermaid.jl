@@ -21,6 +21,11 @@ Surrogates = "6fc51010-71bc-11e9-0e15-a3fcc6593c49"
 
 [compat]
 CairoMakie = "0.15.8"
+CellMLToolkit = "2.15.0"
+CommonSolve = "0.2.6"
 Documenter = "1.11"
+DocStringExtensions = "0.9.5"
+OrderedCollections = "1.8.1"
+
 [sources]
 Mermaid = {path = ".."}
