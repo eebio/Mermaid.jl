@@ -1,0 +1,32 @@
+[deps]
+Agents = "46ada45e-f475-11e8-01d0-f70cc89e6671"
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
+DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
+DomainSets = "5b8099bc-c8ec-5219-889f-1d9e522a28bf"
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+Mermaid = "922b6a97-db6b-4881-a67b-b45fb8a31c4c"
+MethodOfLines = "94925ecb-adb7-4558-8ed8-f975c56a0bf4"
+ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+Surrogates = "6fc51010-71bc-11e9-0e15-a3fcc6593c49"
+SymbolicIndexingInterface = "2efcf032-c050-4f8e-a9bb-153293bab1f5"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
+TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
+
+[sources]
+Mermaid = {path = ".."}
+
+[compat]
+Aqua = "0.8"
+DomainSets = "0.7.16"
+ModelingToolkit = "10.26.0"
+OrdinaryDiffEq = "6.102.1"
+Random = "1.10"
+Statistics = "1.10"
+SymbolicIndexingInterface = "0.3.46"
+TestItemRunner = "1.1.0"
+TestItems = "1.0.0"
