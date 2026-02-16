@@ -24,6 +24,7 @@ Mermaid = {path = ".."}
 Agents = "6.2.10"
 Aqua = "0.8"
 CommonSolve = "0.2.6"
+DiffEqBase = "6.203.0"
 DomainSets = "0.7.16"
 Flux = "0.16.9"
 MethodOfLines = "0.11.9"
