@@ -22,6 +22,7 @@ Mermaid = {path = ".."}
 
 [compat]
 Aqua = "0.8"
+CommonSolve = "0.2.6"
 DomainSets = "0.7.16"
 ModelingToolkit = "10.26.0"
 OrdinaryDiffEq = "6.102.1"
