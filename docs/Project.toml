@@ -20,6 +20,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Surrogates = "6fc51010-71bc-11e9-0e15-a3fcc6593c49"
 
 [compat]
+CommonSolve = "0.2.6"
 Documenter = "1.11"
 DocStringExtensions = "0.9.5"
 CellMLToolkit = "2.15.0"
