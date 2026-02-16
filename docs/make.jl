@@ -38,9 +38,9 @@ modules = [CommonSolve, Mermaid,
 format = Documenter.HTML(assets = ["assets/logo.ico"])
 
 makedocs(sitename = "Mermaid.jl", format = format,
-    repo = Remotes.GitHub("mjowen", "Mermaid.jl"), modules = modules, checkdocs = :exports,
+    repo = Remotes.GitHub("eebio", "Mermaid.jl"), modules = modules, checkdocs = :exports,
     pages = PAGES, plugins = [links])
 
 deploydocs(
-    repo = "github.com/mjowen/Mermaid.jl",
+    repo = "github.com/eebio/Mermaid.jl",
 )
