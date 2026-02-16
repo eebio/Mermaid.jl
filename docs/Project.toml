@@ -20,12 +20,17 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Surrogates = "6fc51010-71bc-11e9-0e15-a3fcc6593c49"
 
 [compat]
-CairoMakie = "0.15.8"
+BenchmarkTools = "1.6.3"
+CairoMakie = "0.13.10"
 CellMLToolkit = "2.15.0"
 CommonSolve = "0.2.6"
-Documenter = "1.11"
+DocInventories = "1"
 DocStringExtensions = "0.9.5"
+Documenter = "1.11"
+DocumenterInterLinks = "1.1.0"
+DocumenterTools = "0.1.21"
+Makie = "0.22.10"
 OrderedCollections = "1.8.1"
-
-[sources]
-Mermaid = {path = ".."}
+OrdinaryDiffEq = "6.108.0"
+Plots = "1.41.5"
+Random = "1.11"
