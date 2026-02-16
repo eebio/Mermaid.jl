@@ -27,6 +27,11 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
         if (gettime(int) + time_step(int)) * timescale <= nextfloat(merInt.currtime)
             # Step the integrator
             step!(int)
+            # Force time synchronization after stepping to avoid floating point issues.
+            # Especially important for handling multiple timescales.
+            if gettime(int) * timescale == nextfloat(merInt.currtime)
+                settime!(int, merInt.currtime / timescale)
+            end
         end
     end
 end
