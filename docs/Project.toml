@@ -21,7 +21,7 @@ Surrogates = "6fc51010-71bc-11e9-0e15-a3fcc6593c49"
 
 [compat]
 BenchmarkTools = "1.6.3"
-CairoMakie = "0.13.10"
+CairoMakie = "0.13.10, 0.15"
 CellMLToolkit = "2.15.0"
 CommonSolve = "0.2.6"
 DocInventories = "1"
