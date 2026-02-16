@@ -244,3 +244,75 @@ end
     step!(int)
     @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1,1,1]
 end
+
+@testitem "timescales" begin
+    using OrdinaryDiffEq
+
+    function f1!(du, u, p, t)
+        x, y = u
+        du[1] = x - x * y
+        du[2] = 0
+    end
+    function f2!(du, u, p, t)
+        y, x = u
+        du[1] = (-y + x * y)/60
+        du[2] = 0
+    end
+    function f3!(du, u, p, t)
+        y, x = u
+        du[1] = -y + x * y
+        du[2] = 0
+    end
+
+    prob1 = ODEProblem(f1!, [4.0, 2.0], (0.0, Inf))
+    prob2 = ODEProblem(f2!, [2.0, 4.0], (0.0, Inf))
+    prob3 = ODEProblem(f3!, [2.0, 4.0], (0.0, Inf))
+
+    c1 = DEComponent(
+        prob1, Euler();
+        name = "Prey",
+        time_step = 0.002,
+        state_names = OrderedDict("prey" => 1, "predator" => 2),
+        intkwargs = (:adaptive => false,)
+    )
+
+    c2 = DEComponent(
+        prob2, Euler();
+        name = "Predator",
+        time_step = 0.002*60,
+        state_names = OrderedDict("predator" => 1, "prey" => 2),
+        intkwargs = (:adaptive => false,)
+    )
+
+    c3 = DEComponent(
+        prob3, Euler();
+        name = "Predator",
+        time_step = 0.002,
+        state_names = OrderedDict("predator" => 1, "prey" => 2),
+        intkwargs = (:adaptive => false,)
+    )
+
+    conn1 = Connector(
+        inputs = ["Predator.predator"],
+        outputs = ["Prey.predator"]
+    )
+    conn2 = Connector(
+        inputs = ["Prey.prey"],
+        outputs = ["Predator.prey"]
+    )
+
+    mp1 = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0,
+        timescales = [1, 1//60])
+
+    mp2 = MermaidProblem(components = [c1, c3], connectors = [conn1, conn2], max_t = 10.0)
+
+    alg = MinimumTimeStepper()
+    sol1 = solve(mp1, alg)
+    sol2 = solve(mp2, alg)
+
+    # Floating point errors will stack together differently, which may cause an extra step in one of the solutions.
+    a = [sol1(t)["Prey.prey"] for t in 0:0.1:10.0]
+    b = [sol2(t)["Prey.prey"] for t in 0:0.1:10.0]
+    @test all(a .≈ b)
+    @test sol1.t[1:min(length(sol1.t), length(sol2.t))] ≈ sol2.t[1:min(length(sol1.t), length(sol2.t))]
+end
