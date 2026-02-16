@@ -91,6 +91,11 @@ function getstate(merInt::AbstractMermaidIntegrator, key::AbstractConnectedVaria
     end
 end
 
+function gettime(merInt::AbstractMermaidIntegrator)
+    # Get the current time of the integrator
+    return merInt.currtime
+end
+
 function setstate!(merInt::AbstractMermaidIntegrator, key::AbstractConnectedVariable, value)
     # Set the state of the component based on the key
     for integrator in merInt.integrators

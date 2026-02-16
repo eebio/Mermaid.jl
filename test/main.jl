@@ -243,4 +243,8 @@ end
     @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1,2,3,4,5]
     step!(int)
     @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1,1,1]
+
+    @test gettime(int) == 1.0
+    step!(int)
+    @test gettime(int) == 2.0
 end
