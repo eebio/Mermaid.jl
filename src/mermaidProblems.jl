@@ -5,7 +5,8 @@ using CommonSolve
     MermaidProblem(;
         components::Vector{AbstractComponent},
         connectors::Vector{AbstractConnector},
-        max_t::Float64=1.0)
+        max_t::Float64=1.0,
+        timescales::Vector{Float64}=ones(length(components)))
 
 Defines a Mermaid hybrid simulation problem.
 
@@ -13,11 +14,15 @@ Defines a Mermaid hybrid simulation problem.
 - `components::Vector{<:AbstractComponent}`: Vector of Components.
 - `connectors::Vector{<:AbstractConnector}`: Vector of [Connector](@ref).
 - `max_t::Float64`=1.0: Maximum simulation time. Defaults to 1.0.
+- `timescales::Vector{Float64}`=ones(length(components)): Timescales for each component.
+    Each component's timescale will be multiplied by the component's time to convert it to
+    the universal simulation time.
 """
 @kwdef struct MermaidProblem <: AbstractMermaidProblem
     components::Vector{AbstractComponent}
     connectors::Vector{AbstractConnector}
     max_t::Float64 = 1.0
+    timescales::Vector{Float64} = ones(length(components))
 end
 
 """
@@ -47,13 +52,15 @@ mutable struct MermaidIntegrator <: AbstractMermaidIntegrator
     currtime::Float64
     alg::AbstractMermaidSolver
     save_vars::Vector{String}
+    timescales::Vector{Float64}
 end
 
 function CommonSolve.init(
         prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars = [])
     # Initialize the solver
     integrators = [init(c) for c in prob.components]
-    return MermaidIntegrator(integrators, prob.connectors, prob.max_t, 0.0, alg, save_vars)
+    return MermaidIntegrator(
+        integrators, prob.connectors, prob.max_t, 0.0, alg, save_vars, prob.timescales)
 end
 
 function CommonSolve.step!(merInt::AbstractMermaidIntegrator)
