@@ -56,7 +56,7 @@ mutable struct MermaidIntegrator{X <: AbstractMermaidSolver} <: AbstractMermaidI
 end
 
 function CommonSolve.init(
-        prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars = [])
+        prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars = String[])
     # Initialize the solver
     integrators = [init(c) for c in prob.components]
     return MermaidIntegrator(
