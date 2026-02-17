@@ -36,7 +36,7 @@ function CommonSolve.init(c::MOLComponent)
 end
 
 function CommonSolve.step!(compInt::MOLComponentIntegrator)
-    CommonSolve.step!(compInt.integrator, compInt.component.time_step, true)
+    CommonSolve.step!(compInt.integrator, time_step(compInt), true)
 end
 
 function Mermaid.getstate(compInt::MOLComponentIntegrator, key)
