@@ -42,7 +42,7 @@ function CommonSolve.init(c::Mermaid.DEComponent)
 end
 
 function CommonSolve.step!(compInt::Mermaid.DEComponentIntegrator)
-    CommonSolve.step!(compInt.integrator, compInt.component.time_step, true)
+    CommonSolve.step!(compInt.integrator, time_step(compInt), true)
 end
 
 function Mermaid.getstate(compInt::Mermaid.DEComponentIntegrator, key)
