@@ -26,7 +26,7 @@ A Mermaid component that wraps an agent-based model (ABM) using the Agents.jl pa
 """
 function Mermaid.AgentsComponent(model::StandardABM;
         name::AbstractString = "Agents Component", state_names = Dict{String, Any}(),
-        time_step::Real = 1.0)
+        time_step::Real = 1)
     return Mermaid.AgentsComponent(model, name, state_names, time_step)
 end
 
@@ -36,7 +36,7 @@ function CommonSolve.init(c::AgentsComponent)
 end
 
 function CommonSolve.step!(compInt::AgentsComponentIntegrator)
-    step!(compInt.integrator)
+    step!(compInt.integrator, time_step(compInt))
 end
 
 function Mermaid.getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
