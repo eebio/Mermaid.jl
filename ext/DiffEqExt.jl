@@ -63,6 +63,7 @@ function Mermaid.setstate!(compInt::Mermaid.DEComponentIntegrator, key, value)
     u_modified!(compInt.integrator, true)
     if first(key.variable) == '#'
         if key.variable == "#time"
+            u_modified!(compInt.integrator, true)
             compInt.integrator.t = value
             return nothing
         end

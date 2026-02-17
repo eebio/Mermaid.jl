@@ -11,8 +11,8 @@ end
 function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
     # Update the current time
     min_t = Inf
-    for int in merInt.integrators
-        next_t = gettime(int) + time_step(int)
+    for (int, timescale) in zip(merInt.integrators, merInt.timescales)
+        next_t = (gettime(int) + time_step(int)) * timescale
         if next_t < min_t
             min_t = next_t
         end
@@ -23,10 +23,15 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
         runconnection!(merInt, conn)
     end
     # Step the integrator
-    for int in merInt.integrators
-        if gettime(int) + time_step(int) <= merInt.currtime
+    for (int, timescale) in zip(merInt.integrators, merInt.timescales)
+        if (gettime(int) + time_step(int)) * timescale <= nextfloat(merInt.currtime)
             # Step the integrator
             step!(int)
+            # Force time synchronization after stepping to avoid floating point issues.
+            # Especially important for handling multiple timescales.
+            if gettime(int) * timescale == nextfloat(merInt.currtime)
+                settime!(int, merInt.currtime / timescale)
+            end
         end
     end
 end
