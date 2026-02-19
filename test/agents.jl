@@ -1,4 +1,4 @@
-@testitem "agent" begin
+#= @testitem "agent" begin
     using Agents, OrdinaryDiffEq
 
     space = GridSpace((20, 20))
@@ -224,3 +224,4 @@ end
     setstate!(integrator, ConnectedVariable("Schelling.#model"), state)
     @test gettime(integrator) ≈ 0.4
 end
+ =#

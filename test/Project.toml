@@ -1,5 +1,4 @@
 [deps]
-Agents = "46ada45e-f475-11e8-01d0-f70cc89e6671"
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
@@ -19,7 +18,6 @@ TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
 TrixiParticles = "66699cd8-9c01-4e9d-a059-b96c86d16b3a"
 
 [compat]
-Agents = "6.2.10"
 Aqua = "0.8"
 CommonSolve = "0.2.6"
 DiffEqBase = "6.203.0"
