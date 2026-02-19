@@ -37,7 +37,7 @@ end
 
 function CommonSolve.init(c::Mermaid.DEComponent)
     integrator = Mermaid.DEComponentIntegrator(
-        init(c.model, c.alg; dt = c.time_step, c.intkwargs...), c)
+        init(c.model, c.alg; c.intkwargs...), c)
     return integrator
 end
 
