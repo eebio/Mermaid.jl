@@ -17,6 +17,21 @@ mutable struct DEComponentIntegrator{A, B} <: AbstractComponentIntegrator
     component::B
 end
 
+struct TrixiParticlesComponent{A, B, C, D, E, F, G} <: AbstractTimeDependentComponent
+    model::A
+    semi::B
+    name::C
+    state_names::D
+    time_step::E
+    alg::F
+    intkwargs::G
+end
+
+mutable struct TrixiParticlesComponentIntegrator{A, B} <: AbstractComponentIntegrator
+    integrator::A
+    component::B
+end
+
 struct AgentsComponent{A, B, C, D} <: AbstractTimeDependentComponent
     model::A
     name::B
