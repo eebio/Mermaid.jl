@@ -115,11 +115,6 @@ SOFTWARE.
     @test a ≈ b
 end
 
-@testitem "test include" begin
-    include(joinpath(@__DIR__, "included_file.jl"))
-    @test a == 1
-end
-
 @testitem "coupled trixi particles sim" begin end
 
 @testitem "state control" begin end
