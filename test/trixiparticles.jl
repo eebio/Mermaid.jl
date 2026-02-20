@@ -171,7 +171,8 @@ end
     using OrdinaryDiffEq
 
     comp = TrixiParticlesComponent(
-        semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", time_step = 0.002)
+        semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", time_step = 0.002,
+        state_names = Dict("particle1velx" => 1, "particle1vely" => 2))
     int = init(comp)
     @test gettime(int) == 0.0
     step!(int)
@@ -183,9 +184,17 @@ end
 
     getstate(int, ConnectedVariable("TrixiParticles Component.#semi")) == semi
     getstate(int, ConnectedVariable("TrixiParticles Component.#state")) == getstate(int)
-    setstate!(int, sol_trixi(0.08))
+    setstate!(int, ConnectedVariable("TrixiParticles Component.#state"), sol_trixi(0.08))
     settime!(int, 0.08)
     @test getstate(int) == sol_trixi(0.08)
     step!(int)
     @test getstate(int) ≈ sol_trixi(0.082) rtol=1e-6
+
+    @test issetequal(variables(int), ["particle1velx", "particle1vely", "#time", "#semi", "#state"])
+
+    @test getstate(int, ConnectedVariable("TrixiParticles Component.particle1velx")) == getstate(int)[1]
+    @test getstate(int, ConnectedVariable("TrixiParticles Component.particle1vely")) == getstate(int)[2]
+    setstate!(int, ConnectedVariable("TrixiParticles Component.particle1velx"), 0.5)
+    @test getstate(int, ConnectedVariable("TrixiParticles Component.particle1velx")) == 0.5
+    step!(int)
 end
