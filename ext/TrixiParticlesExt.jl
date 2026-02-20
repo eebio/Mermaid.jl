@@ -3,6 +3,7 @@ module TrixiParticlesExt
 using Mermaid
 using CommonSolve
 using TrixiParticles
+using DiffEqBase
 using OrderedCollections: OrderedDict
 
 """
