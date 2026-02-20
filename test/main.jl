@@ -124,7 +124,7 @@ end
         name = "Prey",
         time_step = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2),
-        intkwargs = (:adaptive => false,)
+        intkwargs = (:adaptive => false, :dt => 0.002)
     )
 
     c2 = DEComponent(
@@ -132,7 +132,7 @@ end
         name = "Predator",
         time_step = 0.002,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
-        intkwargs = (:adaptive => false,)
+        intkwargs = (:adaptive => false, :dt => 0.002)
     )
 
     conn1 = Connector(
@@ -277,7 +277,7 @@ end
         name = "Prey",
         time_step = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2),
-        intkwargs = (:adaptive => false,)
+        intkwargs = (:adaptive => false, :dt => 0.002)
     )
 
     c2 = DEComponent(
@@ -285,7 +285,7 @@ end
         name = "Predator",
         time_step = 0.002*60,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
-        intkwargs = (:adaptive => false,)
+        intkwargs = (:adaptive => false, :dt => 0.002*60)
     )
 
     c3 = DEComponent(
@@ -293,7 +293,7 @@ end
         name = "Predator",
         time_step = 0.002,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
-        intkwargs = (:adaptive => false,)
+        intkwargs = (:adaptive => false, :dt => 0.002)
     )
 
     conn1 = Connector(
