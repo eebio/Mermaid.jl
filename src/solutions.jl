@@ -59,7 +59,7 @@ Update the [MermaidSolution](@ref) `sol` with the current time and state from th
 function update_solution!(sol::AbstractMermaidSolution, merInt::AbstractMermaidIntegrator)
     push!(sol.t, merInt.currtime)
     for key in keys(sol.u)
-        push!(sol.u[key], getstate(merInt, key))
+        push!(sol.u[key], getstate(merInt, key; copy=true))
     end
 end
 
