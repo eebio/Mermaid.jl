@@ -1,5 +1,5 @@
 using TrixiParticles
-using DifferentialEquations
+using OrdinaryDiffEq
 using Plots
 
 tspan = (0.0, 2.0)
