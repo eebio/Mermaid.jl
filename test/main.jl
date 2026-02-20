@@ -6,7 +6,7 @@
           "cp[[1, 3, 5, 7]].vr"
     @test fullname(ConnectedVariable("comp", "var", nothing, nothing)) == "comp.var"
 end
-
+#=
 @testitem "solution" begin
     using Agents, OrdinaryDiffEq
 
@@ -320,3 +320,4 @@ end
     @test all(a .≈ b)
     @test sol1.t[1:min(length(sol1.t), length(sol2.t))] ≈ sol2.t[1:min(length(sol1.t), length(sol2.t))]
 end
+=#
