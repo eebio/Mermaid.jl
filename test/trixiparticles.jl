@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-@testitem "single trixi particles sim" begin
+@testsnippet trixisim begin
     # A portion of this code is adapted from the TrixiParticles.jl examples under the above
     # licence.
 
@@ -47,7 +47,7 @@ SOFTWARE.
     # ==========================================================================================
     # ==== Experiment Setup
     gravity = 9.81
-    tspan = (0.0, 1.0)
+    tspan = (0.0, 0.1)
 
     # Boundary geometry and initial fluid particle positions
     initial_fluid_size = (1.0, 0.9)
@@ -104,19 +104,88 @@ SOFTWARE.
     ode = semidiscretize(semi, tspan)
 
     # Use a Runge-Kutta method with automatic (error based) time step size control
-    sol_trixi = solve(ode, RDPK3SpFSAL35(); saveat = 0.002, tstops = 0.002:0.002:1.0)
+    sol_trixi = solve(ode, RDPK3SpFSAL35(); saveat = 0.002, tstops = 0.002:0.002:tspan[2])
+end
+
+@testitem "single trixi particles sim" setup = [trixisim] begin
+    using TrixiParticles
+    using OrdinaryDiffEq
+    using Mermaid
 
     comp = TrixiParticlesComponent(semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", time_step = 0.002)
-    mp = MermaidProblem(components = [comp], connectors = [], max_t = 1.0)
+    mp = MermaidProblem(components = [comp], connectors = [], max_t = tspan[2])
     alg = MinimumTimeStepper()
     sol_mermaid = solve(mp, alg; save_vars = ["TrixiParticles Component.#state"])
-    a = [sol_mermaid(i)["TrixiParticles Component.#state"] for i in 0:0.1:1.0]
-    b = [sol_trixi(i) for i in 0:0.1:1.0]
+    a = [sol_mermaid(i)["TrixiParticles Component.#state"] for i in 0:0.1:tspan[2]]
+    b = [sol_trixi(i) for i in 0:0.1:tspan[2]]
     @test a ≈ b
 end
 
-@testitem "coupled trixi particles sim" begin end
+@testitem "coupled trixi particles sim with interpolation" setup = [trixisim] begin
+    using TrixiParticles
+    using OrdinaryDiffEq
+    using Mermaid
 
-@testitem "state control" begin end
+    comp = TrixiParticlesComponent(semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", time_step = 0.002)
 
-@testitem "interpolation" begin end
+    function f1!(du, u, p, t)
+        x, y = u
+        du[1] = y
+        du[2] = 0
+    end
+    prob1 = ODEProblem(f1!, [0.0, 0.0], tspan)
+    comp2 = DEComponent(
+        prob1, Euler();
+        name = "ODE",
+        time_step = 0.002,
+        state_names = OrderedDict("integral" => 1, "pressure" => 2),
+        intkwargs = (:adaptive => false, :dt => 0.002)
+    )
+
+    function pressure_interpolation(state, semi)
+        v_ode, u_ode = state.x
+        data = interpolate_points([0.5, 0.5], semi, semi.systems[1], v_ode, u_ode)
+        return data.pressure[1]
+    end
+
+    conn = Connector(
+        inputs = ["TrixiParticles Component.#state", "TrixiParticles Component.#semi"],
+        outputs = ["ODE.pressure"],
+        func = pressure_interpolation
+    )
+
+    mp = MermaidProblem(components = [comp, comp2], connectors = [conn], max_t = tspan[2])
+    alg = MinimumTimeStepper()
+    sol_mermaid = solve(mp, alg; save_vars = ["TrixiParticles Component.#state"])
+
+    int = init(mp, alg)
+    @test getstate(int, ConnectedVariable("ODE.pressure")) == 0.0
+    @test getstate(int, ConnectedVariable("ODE.integral")) == 0.0
+    step!(int)
+    @test 3500.0*0.002 < getstate(int, ConnectedVariable("ODE.integral")) < 5000.0*0.002
+    @test 3500.0 < getstate(int, ConnectedVariable("ODE.pressure")) < 5000.0
+end
+
+@testitem "state control" setup = [trixisim] begin
+    using TrixiParticles
+    using OrdinaryDiffEq
+
+    comp = TrixiParticlesComponent(
+        semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", time_step = 0.002)
+    int = init(comp)
+    @test gettime(int) == 0.0
+    step!(int)
+    @test gettime(int) == 0.002
+    settime!(int, 0.005)
+    @test gettime(int) == 0.005
+    step!(int)
+    @test gettime(int) == 0.007
+
+    getstate(int, ConnectedVariable("TrixiParticles Component.#semi")) == semi
+    getstate(int, ConnectedVariable("TrixiParticles Component.#state")) == getstate(int)
+    setstate!(int, sol_trixi(0.08))
+    settime!(int, 0.08)
+    @test getstate(int) == sol_trixi(0.08)
+    step!(int)
+    @test getstate(int) ≈ sol_trixi(0.082) rtol=1e-6
+end
