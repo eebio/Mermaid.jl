@@ -10,6 +10,7 @@ export OrderedDict
 export AbstractComponent, AbstractTimeDependentComponent, AbstractTimeIndependentComponent
 export AbstractComponentIntegrator
 export DEComponent, DuplicatedComponent, MOLComponent, AgentsComponent, SurrogateComponent
+export TimeIndependentComponent
 export Connector, ConnectedVariable, MermaidProblem, MermaidIntegrator
 export AbstractMermaidSolver, MinimumTimeStepper
 export MermaidSolution
@@ -26,6 +27,7 @@ include("mermaidProblems.jl")
 include("solvers.jl")
 include("Duplicated.jl")
 include("extensions.jl")
+include("TimeIndependent.jl")
 
 # Documentation
 """
