@@ -53,7 +53,7 @@ end
         time_step = 1.0
     )
 
-    mp = MermaidProblem(components = [c1], connectors = [], max_t = 10.0)
+    mp = MermaidProblem(components = [c1], connectors = [], tspan = (0.0, 10.0))
 
     alg = MinimumTimeStepper()
     sol = solve(mp, alg)
@@ -87,7 +87,7 @@ end
     @test_throws BoundsError sol(1000)
 
     # save_vars
-    mp = MermaidProblem(components = [c1], connectors = [], max_t = 10.0)
+    mp = MermaidProblem(components = [c1], connectors = [], tspan = (0.0, 10.0))
     sol = solve(
         mp, alg; save_vars = ["Schelling.min_to_be_happy", "Schelling.list_property[2:4]"])
     @test sol["Schelling.min_to_be_happy"] == [3.0 for _ in sol.t]
@@ -144,7 +144,7 @@ end
         outputs = ["Predator.prey"]
     )
 
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0)
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 10.0))
     integrator = init(mp, MinimumTimeStepper())
 
     # State control
@@ -176,7 +176,7 @@ end
         outputs = ["Predator.prey"],
         func = x -> x / 1.5
     )
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0)
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 10.0))
     integrator = init(mp, MinimumTimeStepper())
     for conn in integrator.connectors
         runconnection!(integrator, conn)
@@ -189,7 +189,7 @@ end
         outputs = ["Prey.predator", "Prey.prey"],
         func = (x, y) -> x * y
     )
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn1], max_t = 10.0)
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1], tspan = (0.0, 10.0))
     integrator = init(mp, MinimumTimeStepper())
     setstate!(integrator, ConnectedVariable("Predator.predator"), 2.0)
     setstate!(integrator, ConnectedVariable("Predator.prey"), 4.0)
@@ -204,7 +204,7 @@ end
         inputs = ["Predator.predator"],
         outputs = ["Prey.predator_but_spelled_wrong"]
     )
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn1], max_t = 10.0)
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1], tspan = (0.0, 10.0))
     @test_throws KeyError solve(mp, MinimumTimeStepper())
 
     using Agents
@@ -236,7 +236,7 @@ end
         inputs = ["Schelling.group[1]", "Schelling.group[2]", "Schelling.group[3]"],
         outputs = ["Schelling.list_property"],
     )
-    mp = MermaidProblem(components = [c1], connectors = [conn1], max_t = 10.0)
+    mp = MermaidProblem(components = [c1], connectors = [conn1], tspan = (0.0, 100.0))
     alg = MinimumTimeStepper()
 
     int = init(mp, alg)
@@ -305,10 +305,10 @@ end
         outputs = ["Predator.prey"]
     )
 
-    mp1 = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0,
+    mp1 = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 10.0),
         timescales = [1, 1//60])
 
-    mp2 = MermaidProblem(components = [c1, c3], connectors = [conn1, conn2], max_t = 10.0)
+    mp2 = MermaidProblem(components = [c1, c3], connectors = [conn1, conn2], tspan = (0.0, 10.0))
 
     alg = MinimumTimeStepper()
     sol1 = solve(mp1, alg)

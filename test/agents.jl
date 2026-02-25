@@ -61,7 +61,7 @@
         outputs = ["Schelling.min_to_be_happy"]
     )
 
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn], max_t = 100.0)
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn], tspan = (0.0, 100.0))
 
     alg = MinimumTimeStepper()
     intMer = init(mp, alg)

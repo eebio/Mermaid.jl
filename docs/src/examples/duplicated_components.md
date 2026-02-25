@@ -170,7 +170,7 @@ conn4 = Connector(
     func=(model) -> plot_input(model)
 )
 
-mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn3, conn1, conn2, conn4], max_t=tspan[2])
+mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn3, conn1, conn2, conn4], tspan=tspan)
 alg = MinimumTimeStepper()
 sol = solve(mp, alg)
 
