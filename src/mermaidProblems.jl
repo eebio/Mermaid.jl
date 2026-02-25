@@ -45,18 +45,18 @@ Defines the integrator for a Mermaid hybrid simulation.
 - `alg::AbstractMermaidSolver`: The Mermaid solver algorithm to be used.
 - `save_vars::Vector{String}`: Variables to be saved during the simulation.
 """
-mutable struct MermaidIntegrator <: AbstractMermaidIntegrator
-    integrators::Vector{AbstractComponentIntegrator}
-    connectors::Vector{AbstractConnector}
+mutable struct MermaidIntegrator{X <: AbstractMermaidSolver} <: AbstractMermaidIntegrator
+    integrators::Vector{<:AbstractComponentIntegrator}
+    connectors::Vector{<:AbstractConnector}
     maxt::Float64
     currtime::Float64
-    alg::AbstractMermaidSolver
-    save_vars::Vector{String}
+    alg::X
+    save_vars::Vector{<:AbstractString}
     timescales::Vector{Float64}
 end
 
 function CommonSolve.init(
-        prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars = [])
+        prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars = String[])
     # Initialize the solver
     integrators = [init(c) for c in prob.components]
     return MermaidIntegrator(
