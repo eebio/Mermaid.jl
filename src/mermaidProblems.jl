@@ -55,10 +55,23 @@ mutable struct MermaidIntegrator{X <: AbstractMermaidSolver} <: AbstractMermaidI
     timescales::Vector{Float64}
 end
 
-function CommonSolve.init(
-        prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars = String[])
+function CommonSolve.init(prob::AbstractMermaidProblem, alg::AbstractMermaidSolver;
+        save_vars = nothing)
     # Initialize the solver
     integrators = [init(c) for c in prob.components]
+    if isnothing(save_vars) || save_vars == :all
+        save_vars = String[]
+        for int in integrators
+            for var in variables(int)
+                if var[1] != '#' || save_vars == :all
+                    push!(save_vars, string(name(int), ".", var))
+                end
+            end
+        end
+    end
+    if length(save_vars) == 0 || save_vars == :none
+        save_vars = String[]
+    end
     return MermaidIntegrator(
         integrators, prob.connectors, prob.max_t, 0.0, alg, save_vars, prob.timescales)
 end
