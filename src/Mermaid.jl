@@ -9,7 +9,7 @@ export OrderedDict
 # Exports
 export AbstractComponent, AbstractTimeDependentComponent, AbstractTimeIndependentComponent
 export AbstractComponentIntegrator
-export DEComponent, DuplicatedComponent, MOLComponent, AgentsComponent, SurrogateComponent
+export DEComponent, DuplicatedComponent, MOLComponent, AgentsComponent, SurrogateComponent, TrixiParticlesComponent
 export TimeIndependentComponent
 export Connector, ConnectedVariable, MermaidProblem, MermaidIntegrator
 export AbstractMermaidSolver, MinimumTimeStepper
