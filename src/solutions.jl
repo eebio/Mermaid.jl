@@ -27,20 +27,8 @@ Create a [MermaidSolution](@ref) object initialized for the `save_vars`/variable
 """
 function MermaidSolution(int::AbstractMermaidIntegrator)
     u = Dict()
-    if length(int.save_vars) == 0
-        for i in int.integrators
-            for key in variables(i)
-                if contains(key, "#")
-                    continue
-                end
-                fullname = join([i.component.name, key], ".")
-                u[ConnectedVariable(fullname)] = []
-            end
-        end
-    else
-        for var in int.save_vars
-            u[ConnectedVariable(var)] = []
-        end
+    for var in int.save_vars
+        u[ConnectedVariable(var)] = []
     end
     return MermaidSolution([], u)
 end
