@@ -50,7 +50,7 @@ end
         name = "Schelling",
         state_names = OrderedDict("min_to_be_happy" => :min_to_be_happy,
             "list_property" => :list_property, "mood" => :mood, "group" => :group),
-        time_step = 1.0
+        timestep = 1.0
     )
 
     mp = MermaidProblem(components = [c1], connectors = [], max_t = 10.0)
@@ -122,7 +122,7 @@ end
     c1 = DEComponent(
         prob1, Euler();
         name = "Prey",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -130,7 +130,7 @@ end
     c2 = DEComponent(
         prob2, Euler();
         name = "Predator",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -230,19 +230,19 @@ end
         name = "Schelling",
         state_names = OrderedDict("min_to_be_happy" => :min_to_be_happy,
             "list_property" => :list_property, "mood" => :mood, "group" => :group),
-        time_step = 1.0
+        timestep = 1.0
     )
     conn1 = Connector(
         inputs = ["Schelling.group[1]", "Schelling.group[2]", "Schelling.group[3]"],
-        outputs = ["Schelling.list_property"],
+        outputs = ["Schelling.list_property"]
     )
     mp = MermaidProblem(components = [c1], connectors = [conn1], max_t = 10.0)
     alg = MinimumTimeStepper()
 
     int = init(mp, alg)
-    @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1,2,3,4,5]
+    @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1, 2, 3, 4, 5]
     step!(int)
-    @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1,1,1]
+    @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1, 1, 1]
 
     @test gettime(int) == 1.0
     step!(int)
@@ -259,7 +259,7 @@ end
     end
     function f2!(du, u, p, t)
         y, x = u
-        du[1] = (-y + x * y)/60
+        du[1] = (-y + x * y) / 60
         du[2] = 0
     end
     function f3!(du, u, p, t)
@@ -275,7 +275,7 @@ end
     c1 = DEComponent(
         prob1, Euler();
         name = "Prey",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -283,7 +283,7 @@ end
     c2 = DEComponent(
         prob2, Euler();
         name = "Predator",
-        time_step = 0.002*60,
+        timestep = 0.002 * 60,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -291,7 +291,7 @@ end
     c3 = DEComponent(
         prob3, Euler();
         name = "Predator",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -306,7 +306,7 @@ end
     )
 
     mp1 = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0,
-        timescales = [1, 1//60])
+        timescales = [1, 1 // 60])
 
     mp2 = MermaidProblem(components = [c1, c3], connectors = [conn1, conn2], max_t = 10.0)
 
@@ -318,5 +318,6 @@ end
     a = [sol1(t)["Prey.prey"] for t in 0:0.1:10.0]
     b = [sol2(t)["Prey.prey"] for t in 0:0.1:10.0]
     @test all(a .≈ b)
-    @test sol1.t[1:min(length(sol1.t), length(sol2.t))] ≈ sol2.t[1:min(length(sol1.t), length(sol2.t))]
+    @test sol1.t[1:min(length(sol1.t), length(sol2.t))] ≈
+          sol2.t[1:min(length(sol1.t), length(sol2.t))]
 end

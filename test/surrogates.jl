@@ -12,7 +12,7 @@
     prob = ODEProblem(f, u0, tspan)
     state_names = OrderedDict("x" => 1)
     ode_comp = Mermaid.DEComponent(
-        prob, Rodas5(); name = "decay", state_names = state_names, time_step = 0.1)
+        prob, Rodas5(); name = "decay", state_names = state_names, timestep = 0.1)
 
     # Set bounds for surrogate sampling
     lower = [0.0]
@@ -60,7 +60,7 @@ end
     prob = ODEProblem(f, u0, tspan)
     state_names = OrderedDict("x" => 1)
     ode_comp = DEComponent(
-        prob, Rodas5(); name = "decay", state_names = state_names, time_step = 0.1)
+        prob, Rodas5(); name = "decay", state_names = state_names, timestep = 0.1)
 
     # Set bounds for surrogate sampling
     lower = [0.0, 0.0]
@@ -105,7 +105,7 @@ end
     prob = ODEProblem(f, u0, tspan)
     state_names = OrderedDict("x" => 1)
     ode_comp = DEComponent(
-        prob, Rodas5(); name = "decay", state_names = state_names, time_step = 0.1)
+        prob, Rodas5(); name = "decay", state_names = state_names, timestep = 0.1)
 
     # Set bounds for surrogate sampling
     lower = [0.0, 0.0]
@@ -117,7 +117,7 @@ end
         SecondOrderPolynomialSurrogate,
         lower,
         upper;
-        n_samples = 2000,
+        n_samples = 2000
     )
 
     # Dummy connector list (no connections for this test)
@@ -150,7 +150,7 @@ end
     prob = ODEProblem(f, u0, tspan)
     state_names = OrderedDict("x" => 1, "y" => 2)
     ode_comp = DEComponent(
-        prob, Rodas5(); name = "decay", state_names = state_names, time_step = 0.1)
+        prob, Rodas5(); name = "decay", state_names = state_names, timestep = 0.1)
 
     # Set bounds for surrogate sampling
     lower = [0.0, 0.0]

@@ -18,7 +18,7 @@ struct DuplicatedComponent{T, U, V, W} <:
     instances::Union{Int, Nothing}
     name::String
     init_states::U
-    time_step::Float64
+    timestep::Float64
     state_names::V
     default_state::W
 end
@@ -37,7 +37,7 @@ Duplicate an existing component into a [DuplicatedComponent](@ref).
     the number is variable and determined by the simulation. Defaults to `nothing`.
 - `name::AbstractString`: Name of the duplicated component. Defaults to the original
     component's name.
-- `time_step::Real`: Time step for the duplicated component. Defaults to the original
+- `timestep::Real`: Time step for the duplicated component. Defaults to the original
     component's time step.
 - `state_names`: A dictionary mapping variable names (as strings) to their corresponding
     variables in the original component. Defaults to the original component's state names.
@@ -46,10 +46,10 @@ Duplicate an existing component into a [DuplicatedComponent](@ref).
 """
 function DuplicatedComponent(component::AbstractTimeDependentComponent,
         init_states::AbstractVector; instances::Union{Int, Nothing} = nothing,
-        name::AbstractString = component.name, time_step::Real = component.time_step,
+        name::AbstractString = component.name, timestep::Real = component.timestep,
         state_names = component.state_names,
         default_state = zeros(length(init_states[1])))
-    return DuplicatedComponent(component, instances, name, init_states, time_step,
+    return DuplicatedComponent(component, instances, name, init_states, timestep,
         state_names, default_state)
 end
 
