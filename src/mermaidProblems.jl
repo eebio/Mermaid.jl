@@ -62,16 +62,17 @@ function CommonSolve.init(prob::AbstractMermaidProblem, alg::AbstractMermaidSolv
 
     # Process save_vars
     if isnothing(save_vars) || save_vars == :all
-        save_vars = String[]
+        tmp = String[]
         for int in integrators
             for var in variables(int)
                 if var[1] != '#' || save_vars == :all
-                    push!(save_vars, string(name(int), ".", var))
+                    push!(tmp, string(name(int), ".", var))
                 end
             end
         end
+        save_vars = tmp
     end
-    if length(save_vars) == 0 || save_vars == :none
+    if (save_vars isa AbstractVector && length(save_vars) == 0) || save_vars == :none
         save_vars = String[]
     end
 
@@ -80,7 +81,7 @@ function CommonSolve.init(prob::AbstractMermaidProblem, alg::AbstractMermaidSolv
         saveat = (integrator, t) -> true
     end
     if saveat isa Number
-        saveat = tspan[1]:saveat:tspan[2]
+        saveat = prob.tspan[1]:saveat:prob.tspan[2]
     end
     return MermaidIntegrator(
         integrators, prob.connectors, prob.tspan, 0.0, alg, save_vars, saveat, prob.timescales)
