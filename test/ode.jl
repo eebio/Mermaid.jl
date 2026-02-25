@@ -27,7 +27,7 @@
     c1 = DEComponent(
         prob1, Euler();
         name = "Prey",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -35,7 +35,7 @@
     c2 = DEComponent(
         prob2, Euler();
         name = "Predator",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -64,7 +64,7 @@
     c2 = DEComponent(
         prob2;
         name = "Predator",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
         intkwargs = ()
     )
@@ -92,7 +92,7 @@ end
     c1 = DEComponent(
         prob, Euler();
         name = "Prey",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => x, "predator" => y),
         intkwargs = (:adaptive => false,)
     )
@@ -105,7 +105,7 @@ end
     c2 = DEComponent(
         prob, Euler();
         name = "Predator",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => x, "predator" => y),
         intkwargs = (:adaptive => false,)
     )
@@ -150,7 +150,7 @@ end
     c1 = DEComponent(
         prob, Rodas5();
         name = "Lotka-Volterra",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2)
     )
 

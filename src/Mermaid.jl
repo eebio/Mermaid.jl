@@ -16,7 +16,7 @@ export AbstractMermaidSolver, MinimumTimeStepper
 export MermaidSolution
 export solve!, solve, init, step!
 export getstate, setstate!, gettime, settime!
-export name, time_step, variables
+export name, timestep, variables
 export fullname, runconnection, runconnection!
 
 # Include src files
