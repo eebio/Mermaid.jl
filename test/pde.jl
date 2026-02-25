@@ -67,7 +67,7 @@
         name = "PDE",
         state_names = OrderedDict("u" => [var_index("u[" * string(i) * "]") for i in 2:10],
             "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
-        time_step = 0.0001,
+        timestep = 0.0001,
         intkwargs = (:adaptive => false,)
     )
 
@@ -80,7 +80,7 @@
     c2 = DEComponent(
         prob, Euler();
         name = "G",
-        time_step = 0.0001,
+        timestep = 0.0001,
         state_names = OrderedDict("g" => 1),
         intkwargs = (:adaptive => false,)
     )
@@ -137,7 +137,7 @@ end
         name = "PDE",
         state_names = OrderedDict("u" => [var_index("u[" * string(i) * "]") for i in 2:10],
             "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
-        time_step = 0.01
+        timestep = 0.01
     )
 
     conn1 = Connector(
@@ -198,7 +198,7 @@ end
     c1 = MOLComponent(prob, Tsit5();
         name = "PDE",
         state_names = OrderedDict("u" => u, "g" => g),
-        time_step = 0.01
+        timestep = 0.01
     )
     int = init(c1)
     @test_throws ArgumentError getstate(int, ConnectedVariable("PDE.u"))

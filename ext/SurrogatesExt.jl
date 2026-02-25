@@ -19,7 +19,7 @@ Represents a component that is replaced with a surrogate in the simulation, spee
 
 # Keyword Arguments
 - `name::AbstractString`: Name of the component. Defaults to the same as the original component.
-- `time_step::Real`: Time step for the component. Defaults to the same as the original component.
+- `timestep::Real`: Time step for the component. Defaults to the same as the original component.
 - `model`: A Flux.jl model to use as the surrogate. If `nothing`, a default feedforward neural network is created.
 - `state_names`: Dictionary mapping variable names (as strings) to their corresponding indices in the
     state vector or symbols from ModelingToolkit/Symbolics. Defaults to the same as the original component.
@@ -28,10 +28,10 @@ Represents a component that is replaced with a surrogate in the simulation, spee
 """
 function Mermaid.SurrogateComponent(
         component::AbstractTimeDependentComponent, surrogate, lower_bound, upper_bound;
-        name::AbstractString = component.name, time_step::Real = component.time_step,
+        name::AbstractString = component.name, timestep::Real = component.timestep,
         state_names = component.state_names, n_samples::Integer = 1000, kwargs = ())
     return Mermaid.SurrogateComponent(
-        component, name, surrogate, time_step, state_names, lower_bound,
+        component, name, surrogate, timestep, state_names, lower_bound,
         upper_bound, n_samples, kwargs)
 end
 
@@ -69,7 +69,7 @@ function CommonSolve.step!(compInt::SurrogateComponentIntegrator)
     else
         compInt.state = vec(surr)
     end
-    compInt.time += compInt.component.time_step
+    compInt.time += compInt.component.timestep
 end
 
 function Mermaid.getstate(compInt::SurrogateComponentIntegrator, key)

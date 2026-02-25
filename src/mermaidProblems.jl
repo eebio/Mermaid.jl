@@ -201,14 +201,14 @@ function getstate(int::AbstractComponentIntegrator; copy = false)
 end
 
 """
-    time_step(int::AbstractComponent)
-    time_step(comp::AbstractComponentIntegrator)
+    timestep(int::AbstractComponent)
+    timestep(comp::AbstractComponentIntegrator)
 
 Get the proposed time step of the integrator or component. It can depend on the current
     state.
 """
-time_step(comp::AbstractComponent) = comp.time_step
-time_step(int::AbstractComponentIntegrator) = time_step(int.component)
+timestep(comp::AbstractComponent) = comp.timestep
+timestep(int::AbstractComponentIntegrator) = timestep(int.component)
 
 """
     name(int::AbstractComponentIntegrator)

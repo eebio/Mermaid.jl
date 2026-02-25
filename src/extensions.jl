@@ -7,7 +7,7 @@ struct DEComponent{A, B, C, D, E, F} <: AbstractTimeDependentComponent
     model::A
     name::B
     state_names::C
-    time_step::D
+    timestep::D
     alg::E
     intkwargs::F
 end
@@ -21,7 +21,7 @@ struct AgentsComponent{A, B, C, D} <: AbstractTimeDependentComponent
     model::A
     name::B
     state_names::C
-    time_step::D
+    timestep::D
 end
 
 mutable struct AgentsComponentIntegrator{A, B} <: AbstractComponentIntegrator
@@ -33,7 +33,7 @@ struct MOLComponent{A, B, C, D, E, F} <: AbstractTimeDependentComponent
     model::A
     name::B
     state_names::C
-    time_step::D
+    timestep::D
     alg::E
     intkwargs::F
 end
@@ -47,7 +47,7 @@ struct SurrogateComponent{A, B, C, D, E, F, G, H, I} <: AbstractTimeDependentCom
     component::A
     name::B
     surrogate::C
-    time_step::D
+    timestep::D
     state_names::E
     lower_bound::F
     upper_bound::G

@@ -7,7 +7,7 @@ using OrderedCollections: OrderedDict
 
 """
     DEComponent(model::DiffEqBase.AbstractDEProblem, alg;
-                name::String="DE Component", time_step::Float64=1.0, intkwargs::Tuple=(),
+                name::String="DE Component", timestep::Float64=1.0, intkwargs::Tuple=(),
                 state_names::Dict{String,Any}=Dict{String,Any}())
     DEComponent(model::DiffEqBase.AbstractDEProblem; kwargs...)
 
@@ -19,16 +19,16 @@ using OrderedCollections: OrderedDict
 
 # Keyword Arguments
 - `name::AbstractString`: Name of the component. Defaults to "DE Component".
-- `time_step::Real`: Time step for the component. Defaults to 1.0.
+- `timestep::Real`: Time step for the component. Defaults to 1.0.
 - `intkwargs`: Additional keyword arguments for the DE solver. Defaults to no keywords.
 - `state_names`: Dictionary mapping variable names (as strings) to their corresponding
     indices in the state vector or symbols from Symbolics.jl. Defaults to an empty
     dictionary.
 """
 function Mermaid.DEComponent(model::DiffEqBase.AbstractDEProblem,
-        alg; name = "DE Component", time_step::Real = 1.0, intkwargs = (),
+        alg; name = "DE Component", timestep::Real = 1.0, intkwargs = (),
         state_names = Dict{String, Any}())
-    return Mermaid.DEComponent(model, name, state_names, time_step, alg, intkwargs)
+    return Mermaid.DEComponent(model, name, state_names, timestep, alg, intkwargs)
 end
 
 function Mermaid.DEComponent(model::DiffEqBase.AbstractDEProblem; kwargs...)
@@ -37,12 +37,12 @@ end
 
 function CommonSolve.init(c::Mermaid.DEComponent)
     integrator = Mermaid.DEComponentIntegrator(
-        init(c.model, c.alg; dt = c.time_step, c.intkwargs...), c)
+        init(c.model, c.alg; dt = c.timestep, c.intkwargs...), c)
     return integrator
 end
 
 function CommonSolve.step!(compInt::Mermaid.DEComponentIntegrator)
-    CommonSolve.step!(compInt.integrator, time_step(compInt), true)
+    CommonSolve.step!(compInt.integrator, timestep(compInt), true)
 end
 
 function Mermaid.getstate(compInt::Mermaid.DEComponentIntegrator, key)

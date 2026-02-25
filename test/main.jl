@@ -50,7 +50,7 @@ end
         name = "Schelling",
         state_names = OrderedDict("min_to_be_happy" => :min_to_be_happy,
             "list_property" => :list_property, "mood" => :mood, "group" => :group),
-        time_step = 1.0
+        timestep = 1.0
     )
 
     mp = MermaidProblem(components = [c1], connectors = [], tspan = (0.0, 10.0))
@@ -157,7 +157,7 @@ end
     c1 = DEComponent(
         prob1, Euler();
         name = "Prey",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -165,7 +165,7 @@ end
     c2 = DEComponent(
         prob2, Euler();
         name = "Predator",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -267,7 +267,7 @@ end
         name = "Schelling",
         state_names = OrderedDict("min_to_be_happy" => :min_to_be_happy,
             "list_property" => :list_property, "mood" => :mood, "group" => :group),
-        time_step = 1.0
+        timestep = 1.0
     )
     conn1 = Connector(
         inputs = ["Schelling.group[1]", "Schelling.group[2]", "Schelling.group[3]"],
@@ -312,7 +312,7 @@ end
     c1 = DEComponent(
         prob1, Euler();
         name = "Prey",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -320,7 +320,7 @@ end
     c2 = DEComponent(
         prob2, Euler();
         name = "Predator",
-        time_step = 0.002 * 60,
+        timestep = 0.002 * 60,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -328,7 +328,7 @@ end
     c3 = DEComponent(
         prob3, Euler();
         name = "Predator",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
         intkwargs = (:adaptive => false,)
     )
@@ -342,8 +342,12 @@ end
         outputs = ["Predator.prey"]
     )
 
+<<<<<<< improve-saving
     mp1 = MermaidProblem(
         components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 10.0),
+=======
+    mp1 = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0,
+>>>>>>> main
         timescales = [1, 1 // 60])
 
     mp2 = MermaidProblem(
