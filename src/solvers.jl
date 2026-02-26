@@ -17,6 +17,10 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
             min_t = next_t
         end
     end
+    # Stop early if the user requested to save somewhere
+    if merInt.saveat isa AbstractVector && any(merInt.currtime .< merInt.saveat .< min_t)
+        min_t = first(merInt.saveat[merInt.saveat .> merInt.currtime])
+    end
     merInt.currtime = min_t
     # Apply connections
     for conn in merInt.connectors

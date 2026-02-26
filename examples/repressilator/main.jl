@@ -11,7 +11,7 @@ Random.seed!(123)
 
 using .Repressilator
 
-maxt = 15.0
+max_t = 15.0
 use_improved = false
 
 repressilator = Repressilator.repressilator
@@ -109,9 +109,9 @@ lines!(ax_1, t, gfp1, color = :black, label = "Total", linewidth = 3)
 lines!(ax_1_2, t, size1, color = :blue, label = "Size", linewidth = 3)
 lines!(ax_1_2, t, nut1, color = :green, label = "Nutrients", linewidth = 3)
 vlines!(ax_1, 0.0, color = :grey, linestyle = :dash, linewidth = 3)
-Makie.xlims!(ax_1, 0, maxt)
+Makie.xlims!(ax_1, 0, max_t)
 Makie.ylims!(ax_1, 0, use_improved ? 100000 : 2000)
-Makie.xlims!(ax_1_2, 0, maxt)
+Makie.xlims!(ax_1_2, 0, max_t)
 Makie.ylims!(ax_1_2, 0, 5.0)
 gfp2_layout = plot_layout[2, 1] = GridLayout()
 ax_2 = Axis(gfp2_layout[1, 1], title = "Cell 2", xlabel = "Time (Generations)",
@@ -123,9 +123,9 @@ lines!(ax_2, t, gfp2, color = :black, label = "Total", linewidth = 3)
 lines!(ax_2_2, t, size2, color = :blue, label = "Size", linewidth = 3)
 lines!(ax_2_2, t, nut2, color = :green, label = "Nutrients", linewidth = 3)
 vlines!(ax_2, 0.0, color = :grey, linestyle = :dash, linewidth = 3)
-Makie.xlims!(ax_2, 0, maxt)
+Makie.xlims!(ax_2, 0, max_t)
 Makie.ylims!(ax_2, 0, use_improved ? 100000 : 2000)
-Makie.xlims!(ax_2_2, 0, maxt)
+Makie.xlims!(ax_2_2, 0, max_t)
 Makie.ylims!(ax_2_2, 0, 5.0)
 resize_to_layout!(fig)
 io = VideoStream(fig; framerate = 20)
@@ -232,7 +232,7 @@ if use_improved
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
             conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
-        max_t = maxt
+        tspan = (0, max_t)
     )
 else
     mp = MermaidProblem(
@@ -240,7 +240,7 @@ else
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
             conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
-        max_t = maxt
+        tspan = (0, max_t)
     )
 end
 

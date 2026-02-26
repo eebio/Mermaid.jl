@@ -5,7 +5,7 @@ using CommonSolve
     MermaidProblem(;
         components::Vector{AbstractComponent},
         connectors::Vector{AbstractConnector},
-        max_t::Float64=1.0,
+        tspan::Tuple{Float64, Float64},
         timescales::Vector{Float64}=ones(length(components)))
 
 Defines a Mermaid hybrid simulation problem.
@@ -13,7 +13,7 @@ Defines a Mermaid hybrid simulation problem.
 # Keyword Arguments
 - `components::Vector{<:AbstractComponent}`: Vector of Components.
 - `connectors::Vector{<:AbstractConnector}`: Vector of [Connector](@ref).
-- `max_t::Float64`=1.0: Maximum simulation time. Defaults to 1.0.
+- `tspan::Tuple{Float64, Float64}`: The time span of the simulation.
 - `timescales::Vector{Float64}`=ones(length(components)): Timescales for each component.
     Each component's timescale will be multiplied by the component's time to convert it to
     the universal simulation time.
@@ -21,46 +21,70 @@ Defines a Mermaid hybrid simulation problem.
 @kwdef struct MermaidProblem <: AbstractMermaidProblem
     components::Vector{AbstractComponent}
     connectors::Vector{AbstractConnector}
-    max_t::Float64 = 1.0
+    tspan::Tuple{Float64, Float64}
     timescales::Vector{Float64} = ones(length(components))
 end
 
-"""
-    MermaidIntegrator <: AbstractMermaidIntegrator
-    MermaidIntegrator(
-        integrators::Vector{AbstractComponentIntegrator},
-        connectors::Vector{AbstractConnector},
-        maxt::Float64,
-        currtime::Float64,
-        alg::AbstractMermaidSolver,
-        save_vars::Vector{String})
-
-Defines the integrator for a Mermaid hybrid simulation.
-
-# Fields
-- `integrators::Vector{<:AbstractComponentIntegrator}`: Vector of component integrators.
-- `connectors::Vector{<:AbstractConnector}`: Vector of [Connector](@ref) between components.
-- `maxt::Float64`: Maximum simulation time.
-- `currtime::Float64`: Current simulation time.
-- `alg::AbstractMermaidSolver`: The Mermaid solver algorithm to be used.
-- `save_vars::Vector{String}`: Variables to be saved during the simulation.
-"""
-mutable struct MermaidIntegrator{X <: AbstractMermaidSolver} <: AbstractMermaidIntegrator
+mutable struct MermaidIntegrator{X <: AbstractMermaidSolver, S <: Union{Function, AbstractVector}} <: AbstractMermaidIntegrator
     integrators::Vector{<:AbstractComponentIntegrator}
     connectors::Vector{<:AbstractConnector}
-    maxt::Float64
+    tspan::Tuple{Float64, Float64}
     currtime::Float64
     alg::X
     save_vars::Vector{<:AbstractString}
+    saveat::S
     timescales::Vector{Float64}
 end
 
-function CommonSolve.init(
-        prob::AbstractMermaidProblem, alg::AbstractMermaidSolver; save_vars = String[])
+"""
+    init(prob::AbstractMermaidProblem, alg::AbstractMermaidSolver;
+    save_vars = nothing, saveat = nothing)
+
+Defines the integrator for a Mermaid hybrid simulation.
+
+# Arguments
+- `prob::AbstractMermaidProblem`: The problem to be solved.
+- `alg::AbstractMermaidSolver`: The Mermaid solver algorithm to be used.
+- `save_vars`: Variables to be saved during the simulation. Options include:
+    - `:all`: Save all variables.
+    - `:none`: Save no variables. Equivalent to an empty vector.
+    - `Vector{String}`: A vector of connected variable names to save.
+    - `nothing`: Default. Save all non-special variables (i.e., variables that do not start with '#').
+- `saveat::Function`: When to save the variables during the simulation. Can be a function
+    that takes the integrator and current time and returns a boolean, or a vector of time
+    points at which to save, or a number representing the time interval (save at
+    `tspan[1]:saveat:tspan[2]`).
+"""
+function CommonSolve.init(prob::AbstractMermaidProblem, alg::AbstractMermaidSolver;
+        save_vars = nothing, saveat = nothing)
     # Initialize the solver
     integrators = [init(c) for c in prob.components]
+
+    # Process save_vars
+    if isnothing(save_vars) || save_vars == :all
+        tmp = String[]
+        for int in integrators
+            for var in variables(int)
+                if var[1] != '#' || save_vars == :all
+                    push!(tmp, string(name(int), ".", var))
+                end
+            end
+        end
+        save_vars = tmp
+    end
+    if (save_vars isa AbstractVector && length(save_vars) == 0) || save_vars == :none
+        save_vars = String[]
+    end
+
+    # Process saveat
+    if isnothing(saveat)
+        saveat = (integrator, t) -> true
+    end
+    if saveat isa Number
+        saveat = prob.tspan[1]:saveat:prob.tspan[2]
+    end
     return MermaidIntegrator(
-        integrators, prob.connectors, prob.max_t, 0.0, alg, save_vars, prob.timescales)
+        integrators, prob.connectors, prob.tspan, 0.0, alg, save_vars, saveat, prob.timescales)
 end
 
 function CommonSolve.step!(merInt::AbstractMermaidIntegrator)
@@ -81,12 +105,28 @@ Solves the problem using the [MermaidIntegrator](@ref). This handles all the mes
 """
 function CommonSolve.solve!(merInt::AbstractMermaidIntegrator)
     sol = MermaidSolution(merInt)
-    update_solution!(sol, merInt)
-    while merInt.currtime < merInt.maxt
-        step!(merInt)
+    if should_save(merInt, merInt.saveat)
         update_solution!(sol, merInt)
     end
+    while merInt.currtime < merInt.tspan[2]
+        step!(merInt)
+        if should_save(merInt, merInt.saveat)
+            update_solution!(sol, merInt)
+        end
+    end
     return sol
+end
+
+function should_save(merInt::AbstractMermaidIntegrator, saveat::AbstractVector)
+    if merInt.currtime in saveat
+        return true
+    else
+        return false
+    end
+end
+
+function should_save(merInt::AbstractMermaidIntegrator, saveat::Function)
+    return saveat(merInt, merInt.currtime)
 end
 
 function getstate(merInt::AbstractMermaidIntegrator, key::AbstractConnectedVariable)

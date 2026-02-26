@@ -56,12 +56,12 @@ In this section, we will compare how our surrogate performs compared with solvin
 alg = MinimumTimeStepper()
 
 # Benchmark the original component
-mp1 = MermaidProblem(components = [comp1], connectors = Connector[], max_t = longtime)
+mp1 = MermaidProblem(components = [comp1], connectors = Connector[], tspan = (0,longtime))
 ori_int = init(mp1, alg; save_vars = ["cell.v", "cell.ki"])
 original_time = @benchmark solve!(int) setup = (int = deepcopy(ori_int))
 
 # Benchmark the surrogate component
-mp2 = MermaidProblem(components = [surrogate_comp], connectors = Connector[], max_t = longtime)
+mp2 = MermaidProblem(components = [surrogate_comp], connectors = Connector[], tspan = (0,longtime))
 surr_int = init(mp2, alg; save_vars = ["cell.v", "cell.ki"])
 surrogate_time = @benchmark solve!(int) setup = (int = deepcopy(surr_int))
 
