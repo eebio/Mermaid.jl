@@ -138,5 +138,3 @@ function plot_ode()
     display(Plots.plot(sol, vars=[:M], xlabel="Time", title="Cell mass", linewidth=2))
     display(Plots.plot(sol, vars=[:λ], xlabel="Time", title="Growth rate", linewidth=2))
 end
-
-plot_ode()

@@ -111,5 +111,3 @@ module Repressilator
     end
 end
 using .Repressilator
-
-#Repressilator.plot_ode()
