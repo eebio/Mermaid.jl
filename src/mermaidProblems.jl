@@ -94,8 +94,8 @@ end
 """
     solve!(merInt::AbstractMermaidIntegrator)
 
-Solves the problem using the [MermaidIntegrator](@ref). This handles all the message passing
-    and calls step! on the [MermaidIntegrator](@ref).
+Solves the problem using the MermaidIntegrator. This handles all the message passing
+    and calls step! on the MermaidIntegrator.
 
 # Arguments
 - `merInt::AbstractMermaidIntegrator`: The integrator to be solved.

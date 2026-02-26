@@ -16,7 +16,7 @@ end
     MermaidSolution(int::MermaidIntegrator) <: AbstractMermaidSolution
 
 Create a [MermaidSolution](@ref) object initialized for the `save_vars`/variables in the
-    given [MermaidIntegrator](@ref).
+    given MermaidIntegrator.
 
 # Arguments
 - `int::MermaidIntegrator`: The integrator to extract solution structure from.
@@ -37,7 +37,7 @@ end
     update_solution!(sol::MermaidSolution, merInt::MermaidIntegrator)
 
 Update the [MermaidSolution](@ref) `sol` with the current time and state from the
-    [MermaidIntegrator](@ref).
+    MermaidIntegrator.
 
 # Arguments
 - `sol::MermaidSolution`: The [MermaidSolution](@ref) to be updated.

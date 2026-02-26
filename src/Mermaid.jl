@@ -89,7 +89,7 @@ function step! end
     init(prob::MermaidProblem, alg::MermaidSolver; save_vars=[])
     init(comp::AbstractComponent)
 
-Initialises an integrator ([MermaidIntegrator](@ref) or [AbstractComponentIntegrator](@ref))
+Initialises an integrator (MermaidIntegrator or [AbstractComponentIntegrator](@ref))
     for the given [MermaidProblem](@ref)/[AbstractComponent](@ref).
 
 # Arguments
