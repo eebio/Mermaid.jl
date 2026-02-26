@@ -11,7 +11,7 @@ Random.seed!(123)
 
 using .Repressilator
 
-max_t = 15.0
+max_t = 10.0
 use_improved = false
 
 repressilator = Repressilator.repressilator
@@ -245,7 +245,10 @@ else
 end
 
 alg = MinimumTimeStepper()
-sol = solve(mp, alg)
+start_time = time()
+@profview sol = solve(mp, alg)
+end_time = time()
+println("Simulation took $(end_time - start_time) seconds")
 
 if use_improved
     save("examples/outputs/repressilator_imp.mp4", io)
