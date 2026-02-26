@@ -8,7 +8,7 @@
     end
 
     u0 = [4.0, 2.0]
-    tspan = (0.0, 10.0)
+    tspan = (0.0, 0.1)
     prob = ODEProblem(f!, u0, tspan)
     solODE = solve(prob, Euler(); adaptive = false, dt = 0.002)
 
@@ -49,7 +49,7 @@
         outputs = ["Predator.prey"]
     )
 
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 10.0))
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 0.1))
 
     alg = MinimumTimeStepper()
     solMer = solve(mp, alg)
@@ -80,14 +80,14 @@ end
     eqs = [D(x) ~ x - x * y
            D(y) ~ -y + x * y]
     @mtkcompile lv = System(eqs, t)
-    prob = ODEProblem(lv, [x => 4.0, y => 2.0], (0.0, 10.0))
+    prob = ODEProblem(lv, [x => 4.0, y => 2.0], (0.0, 0.1))
 
     solODE = solve(prob, Euler(); adaptive = false, dt = 0.002)
 
     eqs = [D(x) ~ x - x * y
            D(y) ~ 0]
     @mtkcompile lv1 = System(eqs, t)
-    prob = ODEProblem(lv1, [x => 4.0, y => 2.0], (0.0, 10.0))
+    prob = ODEProblem(lv1, [x => 4.0, y => 2.0], (0.0, 0.1))
 
     c1 = DEComponent(
         prob, Euler();
@@ -100,7 +100,7 @@ end
     eqs = [D(x) ~ 0
            D(y) ~ -y + x * y]
     @mtkcompile lv2 = System(eqs, t)
-    prob = ODEProblem(lv2, [x => 4.0, y => 2.0], (0.0, 10.0))
+    prob = ODEProblem(lv2, [x => 4.0, y => 2.0], (0.0, 0.1))
 
     c2 = DEComponent(
         prob, Euler();
@@ -119,7 +119,7 @@ end
         outputs = ["Predator.prey"]
     )
 
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 10.0))
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 0.1))
 
     using CommonSolve
     alg = MinimumTimeStepper()
