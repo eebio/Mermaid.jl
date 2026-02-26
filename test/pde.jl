@@ -137,7 +137,7 @@ end
         name = "PDE",
         state_names = OrderedDict("u" => [var_index("u[" * string(i) * "]") for i in 2:10],
             "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
-        timestep = 0.01
+        timestep = 0.0001
     )
 
     conn1 = Connector(
@@ -198,7 +198,7 @@ end
     c1 = MOLComponent(prob, Tsit5();
         name = "PDE",
         state_names = OrderedDict("u" => u, "g" => g),
-        timestep = 0.01
+        timestep = 0.0001
     )
     int = init(c1)
     @test_throws ArgumentError getstate(int, ConnectedVariable("PDE.u"))
