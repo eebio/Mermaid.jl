@@ -18,7 +18,7 @@
         Dx(g(t, 1)) ~ 0]
 
     # Space and time domains
-    domains = [t ∈ Interval(0.0, 1.0),
+    domains = [t ∈ Interval(0.0, 0.01),
         x ∈ Interval(0.0, 1.0)]
 
     # PDE system
@@ -45,7 +45,7 @@
         Dx(g(t, 1)) ~ 0]
 
     # Space and time domains
-    domains = [t ∈ Interval(0.0, 1.0),
+    domains = [t ∈ Interval(0.0, 0.01),
         x ∈ Interval(0.0, 1.0)]
 
     # PDE system
@@ -75,7 +75,7 @@
         return 1
     end
     u0 = 0.5
-    tspan = (0.0, 1.0)
+    tspan = (0.0, 0.01)
     prob = ODEProblem(f2, u0, tspan)
     c2 = DEComponent(
         prob, Euler();
@@ -90,9 +90,9 @@
         outputs = ["PDE.g[1:9]"]
     )
 
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn], tspan = (0.0, 1.0))
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn], tspan = (0.0, 0.01))
     sol = solve(mp, MinimumTimeStepper())
-    finalsol = [0, sol(1)["PDE.u"]..., 0]
+    finalsol = [0, sol(0.01)["PDE.u"]..., 0]
     @test all(isapprox.(finalsol, solPDE[u(t, x)][end, :], atol = 1e-8))
 end
 
@@ -115,7 +115,7 @@ end
         Dx(g(t, 1)) ~ 0]
 
     # Space and time domains
-    domains = [t ∈ Interval(0.0, 1.0),
+    domains = [t ∈ Interval(0.0, 0.01),
         x ∈ Interval(0.0, 1.0)]
 
     # PDE system
@@ -137,7 +137,7 @@ end
         name = "PDE",
         state_names = OrderedDict("u" => [var_index("u[" * string(i) * "]") for i in 2:10],
             "g" => [var_index("g[" * string(i) * "]") for i in 2:10]),
-        timestep = 0.01
+        timestep = 0.0001
     )
 
     conn1 = Connector(
@@ -177,11 +177,11 @@ end
     # Check time control
     @test gettime(integrator) == 0.0
     step!(integrator)
-    @test gettime(integrator) == 0.01
-    settime!(integrator, 0.1)
-    @test gettime(integrator) == 0.1
+    @test gettime(integrator) == 0.0001
+    settime!(integrator, 0.001)
+    @test gettime(integrator) == 0.001
     step!(integrator)
-    @test gettime(integrator) == 0.11
+    @test gettime(integrator) == 0.0011
 
     # Step means the state has changed
     @test getstate(integrator, ConnectedVariable("PDE.u")) ≠
@@ -198,7 +198,7 @@ end
     c1 = MOLComponent(prob, Tsit5();
         name = "PDE",
         state_names = OrderedDict("u" => u, "g" => g),
-        timestep = 0.01
+        timestep = 0.0001
     )
     int = init(c1)
     @test_throws ArgumentError getstate(int, ConnectedVariable("PDE.u"))

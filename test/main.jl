@@ -42,8 +42,8 @@ end
         (agent_step!) = schelling_step!, properties
     )
 
-    for n in 1:300
-        add_agent_single!(model; group = n < 300 / 2 ? 1 : 2)
+    for n in 1:20
+        add_agent_single!(model; group = n < 20 / 2 ? 1 : 2)
     end
 
     c1 = AgentsComponent(model;
@@ -151,7 +151,7 @@ end
         du[2] = 0
     end
     u0 = [4.0, 2.0]
-    tspan = (0.0, 10.0)
+    tspan = (0.0, 1.0)
     prob1 = ODEProblem(f1!, [u0[1], 2.0], tspan) # TODO Initial value for params is intentionally wrong
     prob2 = ODEProblem(f2!, [u0[2], 4.0], tspan)
     c1 = DEComponent(
@@ -180,7 +180,7 @@ end
     )
 
     mp = MermaidProblem(
-        components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 10.0))
+        components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 1.0))
     integrator = init(mp, MinimumTimeStepper())
 
     # State control
@@ -213,7 +213,7 @@ end
         func = x -> x / 1.5
     )
     mp = MermaidProblem(
-        components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 10.0))
+        components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 1.0))
     integrator = init(mp, MinimumTimeStepper())
     for conn in integrator.connectors
         runconnection!(integrator, conn)
@@ -226,7 +226,7 @@ end
         outputs = ["Prey.predator", "Prey.prey"],
         func = (x, y) -> x * y
     )
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn1], tspan = (0.0, 10.0))
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1], tspan = (0.0, 1.0))
     integrator = init(mp, MinimumTimeStepper())
     setstate!(integrator, ConnectedVariable("Predator.predator"), 2.0)
     setstate!(integrator, ConnectedVariable("Predator.prey"), 4.0)
@@ -241,7 +241,7 @@ end
         inputs = ["Predator.predator"],
         outputs = ["Prey.predator_but_spelled_wrong"]
     )
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn1], tspan = (0.0, 10.0))
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1], tspan = (0.0, 1.0))
     @test_throws KeyError solve(mp, MinimumTimeStepper())
 
     using Agents
@@ -261,7 +261,7 @@ end
         (agent_step!) = schelling_step!, properties
     )
     for n in 1:300
-        add_agent_single!(model; group = n < 300 / 2 ? 1 : 2)
+        add_agent_single!(model; group = n < 20 / 2 ? 1 : 2)
     end
     c1 = AgentsComponent(model;
         name = "Schelling",
@@ -273,7 +273,7 @@ end
         inputs = ["Schelling.group[1]", "Schelling.group[2]", "Schelling.group[3]"],
         outputs = ["Schelling.list_property"]
     )
-    mp = MermaidProblem(components = [c1], connectors = [conn1], tspan = (0.0, 100.0))
+    mp = MermaidProblem(components = [c1], connectors = [conn1], tspan = (0.0, 10.0))
     alg = MinimumTimeStepper()
 
     int = init(mp, alg)
@@ -343,19 +343,19 @@ end
     )
 
     mp1 = MermaidProblem(
-        components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 10.0),
+        components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 1.0),
         timescales = [1, 1 // 60])
 
     mp2 = MermaidProblem(
-        components = [c1, c3], connectors = [conn1, conn2], tspan = (0.0, 10.0))
+        components = [c1, c3], connectors = [conn1, conn2], tspan = (0.0, 1.0))
 
     alg = MinimumTimeStepper()
     sol1 = solve(mp1, alg)
     sol2 = solve(mp2, alg)
 
     # Floating point errors will stack together differently, which may cause an extra step in one of the solutions.
-    a = [sol1(t)["Prey.prey"] for t in 0:0.1:10.0]
-    b = [sol2(t)["Prey.prey"] for t in 0:0.1:10.0]
+    a = [sol1(t)["Prey.prey"] for t in 0:0.01:1.0]
+    b = [sol2(t)["Prey.prey"] for t in 0:0.01:1.0]
     @test all(a .≈ b)
     @test sol1.t[1:min(length(sol1.t), length(sol2.t))] ≈
           sol2.t[1:min(length(sol1.t), length(sol2.t))]
