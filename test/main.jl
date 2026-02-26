@@ -342,12 +342,8 @@ end
         outputs = ["Predator.prey"]
     )
 
-<<<<<<< improve-saving
     mp1 = MermaidProblem(
         components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 10.0),
-=======
-    mp1 = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0,
->>>>>>> main
         timescales = [1, 1 // 60])
 
     mp2 = MermaidProblem(

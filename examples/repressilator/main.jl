@@ -30,32 +30,20 @@ rep = DEComponent(sde,
     name = "repressilator",
     state_names = Dict("gfp" => repressilator.gfp,
         "growth_rate" => repressilator.gr, "volume" => repressilator.V),
-<<<<<<< improve-saving
-    time_step = agents.dt, intkwargs = (:maxiters => Inf, :save_everystep => false))
-=======
     timestep = agents.dt, intkwargs = (:maxiters => Inf, :save_everystep => false))
->>>>>>> main
 
 rep_imp = DEComponent(sde_improved,
     EM();
     name = "repressilator",
     state_names = Dict("gfp" => improved.gfp,
         "growth_rate" => improved.gr, "volume" => improved.V),
-<<<<<<< improve-saving
-    time_step = agents.dt, intkwargs = (:maxiters => Inf, :save_everystep => false))
-=======
     timestep = agents.dt, intkwargs = (:maxiters => Inf, :save_everystep => false))
->>>>>>> main
 
 abm = AgentsComponent(agents;
     name = "cells",
     state_names = Dict("gfp" => :gfp, "size" => :size, "nutrients" => :nuts,
         "nut_import_rate" => :nut_import_rate),
-<<<<<<< improve-saving
-    time_step = agents.dt
-=======
     timestep = agents.dt
->>>>>>> main
 )
 
 gro = DEComponent(growth,
@@ -63,11 +51,7 @@ gro = DEComponent(growth,
     name = "growth",
     state_names = Dict(
         "s" => g_model.s, "λ" => g_model.λ, "mass" => g_model.M, "import" => g_model.ν_imp),
-<<<<<<< improve-saving
-    time_step = agents.dt, intkwargs = (
-=======
     timestep = agents.dt, intkwargs = (
->>>>>>> main
         :maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u),
         :save_everystep => false))
 
@@ -125,11 +109,7 @@ lines!(ax_1, t, gfp1, color = :black, label = "Total", linewidth = 3)
 lines!(ax_1_2, t, size1, color = :blue, label = "Size", linewidth = 3)
 lines!(ax_1_2, t, nut1, color = :green, label = "Nutrients", linewidth = 3)
 vlines!(ax_1, 0.0, color = :grey, linestyle = :dash, linewidth = 3)
-<<<<<<< improve-saving
 Makie.xlims!(ax_1, 0, max_t)
-=======
-Makie.xlims!(ax_1, 0, maxt)
->>>>>>> main
 Makie.ylims!(ax_1, 0, use_improved ? 100000 : 2000)
 Makie.xlims!(ax_1_2, 0, max_t)
 Makie.ylims!(ax_1_2, 0, 5.0)
@@ -143,11 +123,7 @@ lines!(ax_2, t, gfp2, color = :black, label = "Total", linewidth = 3)
 lines!(ax_2_2, t, size2, color = :blue, label = "Size", linewidth = 3)
 lines!(ax_2_2, t, nut2, color = :green, label = "Nutrients", linewidth = 3)
 vlines!(ax_2, 0.0, color = :grey, linestyle = :dash, linewidth = 3)
-<<<<<<< improve-saving
 Makie.xlims!(ax_2, 0, max_t)
-=======
-Makie.xlims!(ax_2, 0, maxt)
->>>>>>> main
 Makie.ylims!(ax_2, 0, use_improved ? 100000 : 2000)
 Makie.xlims!(ax_2_2, 0, max_t)
 Makie.ylims!(ax_2_2, 0, 5.0)
@@ -256,11 +232,7 @@ if use_improved
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
             conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
-<<<<<<< improve-saving
         tspan = (0, max_t)
-=======
-        max_t = maxt
->>>>>>> main
     )
 else
     mp = MermaidProblem(
@@ -268,11 +240,7 @@ else
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
             conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
-<<<<<<< improve-saving
         tspan = (0, max_t)
-=======
-        max_t = maxt
->>>>>>> main
     )
 end
 
