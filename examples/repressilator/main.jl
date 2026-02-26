@@ -246,7 +246,7 @@ end
 
 alg = MinimumTimeStepper()
 start_time = time()
-@profview sol = solve(mp, alg)
+@profview sol = solve(mp, alg; save_vars = :none)
 end_time = time()
 println("Simulation took $(end_time - start_time) seconds")
 
