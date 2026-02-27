@@ -137,7 +137,7 @@ function plot_input(model)
     push!(nut2, model[2].nuts)
     push!(size1, model[1].size^3)
     push!(size2, model[2].size^3)
-    if abmtime(model) % 10 == 0
+    if abmtime(model) % Int(0.1 / model.dt) == 0
         empty!(ax)
         empty!(ax_1)
         empty!(ax_2)
