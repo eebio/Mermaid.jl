@@ -130,7 +130,11 @@ end
 
 function place_daughter_cell!(model, i, t)
     parent = model[i]
-    daughter = sample_voronoi_cell(model.tessellation, parent.index) # this is an SVector, not a Cell
+    daughter = SVector(rand()-0.5, rand()-0.5) * 2 * 0.2 * parent.size
+    while norm(daughter) > 0.2 * parent.size
+        daughter = SVector(rand()-0.5, rand()-0.5) * 2 * 0.2 * parent.size
+    end
+    daughter = parent.pos + daughter
     add_agent!(daughter, model; birth=t, gfp=parent.gfp, vel=SVector(0.0, 0.0), parent=parent, size=parent.size*0.5^(1/3), nuts=parent.nuts)
     return daughter
 end
