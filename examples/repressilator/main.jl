@@ -1,5 +1,6 @@
 using Mermaid
 using StochasticDiffEq
+using SymbolicIndexingInterface
 
 include("gfp.jl")
 includet("cells.jl")
@@ -28,15 +29,17 @@ g_model = get_growth_model()
 rep = DEComponent(sde,
     EM();
     name = "repressilator",
-    state_names = Dict("gfp" => repressilator.gfp,
-        "growth_rate" => repressilator.gr, "volume" => repressilator.V),
+    state_names = Dict("gfp" => variable_index(repressilator, :gfp),
+        "growth_rate" => variable_index(repressilator, :gr), "volume" => variable_index(
+            repressilator, :V)),
     timestep = agents.dt, intkwargs = (:maxiters => Inf, :save_everystep => false))
 
 rep_imp = DEComponent(sde_improved,
     EM();
     name = "repressilator",
-    state_names = Dict("gfp" => improved.gfp,
-        "growth_rate" => improved.gr, "volume" => improved.V),
+    state_names = Dict("gfp" => variable_index(improved, :gfp),
+        "growth_rate" => variable_index(improved, :gr), "volume" => variable_index(
+            improved, :V)),
     timestep = agents.dt, intkwargs = (:maxiters => Inf, :save_everystep => false))
 
 abm = AgentsComponent(agents;
@@ -50,7 +53,9 @@ gro = DEComponent(growth,
     Rosenbrock23();
     name = "growth",
     state_names = Dict(
-        "s" => g_model.s, "λ" => g_model.λ, "mass" => g_model.M, "import" => g_model.ν_imp),
+        "s" => variable_index(growth.f.sys, :s), "λ" => variable_index(growth.f.sys, :λ),
+        "mass" => variable_index(growth.f.sys, :M),
+        "import" => variable_index(growth.f.sys, :ν_imp)),
     timestep = agents.dt, intkwargs = (
         :maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u),
         :save_everystep => false))
