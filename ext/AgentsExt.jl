@@ -31,19 +31,20 @@ function Mermaid.AgentsComponent(model::StandardABM;
 end
 
 function CommonSolve.init(c::AgentsComponent)
-    integrator = AgentsComponentIntegrator(deepcopy(c.model), c)
+    integrator = AgentsComponentIntegrator(deepcopy(c.model), 0.0, c)
     return integrator
 end
 
 function CommonSolve.step!(compInt::AgentsComponentIntegrator)
     step!(compInt.integrator, timestep(compInt))
+    compInt.time += timestep(compInt)
 end
 
 function Mermaid.getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
     if first(key.variable) == '#'
         # Special variables
         if key.variable == "#time"
-            return abmtime(compInt.integrator) * compInt.component.timestep
+            return compInt.time
         end
         if key.variable == "#model"
             return getstate(compInt)
@@ -81,7 +82,7 @@ function Mermaid.setstate!(
     if first(key.variable) == '#'
         # Special variables
         if key.variable == "#time"
-            @warn "Agents.jl does not support setting time directly. The time is stored within #model. DuplicatedComponents of Agent-based models still works."
+            compInt.time = value
             return nothing
         end
         if key.variable == "#model"
