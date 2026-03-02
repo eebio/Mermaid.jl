@@ -182,11 +182,11 @@ function update_nutrients!(model, t)
         end
     end
     # Diffuse nutrients
-    tmp = copy(model.nutrients)
-    for x in 2:size(model.nutrients, 1)-1, y in 2:size(model.nutrients, 2)-1
-        tmp[x,y] = max(0, 0.99*model.nutrients[x,y] + 0.01*(sum(model.nutrients[x-1:x+1,y-1:y+1]) - model.nutrients[x,y]) / 8)
-    end
-    model.nutrients = tmp
+    #tmp = copy(model.nutrients)
+    #for x in 2:size(model.nutrients, 1)-1, y in 2:size(model.nutrients, 2)-1
+        #tmp[x,y] = max(0, 0.99*model.nutrients[x,y] + 0.01*(sum(model.nutrients[x-1:x+1,y-1:y+1]) - model.nutrients[x,y]) / 8)
+    #end
+    #model.nutrients = tmp
     return model
 end
 
