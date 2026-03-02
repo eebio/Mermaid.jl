@@ -80,7 +80,7 @@ conn_gfp = Connector(
     inputs = ["repressilator.gfp"],
     outputs = ["cells.gfp"]
 )
-
+#=
 voronoi_marker = (model, cell) -> begin
     #return :+
     verts = get_polygon_coordinates(model.tessellation, cell.index)
@@ -167,6 +167,7 @@ function plot_input(model)
         @show nagents(model)
     end
 end
+=#
 
 function set_initial_states!(states, ids, model) # Do mutating functions work in Mermaid connectors?
     # init_states is returned, states is mutated
@@ -248,7 +249,7 @@ start_time = time()
 @profview sol = solve(mp, alg; save_vars = ["cells.#model"], saveat = 0.1)
 end_time = time()
 println("Simulation took $(end_time - start_time) seconds")
-
+#=
 for model in sol["cells.#model"]
     plot_input(model)
 end
@@ -258,5 +259,5 @@ if use_improved
 else
     save("examples/outputs/repressilator.mp4", io)
 end
-
+=#
 # TODO There might be an assumption in Duplicated that the ids are consecutive, I have an error that tried to set the state of agents at 2365 - BoundsError: attempt to access 2364-element Vector{Any} at index [2365]
