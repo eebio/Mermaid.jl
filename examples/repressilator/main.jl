@@ -168,12 +168,6 @@ function plot_input(model)
     end
 end
 
-conn_plot = Connector(
-    inputs = ["cells.#model"],
-    outputs = Vector{String}(),
-    func = (model) -> plot_input(model)
-)
-
 function set_initial_states!(states, ids, model) # Do mutating functions work in Mermaid connectors?
     # init_states is returned, states is mutated
     init_states = Dict{Int, Vector{Float64}}()
@@ -236,7 +230,7 @@ if use_improved
         components = [dup_g, dup_i, abm], # TODO get awkward error when repressilator is run before growth
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
-            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
+            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp],
         tspan = (0, max_t)
     )
 else
@@ -244,16 +238,20 @@ else
         components = [dup_g, dup_r, abm], # TODO get awkward error when repressilator is run before growth
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
-            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
+            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp],
         tspan = (0, max_t)
     )
 end
 
 alg = MinimumTimeStepper()
 start_time = time()
-@profview sol = solve(mp, alg; save_vars = :none)
+@profview sol = solve(mp, alg; save_vars = ["cells.#model"], saveat = 0.1)
 end_time = time()
 println("Simulation took $(end_time - start_time) seconds")
+
+for model in sol["cells.#model"]
+    plot_input(model)
+end
 
 if use_improved
     save("examples/outputs/repressilator_imp.mp4", io)
