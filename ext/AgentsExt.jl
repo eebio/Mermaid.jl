@@ -46,7 +46,7 @@ function Mermaid.getstate(compInt::AgentsComponentIntegrator, key::ConnectedVari
             return abmtime(compInt.integrator) * compInt.component.timestep
         end
         if key.variable == "#model"
-            return getstate(compInt; copy = true)
+            return getstate(compInt)
         end
         if key.variable == "#ids"
             return collect(allids(compInt.integrator))
