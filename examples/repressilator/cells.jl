@@ -198,7 +198,6 @@ function model_step!(model)
     #cull_cells!(model, t)
     proliferate_cells!(model, t)
     model.triangulation = retriangulate(model.triangulation, collect(allagents(model)))
-    model.tessellation = voronoi(model.triangulation, clip=true)
     set_indexes(model)
     return model
 end
@@ -228,12 +227,10 @@ function initialize_cell_model(;
 
     # Compute the triangulation and the tessellation
     triangulation = triangulate(cells)
-    tessellation = voronoi(triangulation, clip=true)
 
     # Define the model parameters
     properties = Dict(
         :triangulation => triangulation,
-        :tessellation => tessellation,
         :dt => dt,
         :nutrients => ones(100,100),
     )
@@ -254,11 +251,6 @@ end
 
 count_total(model) = num_solid_vertices(model.triangulation)
 
-function average_cell_area(model)
-    area_itr = (get_area(model.tessellation, i) for i in each_solid_vertex(model.triangulation))
-    mean_area = mean(area_itr)
-    return mean_area
-end
 function cell_diameter(vorn, i)
     S = get_polygon(vorn, i)
     # This is an O(|S|^2) method, but |S| is small so it is fine
@@ -274,11 +266,6 @@ function cell_diameter(vorn, i)
     end
     return max_d
 end
-function average_cell_diameter(model)
-    diam_itr = (cell_diameter(model.tessellation, i) for i in each_solid_vertex(model.triangulation))
-    mean_diam = mean(diam_itr)
-    return mean_diam
-end
 function average_spring_length(model)
     spring_itr = []
     for (i, j) in each_solid_edge(model.triangulation)
@@ -286,61 +273,4 @@ function average_spring_length(model)
     end
     mean_spring = mean(spring_itr)
     return mean_spring
-end
-
-function animate_cells()
-    finalT = 25.0
-    model = initialize_cell_model()
-    nsteps = Int(finalT / model.dt)
-    mdata = [count_total,
-        average_cell_area, average_cell_diameter, average_spring_length]
-
-    time = 0:model.dt:finalT
-
-    voronoi_marker = (model, cell) -> begin
-        verts = get_polygon_coordinates(model.tessellation, cell.index)
-        return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
-    end
-    voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp)
-    model = initialize_cell_model() # reinitialise the model for the animation
-    fig, ax, amobs = abmplot(model, agent_marker=cell -> voronoi_marker(model, cell), agent_color=voronoi_color,
-        agentsplotkwargs=(strokewidth=1,), figure=(; size=(1600, 800), fontsize=34), mdata=mdata,
-        axis=(; width=800, height=800), when=10)
-    current_time = Observable(0.0)
-    t = Observable([0.0])
-    ntotal = Observable(amobs.mdf[][!, :count_total])
-    avg_area = Observable(amobs.mdf[][!, :average_cell_area])
-    avg_diam = Observable(amobs.mdf[][!, :average_cell_diameter])
-    avg_spring = Observable(amobs.mdf[][!, :average_spring_length])
-    plot_layout = fig[:, end+1] = GridLayout()
-    count_layout = plot_layout[1, 1] = GridLayout()
-    ax_count = Axis(count_layout[1, 1], xlabel="Time", ylabel="Count", width=600, height=400)
-    lines!(ax_count, t, ntotal, color=:black, label="Total", linewidth=3)
-    vlines!(ax_count, current_time, color=:grey, linestyle=:dash, linewidth=3)
-    xlims!(ax_count, 0, finalT)
-    ylims!(ax_count, 0, 7000)
-    avg_layout = plot_layout[2, 1] = GridLayout()
-    ax_avg = Axis(avg_layout[1, 1], xlabel="Time", ylabel="Average", width=600, height=400)
-    lines!(ax_avg, t, avg_area, color=:black, label="Cell area", linewidth=3)
-    lines!(ax_avg, t, avg_diam, color=:magenta, label="Cell diameter", linewidth=3)
-    lines!(ax_avg, t, avg_spring, color=:red, label="Spring length", linewidth=3)
-    vlines!(ax_avg, current_time, color=:grey, linestyle=:dash, linewidth=3)
-    axislegend(ax_avg, position=:rt)
-    xlims!(ax_avg, 0, finalT)
-    ylims!(ax_avg, 0, 1)
-    resize_to_layout!(fig)
-    on(amobs.mdf) do mdf
-        current_time[] = abmtime(amobs.model[]) * model.dt
-        t.val = mdf[!, :time] .* model.dt
-        ntotal[] = mdf[!, :count_total]
-        avg_area[] = mdf[!, :average_cell_area]
-        avg_diam[] = mdf[!, :average_cell_diameter]
-        avg_spring[] = mdf[!, :average_spring_length]
-    end
-
-    record(fig, "examples/outputs/delaunay_model.mp4", 1:(nsteps÷10), framerate=24) do i
-        step!(amobs, 10)
-        println("Time $(abmtime(amobs.model[])*model.dt). Number of cells: $(count_total(amobs.model[]))")
-    end
-    return nothing
 end
