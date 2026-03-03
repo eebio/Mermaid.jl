@@ -18,6 +18,12 @@ const DT = DelaunayTriangulation
     size::Float64
 end
 
+mutable struct ModelProperties
+    triangulation::DT.Triangulation
+    dt::Float64
+    nutrients::Matrix{Float64}
+end
+
 DT.getx(cell::Cell) = cell.pos[1]
 DT.gety(cell::Cell) = cell.pos[2]
 DT.number_type(::Type{Cell}) = Float64
@@ -65,16 +71,16 @@ function force(model, p, q, t)
     return μ * (norm(rᵢⱼ) - s) * rᵢⱼ / norm(rᵢⱼ)
 end
 function force(model, p::Cell, t)
-    F = SVector(0.0, 0.0)
+    F = SizedVector(0.0, 0.0)
     for j in get_neighbours(model.triangulation, p.index)
         DT.is_ghost_vertex(j) && continue
         # Find the agent with index j
-        F = F + force(model, p, tri2agent(model, j), t)
+        F .+= force(model, p, tri2agent(model.triangulation, j), t)
     end
     return F
 end
 
-tri2agent(model, p::Int) = model.triangulation.points[p]
+tri2agent(triangulation, p::Int) = triangulation.points[p]
 
 velocity(model, p::Cell, t) = force(model, p, t) / drag_coefficient(p)
 
@@ -228,10 +234,10 @@ function initialize_cell_model(;
     triangulation = triangulate(cells)
 
     # Define the model parameters
-    properties = Dict(
-        :triangulation => triangulation,
-        :dt => dt,
-        :nutrients => ones(100,100),
+    properties = ModelProperties(
+        triangulation,
+        dt,
+        ones(100,100),
     )
 
     # Define the space
