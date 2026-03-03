@@ -12,7 +12,7 @@ Random.seed!(123)
 
 using .Repressilator
 
-max_t = 10.0
+max_t = 11.0
 use_improved = false
 
 repressilator = Repressilator.repressilator

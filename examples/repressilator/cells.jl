@@ -172,13 +172,24 @@ function cull_cells!(model, t)
     return model
 end
 
+function get_spatial_index_type_stable(pos, property::AbstractArray{T, D}, model::ABM) where {T, D}
+    ssize = spacesize(model)
+    propertysize = size(property)
+    upos = pos[1:D]
+    usize = ssize[1:D]
+    εs = usize ./ propertysize
+    idxs = floor.(Int, upos ./ εs) .+ 1
+    return CartesianIndex(Tuple{Vararg{Int, D}}(idxs))
+    #return CartesianIndex(Tuple(idxs))
+end
+
 function update_nutrients!(model, t)
     # Clear previous growth
     for p in allagents(model)
         # Get the triangle of that voronoi cell
         num_sample_points = 10
-        inds = [get_spatial_index(p.pos + 0.2 * 2 * p.size * SVector(rand() - 0.5, rand() - 0.5),
-                    model.nutrients, model) for _ in 1:num_sample_points]
+        points = [clamp.(p.pos + 0.2 * 2 * p.size * SVector(rand() - 0.5, rand() - 0.5), [0.0, 0.0], abmspace(model).extent) for _ in 1:num_sample_points]
+        inds = [get_spatial_index_type_stable(point, model.nutrients, model) for point in points]
         # Points will be duplicated if they are closer to the centre of the cell
         p.nuts = mean(model.nutrients[inds])
         for ind in inds
