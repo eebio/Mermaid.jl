@@ -183,10 +183,20 @@ end
 
 function update_nutrients!(model, t)
     # Clear previous growth
+    tmp_pos = MVector{2, Float64}(0.0, 0.0)
     for p in allagents(model)
         # Get the triangle of that voronoi cell
         num_sample_points = 10
-        inds = [get_spatial_index_type_stable(clamp.(p.pos + 0.2 * 2 * p.size * SVector(rand() - 0.5, rand() - 0.5), [0.0, 0.0], abmspace(model).extent), model.nutrients, model) for _ in 1:num_sample_points]
+        inds = Vector{CartesianIndex{2}}(undef, num_sample_points)
+        for i in 1:num_sample_points
+            # Generate random point inside the cell's bounding box
+            tmp_pos .= p.pos .+ 0.2 * 2 * p.size .* (rand(MVector{2}) .- 0.5)
+            # Clamp manually
+            tmp_pos[1] = clamp(tmp_pos[1], 0.0, abmspace(model).extent[1])
+            tmp_pos[2] = clamp(tmp_pos[2], 0.0, abmspace(model).extent[2])
+            # Get index
+            inds[i] = get_spatial_index_type_stable(tmp_pos, model.nutrients, model)
+        end
         # Points will be duplicated if they are closer to the centre of the cell
         p.nuts = mean(model.nutrients[inds])
         for ind in inds
