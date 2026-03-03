@@ -171,9 +171,8 @@ function update_nutrients!(model, t)
     for p in allagents(model)
         # Get the triangle of that voronoi cell
         num_sample_points = 10
-        samples = [0.2*2*p.size*SVector(rand()-0.5, rand()-0.5) for _ in 1:num_sample_points]
-        points = [p.pos] .+ samples
-        inds = [get_spatial_index(point, model.nutrients, model) for point in points]
+        inds = [get_spatial_index(p.pos + 0.2 * 2 * p.size * SVector(rand() - 0.5, rand() - 0.5),
+                    model.nutrients, model) for _ in 1:num_sample_points]
         # Points will be duplicated if they are closer to the centre of the cell
         p.nuts = mean(model.nutrients[inds])
         for ind in inds
@@ -247,30 +246,4 @@ function initialize_cell_model(;
     end
 
     return model
-end
-
-count_total(model) = num_solid_vertices(model.triangulation)
-
-function cell_diameter(vorn, i)
-    S = get_polygon(vorn, i)
-    # This is an O(|S|^2) method, but |S| is small so it is fine
-    max_d = 0.0
-    for i in S
-        p = get_polygon_point(vorn, i)
-        for j in S
-            i == j && continue
-            q = get_polygon_point(vorn, j)
-            d = norm(getxy(p) .- getxy(q))
-            max_d = max(max_d, d)
-        end
-    end
-    return max_d
-end
-function average_spring_length(model)
-    spring_itr = []
-    for (i, j) in each_solid_edge(model.triangulation)
-        push!(spring_itr, norm(get_point(model.triangulation, i) .- get_point(model.triangulation, j)))
-    end
-    mean_spring = mean(spring_itr)
-    return mean_spring
 end
