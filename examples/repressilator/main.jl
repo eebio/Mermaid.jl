@@ -80,20 +80,22 @@ conn_gfp = Connector(
     inputs = ["repressilator.gfp"],
     outputs = ["cells.gfp"]
 )
-#=
-voronoi_marker = (model, cell) -> begin
+
+voronoi_marker = (model, tessellation, cell) -> begin
     #return :+
-    verts = get_polygon_coordinates(model.tessellation, cell.index)
+    verts = get_polygon_coordinates(tessellation, cell.index)
     return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
 end
 function voronoi_color(cell)
     get(cgrad([:black, :green]), cell.gfp / cell.size^3 / (use_improved ? 10000.0 : 1000.0))
 end
-fig, ax = abmplot(agents, agent_marker = cell -> voronoi_marker(agents, cell),
+tessellation = voronoi(agents.triangulation; clip = true)
+fig, ax = abmplot(agents, agent_marker = cell -> voronoi_marker(agents, tessellation, cell),
     agent_color = voronoi_color,
     agentsplotkwargs = (strokewidth = 1,), figure = (; size = (1600, 800), fontsize = 34),
-    axis = (; width = 800, height = 800), heatarray = :nutrients, heatkwargs = (colorrange = (
-        0.0, 1.0),))
+    axis = (; width = 800, height = 800), #heatarray = :nutrients, heatkwargs = (colorrange = (
+        #0.0, 1.0),)
+        )
 abmplot!(ax, agents; agent_marker = :xcross, agent_color = :red,
     agent_size = cell -> cell.id ∈ [1, 2] ? 10 : 0)
 t = [0.0]
@@ -148,10 +150,12 @@ function plot_input(model)
         empty!(ax_2)
         empty!(ax_1_2)
         empty!(ax_2_2)
-        abmplot!(ax, model; agent_marker = cell -> voronoi_marker(model, cell),
+        tessellation = voronoi(model.triangulation; clip = true)
+        abmplot!(ax, model; agent_marker = cell -> voronoi_marker(model, tessellation, cell),
             agent_color = voronoi_color,
-            agentsplotkwargs = (strokewidth = 1,), heatarray = :nutrients, heatkwargs = (colorrange = (
-                0.0, 1.0),))
+            agentsplotkwargs = (strokewidth = 1,), #heatarray = :nutrients, heatkwargs = (colorrange = (
+                #0.0, 1.0),)
+                )
         abmplot!(ax, model; agent_marker = :circle, agent_color = :red,
             agent_size = cell -> cell.id ∈ [1, 2] ? 10 : 0)
         lines!(ax_1, t, gfp1, color = :black, label = "Total", linewidth = 3)
@@ -167,7 +171,7 @@ function plot_input(model)
         @show nagents(model)
     end
 end
-=#
+
 
 function set_initial_states!(states, ids, model) # Do mutating functions work in Mermaid connectors?
     # init_states is returned, states is mutated
@@ -249,7 +253,7 @@ start_time = time()
 @profview sol = solve(mp, alg; save_vars = ["cells.#model"], saveat = 0.1)
 end_time = time()
 println("Simulation took $(end_time - start_time) seconds")
-#=
+
 for model in sol["cells.#model"]
     plot_input(model)
 end
@@ -259,4 +263,3 @@ if use_improved
 else
     save("examples/outputs/repressilator.mp4", io)
 end
-=#
