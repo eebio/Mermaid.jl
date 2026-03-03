@@ -287,7 +287,7 @@ end
 end
 
 @testitem "non-advancing component throws error" begin
-    using Mermaid
+    using Mermaid, CommonSolve
 
     struct StuckComponent <: AbstractComponent
         name::String
@@ -331,7 +331,7 @@ end
 
     comp = StuckComponent("Stuck", 0.1)
     mp = MermaidProblem(components = [comp], connectors = [], tspan = (0.0, 1.0))
-    @test_throws ErrorException solve(mp, MinimumTimeStepper())
+    @test_throws "Component Stuck failed to advance: time did not move forward from 0.0." solve(mp, MinimumTimeStepper())
 end
 
 @testitem "timescales" begin
