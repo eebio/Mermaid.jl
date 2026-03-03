@@ -199,7 +199,7 @@ conn_init_states_growth = Connector(
 
 conn_gr = Connector(
     inputs = ["growth.λ"],
-    outputs = ["repressilator.growth_rate"]    #func = (λ) -> ones(length(λ))*0.6,
+    outputs = ["repressilator.growth_rate"]
 )
 
 conn_size = Connector(
@@ -260,4 +260,3 @@ else
     save("examples/outputs/repressilator.mp4", io)
 end
 =#
-# TODO There might be an assumption in Duplicated that the ids are consecutive, I have an error that tried to set the state of agents at 2365 - BoundsError: attempt to access 2364-element Vector{Any} at index [2365]
