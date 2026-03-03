@@ -18,8 +18,8 @@ const DT = DelaunayTriangulation
     size::Float64
 end
 
-mutable struct ModelProperties
-    triangulation::DT.Triangulation
+mutable struct ModelProperties{X <: DT.Triangulation}
+    triangulation::X
     dt::Float64
     nutrients::Matrix{Float64}
 end
