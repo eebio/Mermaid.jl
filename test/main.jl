@@ -286,6 +286,54 @@ end
     @test gettime(int) == 2.0
 end
 
+@testitem "non-advancing component throws error" begin
+    using Mermaid, CommonSolve
+
+    struct StuckComponent <: AbstractComponent
+        name::String
+        timestep::Float64
+    end
+
+    mutable struct StuckIntegrator <: AbstractComponentIntegrator
+        component::StuckComponent
+        t::Float64
+    end
+
+    function CommonSolve.init(c::StuckComponent)
+        return StuckIntegrator(c, 0.0)
+    end
+
+    function CommonSolve.step!(compInt::StuckIntegrator)
+        # Intentionally does not advance time
+    end
+
+    function Mermaid.getstate(compInt::StuckIntegrator, key)
+        return compInt.t
+    end
+
+    function Mermaid.getstate(compInt::StuckIntegrator)
+        return compInt.t
+    end
+
+    function Mermaid.setstate!(compInt::StuckIntegrator, key, value)
+        if key.variable == "#time"
+            compInt.t = value
+        end
+    end
+
+    function Mermaid.setstate!(compInt::StuckIntegrator, value)
+        compInt.t = value
+    end
+
+    function Mermaid.variables(component::StuckComponent)
+        return ["#time"]
+    end
+
+    comp = StuckComponent("Stuck", 0.1)
+    mp = MermaidProblem(components = [comp], connectors = [], tspan = (0.0, 1.0))
+    @test_throws "Component Stuck failed to advance: time did not move forward from 0.0." solve(mp, MinimumTimeStepper())
+end
+
 @testitem "timescales" begin
     using OrdinaryDiffEq
 
