@@ -26,6 +26,7 @@ end
 
 mutable struct AgentsComponentIntegrator{A, B} <: AbstractComponentIntegrator
     integrator::A
+    time::Float64
     component::B
 end
 

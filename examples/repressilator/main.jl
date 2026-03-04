@@ -1,5 +1,6 @@
 using Mermaid
 using StochasticDiffEq
+using SymbolicIndexingInterface
 
 include("gfp.jl")
 includet("cells.jl")
@@ -11,7 +12,7 @@ Random.seed!(123)
 
 using .Repressilator
 
-max_t = 15.0
+max_t = 11.0
 use_improved = false
 
 repressilator = Repressilator.repressilator
@@ -28,15 +29,17 @@ g_model = get_growth_model()
 rep = DEComponent(sde,
     EM();
     name = "repressilator",
-    state_names = Dict("gfp" => repressilator.gfp,
-        "growth_rate" => repressilator.gr, "volume" => repressilator.V),
+    state_names = Dict("gfp" => variable_index(repressilator, :gfp),
+        "growth_rate" => variable_index(repressilator, :gr), "volume" => variable_index(
+            repressilator, :V)),
     timestep = agents.dt, intkwargs = (:maxiters => Inf, :save_everystep => false))
 
 rep_imp = DEComponent(sde_improved,
     EM();
     name = "repressilator",
-    state_names = Dict("gfp" => improved.gfp,
-        "growth_rate" => improved.gr, "volume" => improved.V),
+    state_names = Dict("gfp" => variable_index(improved, :gfp),
+        "growth_rate" => variable_index(improved, :gr), "volume" => variable_index(
+            improved, :V)),
     timestep = agents.dt, intkwargs = (:maxiters => Inf, :save_everystep => false))
 
 abm = AgentsComponent(agents;
@@ -50,7 +53,9 @@ gro = DEComponent(growth,
     Rosenbrock23();
     name = "growth",
     state_names = Dict(
-        "s" => g_model.s, "λ" => g_model.λ, "mass" => g_model.M, "import" => g_model.ν_imp),
+        "s" => variable_index(growth.f.sys, :s), "λ" => variable_index(growth.f.sys, :λ),
+        "mass" => variable_index(growth.f.sys, :M),
+        "import" => variable_index(growth.f.sys, :ν_imp)),
     timestep = agents.dt, intkwargs = (
         :maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u),
         :save_everystep => false))
@@ -76,19 +81,21 @@ conn_gfp = Connector(
     outputs = ["cells.gfp"]
 )
 
-voronoi_marker = (model, cell) -> begin
+voronoi_marker = (model, tessellation, cell) -> begin
     #return :+
-    verts = get_polygon_coordinates(model.tessellation, cell.index)
+    verts = get_polygon_coordinates(tessellation, cell.index)
     return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
 end
 function voronoi_color(cell)
     get(cgrad([:black, :green]), cell.gfp / cell.size^3 / (use_improved ? 10000.0 : 1000.0))
 end
-fig, ax = abmplot(agents, agent_marker = cell -> voronoi_marker(agents, cell),
+tessellation = voronoi(agents.triangulation; clip = true)
+fig, ax = abmplot(agents, agent_marker = cell -> voronoi_marker(agents, tessellation, cell),
     agent_color = voronoi_color,
     agentsplotkwargs = (strokewidth = 1,), figure = (; size = (1600, 800), fontsize = 34),
-    axis = (; width = 800, height = 800), heatarray = :nutrients, heatkwargs = (colorrange = (
-        0.0, 1.0),))
+    axis = (; width = 800, height = 800), #heatarray = :nutrients, heatkwargs = (colorrange = (
+        #0.0, 1.0),)
+        )
 abmplot!(ax, agents; agent_marker = :xcross, agent_color = :red,
     agent_size = cell -> cell.id ∈ [1, 2] ? 10 : 0)
 t = [0.0]
@@ -137,16 +144,18 @@ function plot_input(model)
     push!(nut2, model[2].nuts)
     push!(size1, model[1].size^3)
     push!(size2, model[2].size^3)
-    if abmtime(model) % 10 == 0
+    if abmtime(model) % Int(0.1 / model.dt) == 0
         empty!(ax)
         empty!(ax_1)
         empty!(ax_2)
         empty!(ax_1_2)
         empty!(ax_2_2)
-        abmplot!(ax, model; agent_marker = cell -> voronoi_marker(model, cell),
+        tessellation = voronoi(model.triangulation; clip = true)
+        abmplot!(ax, model; agent_marker = cell -> voronoi_marker(model, tessellation, cell),
             agent_color = voronoi_color,
-            agentsplotkwargs = (strokewidth = 1,), heatarray = :nutrients, heatkwargs = (colorrange = (
-                0.0, 1.0),))
+            agentsplotkwargs = (strokewidth = 1,), #heatarray = :nutrients, heatkwargs = (colorrange = (
+                #0.0, 1.0),)
+                )
         abmplot!(ax, model; agent_marker = :circle, agent_color = :red,
             agent_size = cell -> cell.id ∈ [1, 2] ? 10 : 0)
         lines!(ax_1, t, gfp1, color = :black, label = "Total", linewidth = 3)
@@ -163,11 +172,6 @@ function plot_input(model)
     end
 end
 
-conn_plot = Connector(
-    inputs = ["cells.#model"],
-    outputs = Vector{String}(),
-    func = (model) -> plot_input(model)
-)
 
 function set_initial_states!(states, ids, model) # Do mutating functions work in Mermaid connectors?
     # init_states is returned, states is mutated
@@ -199,7 +203,7 @@ conn_init_states_growth = Connector(
 
 conn_gr = Connector(
     inputs = ["growth.λ"],
-    outputs = ["repressilator.growth_rate"]    #func = (λ) -> ones(length(λ))*0.6,
+    outputs = ["repressilator.growth_rate"]
 )
 
 conn_size = Connector(
@@ -231,7 +235,7 @@ if use_improved
         components = [dup_g, dup_i, abm], # TODO get awkward error when repressilator is run before growth
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
-            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
+            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp],
         tspan = (0, max_t)
     )
 else
@@ -239,18 +243,23 @@ else
         components = [dup_g, dup_r, abm], # TODO get awkward error when repressilator is run before growth
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
-            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_plot],
+            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp],
         tspan = (0, max_t)
     )
 end
 
 alg = MinimumTimeStepper()
-sol = solve(mp, alg)
+start_time = time()
+@profview sol = solve(mp, alg; save_vars = ["cells.#model"], saveat = 0.1)
+end_time = time()
+println("Simulation took $(end_time - start_time) seconds")
+
+for model in sol["cells.#model"]
+    plot_input(model)
+end
 
 if use_improved
     save("examples/outputs/repressilator_imp.mp4", io)
 else
     save("examples/outputs/repressilator.mp4", io)
 end
-
-# TODO There might be an assumption in Duplicated that the ids are consecutive, I have an error that tried to set the state of agents at 2365 - BoundsError: attempt to access 2364-element Vector{Any} at index [2365]

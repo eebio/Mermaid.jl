@@ -31,22 +31,23 @@ function Mermaid.AgentsComponent(model::StandardABM;
 end
 
 function CommonSolve.init(c::AgentsComponent)
-    integrator = AgentsComponentIntegrator(deepcopy(c.model), c)
+    integrator = AgentsComponentIntegrator(deepcopy(c.model), 0.0, c)
     return integrator
 end
 
 function CommonSolve.step!(compInt::AgentsComponentIntegrator)
     step!(compInt.integrator, timestep(compInt))
+    compInt.time += timestep(compInt)
 end
 
 function Mermaid.getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
     if first(key.variable) == '#'
         # Special variables
         if key.variable == "#time"
-            return abmtime(compInt.integrator) * compInt.component.timestep
+            return compInt.time
         end
         if key.variable == "#model"
-            return getstate(compInt; copy = true)
+            return getstate(compInt)
         end
         if key.variable == "#ids"
             return collect(allids(compInt.integrator))
@@ -56,14 +57,14 @@ function Mermaid.getstate(compInt::AgentsComponentIntegrator, key::ConnectedVari
     if isnothing(key.variableindex)
         # If model level property exists, return it directly
         !isnothing(abmproperties(compInt.integrator)) &&
-            haskey(abmproperties(compInt.integrator), index) &&
+            hasproperty(abmproperties(compInt.integrator), index) &&
             return getproperty(compInt.integrator, index)
         # Otherwise, assume it's an agent property and return it for all agents
         return [getproperty(i, index) for i in allagents(compInt.integrator)]
     else
         # If model level property exists, return it after indexing
         !isnothing(abmproperties(compInt.integrator)) &&
-            haskey(abmproperties(compInt.integrator), index) &&
+            hasproperty(abmproperties(compInt.integrator), index) &&
             return getproperty(compInt.integrator, index)[key.variableindex]
         # Otherwise, assume it's an agent property and return it for all agents in range
         out = [getproperty(compInt.integrator[i], index) for i in key.variableindex]
@@ -81,7 +82,7 @@ function Mermaid.setstate!(
     if first(key.variable) == '#'
         # Special variables
         if key.variable == "#time"
-            @warn "Agents.jl does not support setting time directly. The time is stored within #model. DuplicatedComponents of Agent-based models still works."
+            compInt.time = value
             return nothing
         end
         if key.variable == "#model"
@@ -93,8 +94,8 @@ function Mermaid.setstate!(
     if isnothing(key.variableindex)
         # If model level property exists, return it directly
         if !isnothing(abmproperties(compInt.integrator)) &&
-           haskey(abmproperties(compInt.integrator), index)
-            setindex!(abmproperties(compInt.integrator), value, index)
+           hasproperty(abmproperties(compInt.integrator), index)
+            setproperty!(abmproperties(compInt.integrator), index, value)
         else
             # Otherwise, assume it's an agent property and set it for all agents
             for (i, agent) in enumerate(allagents(compInt.integrator))
@@ -104,10 +105,10 @@ function Mermaid.setstate!(
     else
         # If model level property exists, return it after indexing
         if !isnothing(abmproperties(compInt.integrator)) &&
-           haskey(abmproperties(compInt.integrator), index)
+           hasproperty(abmproperties(compInt.integrator), index)
             k = 1
             for i in key.variableindex
-                abmproperties(compInt.integrator)[index][i] = value[k]
+                abmproperties(compInt.integrator).index[i] = value[k]
                 k += 1
             end
         else

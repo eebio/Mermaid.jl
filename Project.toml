@@ -22,7 +22,7 @@ MethodOfLinesExt = ["MethodOfLines", "DiffEqBase"]
 SurrogatesExt = "Surrogates"
 
 [compat]
-Agents = "6.2.10"
+Agents = "6.2.10, 7"
 CommonSolve = "0.2.4"
 DiffEqBase = "6.190.2"
 DocStringExtensions = "0.9.5"

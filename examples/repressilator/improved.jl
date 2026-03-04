@@ -144,7 +144,3 @@ function final_plot()
     display(Plots.plot(p1, p2, layout=l, size=(750, 350), margin=2*Plots.mm))
     savefig("repressilator_plots_improved.png")
 end
-
-#plot_jump()
-#plot_sde()
-#final_plot()

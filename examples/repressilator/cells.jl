@@ -18,6 +18,12 @@ const DT = DelaunayTriangulation
     size::Float64
 end
 
+mutable struct ModelProperties{X <: DT.Triangulation}
+    triangulation::X
+    dt::Float64
+    nutrients::Matrix{Float64}
+end
+
 DT.getx(cell::Cell) = cell.pos[1]
 DT.gety(cell::Cell) = cell.pos[2]
 DT.number_type(::Type{Cell}) = Float64
@@ -65,16 +71,16 @@ function force(model, p, q, t)
     return μ * (norm(rᵢⱼ) - s) * rᵢⱼ / norm(rᵢⱼ)
 end
 function force(model, p::Cell, t)
-    F = SVector(0.0, 0.0)
+    F = SizedVector(0.0, 0.0)
     for j in get_neighbours(model.triangulation, p.index)
         DT.is_ghost_vertex(j) && continue
         # Find the agent with index j
-        F = F + force(model, p, tri2agent(model, j), t)
+        F .+= force(model, p, tri2agent(model.triangulation, j), t)
     end
     return F
 end
 
-tri2agent(model, p::Int) = model.triangulation.points[p]
+tri2agent(triangulation, p::Int) = triangulation.points[p]
 
 velocity(model, p::Cell, t) = force(model, p, t) / drag_coefficient(p)
 
@@ -130,7 +136,11 @@ end
 
 function place_daughter_cell!(model, i, t)
     parent = model[i]
-    daughter = sample_voronoi_cell(model.tessellation, parent.index) # this is an SVector, not a Cell
+    daughter = SVector(rand()-0.5, rand()-0.5) * 2 * 0.2 * parent.size
+    while norm(daughter) > 0.2 * parent.size
+        daughter = SVector(rand()-0.5, rand()-0.5) * 2 * 0.2 * parent.size
+    end
+    daughter = parent.pos + daughter
     add_agent!(daughter, model; birth=t, gfp=parent.gfp, vel=SVector(0.0, 0.0), parent=parent, size=parent.size*0.5^(1/3), nuts=parent.nuts)
     return daughter
 end
@@ -162,27 +172,44 @@ function cull_cells!(model, t)
     return model
 end
 
+function get_spatial_index_type_stable(pos, property::AbstractArray{T, D}, model::ABM) where {T, D}
+    ssize = spacesize(model)
+    propertysize = size(property)
+    εs = ssize ./ propertysize
+    idxs = floor.(Int, pos ./ εs) .+ 1
+    return CartesianIndex(Tuple{Vararg{Int, D}}(idxs))
+    #return CartesianIndex(Tuple(idxs))
+end
+
 function update_nutrients!(model, t)
     # Clear previous growth
+    tmp_pos = MVector{2, Float64}(0.0, 0.0)
     for p in allagents(model)
         # Get the triangle of that voronoi cell
-        num_sample_points = 100
-        tri = triangulate_voronoi_cell(model.tessellation, p.index)
-        points = [sample_triangle(tri, random_triangle(tri)) for _ in 1:num_sample_points]
-        inds = [get_spatial_index(point, model.nutrients, model) for point in points]
+        num_sample_points = 10
+        inds = Vector{CartesianIndex{2}}(undef, num_sample_points)
+        for i in 1:num_sample_points
+            # Generate random point inside the cell's bounding box
+            tmp_pos .= p.pos .+ 0.2 * 2 * p.size .* (rand(MVector{2}) .- 0.5)
+            # Clamp manually
+            tmp_pos[1] = clamp(tmp_pos[1], 0.0, abmspace(model).extent[1])
+            tmp_pos[2] = clamp(tmp_pos[2], 0.0, abmspace(model).extent[2])
+            # Get index
+            inds[i] = get_spatial_index_type_stable(tmp_pos, model.nutrients, model)
+        end
         # Points will be duplicated if they are closer to the centre of the cell
         p.nuts = mean(model.nutrients[inds])
         for ind in inds
-            model.nutrients[ind] -= p.nut_import_rate * model.dt/num_sample_points
-            model.nutrients[ind] = max(0, model.nutrients[ind])
+            #model.nutrients[ind] -= p.nut_import_rate * model.dt/num_sample_points
+            #model.nutrients[ind] = max(0, model.nutrients[ind])
         end
     end
     # Diffuse nutrients
-    tmp = copy(model.nutrients)
-    for x in 2:size(model.nutrients, 1)-1, y in 2:size(model.nutrients, 2)-1
-        tmp[x,y] = max(0, 0.99*model.nutrients[x,y] + 0.01*(sum(model.nutrients[x-1:x+1,y-1:y+1]) - model.nutrients[x,y]) / 8)
-    end
-    model.nutrients = tmp
+    #tmp = copy(model.nutrients)
+    #for x in 2:size(model.nutrients, 1)-1, y in 2:size(model.nutrients, 2)-1
+        #tmp[x,y] = max(0, 0.99*model.nutrients[x,y] + 0.01*(sum(model.nutrients[x-1:x+1,y-1:y+1]) - model.nutrients[x,y]) / 8)
+    #end
+    #model.nutrients = tmp
     return model
 end
 
@@ -194,7 +221,6 @@ function model_step!(model)
     #cull_cells!(model, t)
     proliferate_cells!(model, t)
     model.triangulation = retriangulate(model.triangulation, collect(allagents(model)))
-    model.tessellation = voronoi(model.triangulation, clip=true)
     set_indexes(model)
     return model
 end
@@ -224,14 +250,12 @@ function initialize_cell_model(;
 
     # Compute the triangulation and the tessellation
     triangulation = triangulate(cells)
-    tessellation = voronoi(triangulation, clip=true)
 
     # Define the model parameters
-    properties = Dict(
-        :triangulation => triangulation,
-        :tessellation => tessellation,
-        :dt => dt,
-        :nutrients => ones(100,100),
+    properties = ModelProperties(
+        triangulation,
+        dt,
+        ones(100,100),
     )
 
     # Define the space
@@ -246,97 +270,4 @@ function initialize_cell_model(;
     end
 
     return model
-end
-
-count_total(model) = num_solid_vertices(model.triangulation)
-
-function average_cell_area(model)
-    area_itr = (get_area(model.tessellation, i) for i in each_solid_vertex(model.triangulation))
-    mean_area = mean(area_itr)
-    return mean_area
-end
-function cell_diameter(vorn, i)
-    S = get_polygon(vorn, i)
-    # This is an O(|S|^2) method, but |S| is small so it is fine
-    max_d = 0.0
-    for i in S
-        p = get_polygon_point(vorn, i)
-        for j in S
-            i == j && continue
-            q = get_polygon_point(vorn, j)
-            d = norm(getxy(p) .- getxy(q))
-            max_d = max(max_d, d)
-        end
-    end
-    return max_d
-end
-function average_cell_diameter(model)
-    diam_itr = (cell_diameter(model.tessellation, i) for i in each_solid_vertex(model.triangulation))
-    mean_diam = mean(diam_itr)
-    return mean_diam
-end
-function average_spring_length(model)
-    spring_itr = []
-    for (i, j) in each_solid_edge(model.triangulation)
-        push!(spring_itr, norm(get_point(model.triangulation, i) .- get_point(model.triangulation, j)))
-    end
-    mean_spring = mean(spring_itr)
-    return mean_spring
-end
-
-function animate_cells()
-    finalT = 25.0
-    model = initialize_cell_model()
-    nsteps = Int(finalT / model.dt)
-    mdata = [count_total,
-        average_cell_area, average_cell_diameter, average_spring_length]
-
-    time = 0:model.dt:finalT
-
-    voronoi_marker = (model, cell) -> begin
-        verts = get_polygon_coordinates(model.tessellation, cell.index)
-        return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
-    end
-    voronoi_color(cell) = get(cgrad([:black, :green]), cell.gfp)
-    model = initialize_cell_model() # reinitialise the model for the animation
-    fig, ax, amobs = abmplot(model, agent_marker=cell -> voronoi_marker(model, cell), agent_color=voronoi_color,
-        agentsplotkwargs=(strokewidth=1,), figure=(; size=(1600, 800), fontsize=34), mdata=mdata,
-        axis=(; width=800, height=800), when=10)
-    current_time = Observable(0.0)
-    t = Observable([0.0])
-    ntotal = Observable(amobs.mdf[][!, :count_total])
-    avg_area = Observable(amobs.mdf[][!, :average_cell_area])
-    avg_diam = Observable(amobs.mdf[][!, :average_cell_diameter])
-    avg_spring = Observable(amobs.mdf[][!, :average_spring_length])
-    plot_layout = fig[:, end+1] = GridLayout()
-    count_layout = plot_layout[1, 1] = GridLayout()
-    ax_count = Axis(count_layout[1, 1], xlabel="Time", ylabel="Count", width=600, height=400)
-    lines!(ax_count, t, ntotal, color=:black, label="Total", linewidth=3)
-    vlines!(ax_count, current_time, color=:grey, linestyle=:dash, linewidth=3)
-    xlims!(ax_count, 0, finalT)
-    ylims!(ax_count, 0, 7000)
-    avg_layout = plot_layout[2, 1] = GridLayout()
-    ax_avg = Axis(avg_layout[1, 1], xlabel="Time", ylabel="Average", width=600, height=400)
-    lines!(ax_avg, t, avg_area, color=:black, label="Cell area", linewidth=3)
-    lines!(ax_avg, t, avg_diam, color=:magenta, label="Cell diameter", linewidth=3)
-    lines!(ax_avg, t, avg_spring, color=:red, label="Spring length", linewidth=3)
-    vlines!(ax_avg, current_time, color=:grey, linestyle=:dash, linewidth=3)
-    axislegend(ax_avg, position=:rt)
-    xlims!(ax_avg, 0, finalT)
-    ylims!(ax_avg, 0, 1)
-    resize_to_layout!(fig)
-    on(amobs.mdf) do mdf
-        current_time[] = abmtime(amobs.model[]) * model.dt
-        t.val = mdf[!, :time] .* model.dt
-        ntotal[] = mdf[!, :count_total]
-        avg_area[] = mdf[!, :average_cell_area]
-        avg_diam[] = mdf[!, :average_cell_diameter]
-        avg_spring[] = mdf[!, :average_spring_length]
-    end
-
-    record(fig, "examples/outputs/delaunay_model.mp4", 1:(nsteps÷10), framerate=24) do i
-        step!(amobs, 10)
-        println("Time $(abmtime(amobs.model[])*model.dt). Number of cells: $(count_total(amobs.model[]))")
-    end
-    return nothing
 end
