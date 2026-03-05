@@ -1,4 +1,4 @@
-#= @testitem "duplicated component" begin
+@testitem "duplicated component" begin
     using OrdinaryDiffEq
     using Statistics
 
@@ -189,4 +189,3 @@ end
     # Check that solving isn't broken
     sol = solve(mp, alg)
 end
-=#
