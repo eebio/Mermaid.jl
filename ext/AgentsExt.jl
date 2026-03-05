@@ -55,17 +55,37 @@ function Mermaid.getstate(compInt::AgentsComponentIntegrator, key::ConnectedVari
     end
     index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
-        # If model level property exists, return it directly
-        !isnothing(abmproperties(compInt.integrator)) &&
-            hasproperty(abmproperties(compInt.integrator), index) &&
-            return getproperty(compInt.integrator, index)
+        props = abmproperties(compInt.integrator)
+        if !isnothing(props)
+            # Check model properties
+            if props isa Dict
+                if haskey(props, index)
+                    return props[index]
+                end
+            else
+                # Assume props is a struct
+                if hasproperty(props, index)
+                    return getproperty(compInt.integrator, index)
+                end
+            end
+        end
         # Otherwise, assume it's an agent property and return it for all agents
         return [getproperty(i, index) for i in allagents(compInt.integrator)]
     else
-        # If model level property exists, return it after indexing
-        !isnothing(abmproperties(compInt.integrator)) &&
-            hasproperty(abmproperties(compInt.integrator), index) &&
-            return getproperty(compInt.integrator, index)[key.variableindex]
+        props = abmproperties(compInt.integrator)
+        if !isnothing(props)
+            # Check model properties
+            if props isa Dict
+                if haskey(props, index)
+                    return props[index][key.variableindex]
+                end
+            else
+                # Assume props is a struct
+                if hasproperty(props, index)
+                    return getproperty(compInt.integrator, index)[key.variableindex]
+                end
+            end
+        end
         # Otherwise, assume it's an agent property and return it for all agents in range
         out = [getproperty(compInt.integrator[i], index) for i in key.variableindex]
         if length(out) == 1
@@ -92,32 +112,54 @@ function Mermaid.setstate!(
     end
     index = compInt.component.state_names[key.variable]
     if isnothing(key.variableindex)
-        # If model level property exists, return it directly
-        if !isnothing(abmproperties(compInt.integrator)) &&
-           hasproperty(abmproperties(compInt.integrator), index)
-            setproperty!(abmproperties(compInt.integrator), index, value)
-        else
-            # Otherwise, assume it's an agent property and set it for all agents
-            for (i, agent) in enumerate(allagents(compInt.integrator))
-                setproperty!(agent, index, value[i])
+        props = abmproperties(compInt.integrator)
+        if !isnothing(props)
+            # Check model properties
+            if props isa Dict
+                if haskey(props, index)
+                    return props[index] = value
+                end
+            else
+                # Assume props is a struct
+                if hasproperty(props, index)
+                    return setproperty!(compInt.integrator, index, value)
+                end
             end
         end
+        # Otherwise, assume it's an agent property and set it for all agents
+        for (i, agent) in enumerate(allagents(compInt.integrator))
+            setproperty!(agent, index, value[i])
+        end
     else
-        # If model level property exists, return it after indexing
-        if !isnothing(abmproperties(compInt.integrator)) &&
-           hasproperty(abmproperties(compInt.integrator), index)
-            k = 1
-            for i in key.variableindex
-                abmproperties(compInt.integrator).index[i] = value[k]
-                k += 1
+        props = abmproperties(compInt.integrator)
+        if !isnothing(props)
+            # Check model properties
+            if props isa Dict
+                if haskey(props, index)
+                    k = 1
+                    for i in key.variableindex
+                        props[index][i] = value[k]
+                        k += 1
+                    end
+                    return nothing
+                end
+            else
+                # Assume props is a struct
+                if hasproperty(props, index)
+                    k = 1
+                    for i in key.variableindex
+                        getproperty(compInt.integrator, index)[i] = value[k]
+                        k += 1
+                    end
+                    return nothing
+                end
             end
-        else
-            # Otherwise, assume it's an agent property and set it for all agents in range
-            k = 1
-            for i in key.variableindex
-                setproperty!(compInt.integrator[i], index, value[k])
-                k += 1
-            end
+        end
+        # Otherwise, assume it's an agent property and set it for all agents in range
+        k = 1
+        for i in key.variableindex
+            setproperty!(compInt.integrator[i], index, value[k])
+            k += 1
         end
     end
     return nothing
