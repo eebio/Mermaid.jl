@@ -40,7 +40,7 @@
     c1 = AgentsComponent(model;
         name = "Schelling",
         state_names = OrderedDict("min_to_be_happy" => :min_to_be_happy),
-        time_step = 1.0
+        timestep = 1.0
     )
 
     function f2(u, p, t)
@@ -52,7 +52,7 @@
     c2 = DEComponent(
         prob, Tsit5();
         name = "ode",
-        time_step = 1.0,
+        timestep = 1.0,
         state_names = OrderedDict("happy" => 1)
     )
 
@@ -61,7 +61,7 @@
         outputs = ["Schelling.min_to_be_happy"]
     )
 
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn], max_t = 100.0)
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn], tspan = (0.0, 100.0))
 
     alg = MinimumTimeStepper()
     intMer = init(mp, alg)
@@ -133,7 +133,7 @@ end
         name = "Schelling",
         state_names = OrderedDict("min_to_be_happy" => :min_to_be_happy,
             "list_property" => :list_property, "mood" => :mood, "group" => :group),
-        time_step = 0.2
+        timestep = 0.2
     )
 
     conn1 = Connector(
@@ -200,9 +200,9 @@ end
     # getstate and setstate! for duplicated AgentsComponent
     @test getstate(integrator) isa StandardABM
     @test gettime(integrator) ≈ 0.2
-    state = getstate(integrator; copy=true) # Get a copy of the state
+    state = getstate(integrator; copy = true) # Get a copy of the state
     state2 = getstate(integrator) # Default is don't copy, just return reference
-    state3 = getstate(integrator; copy=false)
+    state3 = getstate(integrator; copy = false)
     step!(integrator)
     @test gettime(integrator) ≈ 0.4
     setstate!(integrator, state)

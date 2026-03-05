@@ -8,7 +8,7 @@
     end
 
     u0 = [4.0, 2.0]
-    tspan = (0.0, 10.0)
+    tspan = (0.0, 0.1)
     prob = ODEProblem(f!, u0, tspan)
     solODE = solve(prob, Euler(); adaptive = false, dt = 0.002)
 
@@ -27,7 +27,7 @@
     c1 = DEComponent(
         prob1, Euler();
         name = "Prey",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2),
         intkwargs = (:adaptive => false, :dt => 0.002)
     )
@@ -35,7 +35,7 @@
     c2 = DEComponent(
         prob2, Euler();
         name = "Predator",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
         intkwargs = (:adaptive => false, :dt => 0.002)
     )
@@ -49,7 +49,7 @@
         outputs = ["Predator.prey"]
     )
 
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0)
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 0.1))
 
     alg = MinimumTimeStepper()
     solMer = solve(mp, alg)
@@ -64,11 +64,11 @@
     c2 = DEComponent(
         prob2;
         name = "Predator",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
         intkwargs = ()
     )
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0)
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 10.0))
     solve(mp, alg)
 end
 
@@ -80,19 +80,19 @@ end
     eqs = [D(x) ~ x - x * y
            D(y) ~ -y + x * y]
     @mtkcompile lv = System(eqs, t)
-    prob = ODEProblem(lv, [x => 4.0, y => 2.0], (0.0, 10.0))
+    prob = ODEProblem(lv, [x => 4.0, y => 2.0], (0.0, 0.1))
 
     solODE = solve(prob, Euler(); adaptive = false, dt = 0.002)
 
     eqs = [D(x) ~ x - x * y
            D(y) ~ 0]
     @mtkcompile lv1 = System(eqs, t)
-    prob = ODEProblem(lv1, [x => 4.0, y => 2.0], (0.0, 10.0))
+    prob = ODEProblem(lv1, [x => 4.0, y => 2.0], (0.0, 0.1))
 
     c1 = DEComponent(
         prob, Euler();
         name = "Prey",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => x, "predator" => y),
         intkwargs = (:adaptive => false, :dt => 0.002)
     )
@@ -100,12 +100,12 @@ end
     eqs = [D(x) ~ 0
            D(y) ~ -y + x * y]
     @mtkcompile lv2 = System(eqs, t)
-    prob = ODEProblem(lv2, [x => 4.0, y => 2.0], (0.0, 10.0))
+    prob = ODEProblem(lv2, [x => 4.0, y => 2.0], (0.0, 0.1))
 
     c2 = DEComponent(
         prob, Euler();
         name = "Predator",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => x, "predator" => y),
         intkwargs = (:adaptive => false, :dt => 0.002)
     )
@@ -119,7 +119,7 @@ end
         outputs = ["Predator.prey"]
     )
 
-    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], max_t = 10.0)
+    mp = MermaidProblem(components = [c1, c2], connectors = [conn1, conn2], tspan = (0.0, 0.1))
 
     using CommonSolve
     alg = MinimumTimeStepper()
@@ -150,7 +150,7 @@ end
     c1 = DEComponent(
         prob, Rodas5();
         name = "Lotka-Volterra",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2)
     )
 

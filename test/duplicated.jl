@@ -69,7 +69,8 @@
     conn2 = Connector(inputs = ["tree[1:640].life"], outputs = ["forest.life[1:640]"])
 
     mp = MermaidProblem(
-        components = [dup_comp, comp2], connectors = [conn1, conn2], max_t = 10.0)
+        components = [dup_comp, comp2], connectors = [conn1, conn2], tspan = (0.0, 10.0)
+    )
     alg = MinimumTimeStepper()
     sol = solve(mp, alg)
 end
@@ -131,7 +132,7 @@ end
     mp = MermaidProblem(
         components = [dup_comp, comp2],
         connectors = [conn_ids, conn_val2, conn_val],
-        max_t = 5.0
+        tspan = (0.0, 5.0)
     )
     alg = MinimumTimeStepper()
 

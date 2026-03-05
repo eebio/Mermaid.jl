@@ -19,11 +19,11 @@ It should also have implementations of the following functions:
 
 ```@docs; canonical=false
 name
-time_step
+timestep
 variables
 ```
 
-If the component has fields for `name` and `time_step`, then those functions don't need to be implemented.
+If the component has fields for `name` and `timestep`, then those functions don't need to be implemented.
 
 ## Integrator
 
@@ -36,7 +36,7 @@ Most of the interface for Mermaid is built around functions that manipulate the 
 
 ### step!
 
-The `step!` function should advance the `ComponentIntegrator` one time step (defined by `time_step(ComponentIntegrator)`).
+The `step!` function should advance the `ComponentIntegrator` one time step (defined by `timestep(ComponentIntegrator)`).
 
 ```@docs; canonical=false
 step!
@@ -76,7 +76,7 @@ settime!
 
 ### Other functions
 
-The interface for a `Component` is also required to be satisfied for a `ComponentIntegrator`. That is, implementations of `name`, `time_step`, and `variables` should exist.
+The interface for a `Component` is also required to be satisfied for a `ComponentIntegrator`. That is, implementations of `name`, `timestep`, and `variables` should exist.
 
 If the `ComponentIntegrator` has a field/property for the `Component` called `component`, then these functions don't need new implementations.
 

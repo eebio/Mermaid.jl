@@ -7,7 +7,7 @@ using DiffEqBase
 
 """
     MOLComponent(model::DiffEqBase.AbstractDEProblem, alg::DiffEqBase.AbstractDEAlgorithm;
-                 name::String="MOL Component", time_step::Real=1.0, intkwargs::Tuple=(),
+                 name::String="MOL Component", timestep::Real=1.0, intkwargs::Tuple=(),
                  state_names::Dict{String,Any}=Dict{String,Any}())
 
 # Arguments
@@ -17,7 +17,7 @@ using DiffEqBase
 
 # Keyword Arguments
 - `name::AbstractString`: Name of the component. Defaults to "MOL Component".
-- `time_step::Real`: Time step for the component. Defaults to 1.0.
+- `timestep::Real`: Time step for the component. Defaults to 1.0.
 - `intkwargs`: Additional keyword arguments for the DE solver. Defaults to no keywords.
 - `state_names`: Dictionary mapping variable names (as strings) to their corresponding
     indices in the state vector or symbols from Symbolics.jl. Defaults to an empty
@@ -25,18 +25,18 @@ using DiffEqBase
 """
 function Mermaid.MOLComponent(model::DiffEqBase.AbstractDEProblem,
         alg::DiffEqBase.AbstractDEAlgorithm; name = "MOL Component",
-        time_step::Real = 1.0, intkwargs = (), state_names = Dict{String, Any}())
-    return Mermaid.MOLComponent(model, name, state_names, time_step, alg, intkwargs)
+        timestep::Real = 1.0, intkwargs = (), state_names = Dict{String, Any}())
+    return Mermaid.MOLComponent(model, name, state_names, timestep, alg, intkwargs)
 end
 
 function CommonSolve.init(c::MOLComponent)
     integrator = MOLComponentIntegrator(
-        init(c.model, c.alg; dt = c.time_step, c.intkwargs...), c)
+        init(c.model, c.alg; dt = c.timestep, c.intkwargs...), c)
     return integrator
 end
 
 function CommonSolve.step!(compInt::MOLComponentIntegrator)
-    CommonSolve.step!(compInt.integrator, time_step(compInt), true)
+    CommonSolve.step!(compInt.integrator, timestep(compInt), true)
 end
 
 function Mermaid.getstate(compInt::MOLComponentIntegrator, key)

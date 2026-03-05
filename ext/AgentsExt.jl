@@ -9,7 +9,7 @@ export AgentsComponent
 
 """
     AgentsComponent(model::StandardABM; name="Agents Component",
-                    state_names=Dict{String,Any}(), time_step::Real=1.0)
+                    state_names=Dict{String,Any}(), timestep::Real=1.0)
 
 A Mermaid component that wraps an agent-based model (ABM) using the Agents.jl package.
 
@@ -21,13 +21,13 @@ A Mermaid component that wraps an agent-based model (ABM) using the Agents.jl pa
 - `state_names`: A dictionary mapping variable names (as strings) to their corresponding
     properties (agent properties or model properties) in the `model`. Defaults to an empty
     dictionary.
-- `time_step::Real`: The time step for the component (not the ABM solver timestep), i.e. how
+- `timestep::Real`: The time step for the component (not the ABM solver timestep), i.e. how
     frequently should the inputs and outputs be updated.
 """
 function Mermaid.AgentsComponent(model::StandardABM;
         name::AbstractString = "Agents Component", state_names = Dict{String, Any}(),
-        time_step::Real = 1)
-    return Mermaid.AgentsComponent(model, name, state_names, time_step)
+        timestep::Real = 1)
+    return Mermaid.AgentsComponent(model, name, state_names, timestep)
 end
 
 function CommonSolve.init(c::AgentsComponent)
@@ -36,14 +36,14 @@ function CommonSolve.init(c::AgentsComponent)
 end
 
 function CommonSolve.step!(compInt::AgentsComponentIntegrator)
-    step!(compInt.integrator, time_step(compInt))
+    step!(compInt.integrator, timestep(compInt))
 end
 
 function Mermaid.getstate(compInt::AgentsComponentIntegrator, key::ConnectedVariable)
     if first(key.variable) == '#'
         # Special variables
         if key.variable == "#time"
-            return abmtime(compInt.integrator) * compInt.component.time_step
+            return abmtime(compInt.integrator) * compInt.component.timestep
         end
         if key.variable == "#model"
             return getstate(compInt; copy = true)

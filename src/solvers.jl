@@ -12,10 +12,14 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
     # Update the current time
     min_t = Inf
     for (int, timescale) in zip(merInt.integrators, merInt.timescales)
-        next_t = (gettime(int) + time_step(int)) * timescale
+        next_t = (gettime(int) + timestep(int)) * timescale
         if next_t < min_t
             min_t = next_t
         end
+    end
+    # Stop early if the user requested to save somewhere
+    if merInt.saveat isa AbstractVector && any(merInt.currtime .< merInt.saveat .< min_t)
+        min_t = first(merInt.saveat[merInt.saveat .> merInt.currtime])
     end
     merInt.currtime = min_t
     # Apply connections
@@ -24,9 +28,13 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
     end
     # Step the integrator
     for (int, timescale) in zip(merInt.integrators, merInt.timescales)
-        if (gettime(int) + time_step(int)) * timescale <= nextfloat(merInt.currtime)
+        if (gettime(int) + timestep(int)) * timescale <= nextfloat(merInt.currtime)
+            t_before = gettime(int)
             # Step the integrator
             step!(int)
+            if gettime(int) <= t_before
+                error("Component $(name(int)) failed to advance: time did not move forward from $t_before.")
+            end
             # Force time synchronization after stepping to avoid floating point issues.
             # Especially important for handling multiple timescales.
             if gettime(int) * timescale == nextfloat(merInt.currtime)

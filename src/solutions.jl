@@ -16,7 +16,7 @@ end
     MermaidSolution(int::MermaidIntegrator) <: AbstractMermaidSolution
 
 Create a [MermaidSolution](@ref) object initialized for the `save_vars`/variables in the
-    given [MermaidIntegrator](@ref).
+    given MermaidIntegrator.
 
 # Arguments
 - `int::MermaidIntegrator`: The integrator to extract solution structure from.
@@ -27,20 +27,8 @@ Create a [MermaidSolution](@ref) object initialized for the `save_vars`/variable
 """
 function MermaidSolution(int::AbstractMermaidIntegrator)
     u = Dict()
-    if length(int.save_vars) == 0
-        for i in int.integrators
-            for key in variables(i)
-                if contains(key, "#")
-                    continue
-                end
-                fullname = join([i.component.name, key], ".")
-                u[ConnectedVariable(fullname)] = []
-            end
-        end
-    else
-        for var in int.save_vars
-            u[ConnectedVariable(var)] = []
-        end
+    for var in int.save_vars
+        u[ConnectedVariable(var)] = []
     end
     return MermaidSolution([], u)
 end
@@ -49,7 +37,7 @@ end
     update_solution!(sol::MermaidSolution, merInt::MermaidIntegrator)
 
 Update the [MermaidSolution](@ref) `sol` with the current time and state from the
-    [MermaidIntegrator](@ref).
+    MermaidIntegrator.
 
 # Arguments
 - `sol::MermaidSolution`: The [MermaidSolution](@ref) to be updated.

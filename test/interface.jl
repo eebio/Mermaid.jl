@@ -2,7 +2,7 @@
     using Mermaid
 
     struct TestComponent <: AbstractComponent
-        time_step::Float64
+        timestep::Float64
         name::String
     end
 
@@ -17,7 +17,7 @@
     end
 
     function step!(compInt::TestIntegrator)
-        compInt.state += compInt.component.time_step
+        compInt.state += compInt.component.timestep
     end
 
     function Mermaid.getstate(compInt::TestIntegrator, key)
@@ -50,11 +50,11 @@
     end
 end
 
-@testitem "interface with component field" setup = [interface1] begin
+@testitem "interface with component field" setup=[interface1] begin
     component = TestComponent(0.1, "Test Component")
     int = init(component)
     @test gettime(int) == 0.0
-    @test time_step(int) == 0.1
+    @test timestep(int) == 0.1
     @test name(int) == "Test Component"
     step!(int)
     @test gettime(int) == 0.1
@@ -70,7 +70,7 @@ end
     using Mermaid
 
     struct TestComponent2 <: AbstractComponent
-        time_step_new_name::Float64
+        timestep_new_name::Float64
         name_new_name::String
     end
 
@@ -85,7 +85,7 @@ end
     end
 
     function step!(compInt::TestIntegrator2)
-        compInt.state += compInt.component_new_name.time_step_new_name
+        compInt.state += compInt.component_new_name.timestep_new_name
     end
 
     function Mermaid.getstate(compInt::TestIntegrator2, key)
@@ -121,17 +121,17 @@ end
         return "Test Component"
     end
 
-    function Mermaid.time_step(component::Union{TestComponent2, TestIntegrator2})
+    function Mermaid.timestep(component::Union{TestComponent2, TestIntegrator2})
         return 0.1
     end
 end
 
-@testitem "interface without component field" setup = [interface2] begin
+@testitem "interface without component field" setup=[interface2] begin
     component = TestComponent2(0.1, "Test Component")
     int = init(component)
     @test int isa TestIntegrator2
     @test gettime(int) == 0.0
-    @test time_step(int) == 0.1
+    @test timestep(int) == 0.1
     @test name(int) == "Test Component"
     step!(int)
     @test gettime(int) == 0.1

@@ -151,7 +151,7 @@ MermaidProblem
 ```
 
 ```@example tutorial
-mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn1, conn2], max_t=tspan[2])
+mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn1, conn2], tspan=tspan)
 alg = MinimumTimeStepper()
 sol = solve(mp, alg)
 ```
@@ -206,7 +206,7 @@ conn3 = Connector(
     func=(model) -> plot_input(model)
 )
 
-mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn1, conn2, conn3], max_t=tspan[2])
+mp = MermaidProblem(components=[dup_comp, comp2], connectors=[conn1, conn2, conn3], tspan=tspan)
 sol = solve(mp, alg)
 
 save("forest_fire.mp4", io)
