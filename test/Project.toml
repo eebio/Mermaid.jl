@@ -21,7 +21,7 @@ TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
 Mermaid = {path = ".."}
 
 [compat]
-Agents = "6.2.10"
+Agents = "6.2.10, 7"
 Aqua = "0.8"
 CommonSolve = "0.2.6"
 DiffEqBase = "6.203.0"
