@@ -62,7 +62,6 @@ function Mermaid.setstate!(compInt::Mermaid.JumpComponentIntegrator, key, value)
     reset_aggregated_jumps!(compInt.integrator; update_jump_params = param_changed)
     if first(key.variable) == '#'
         if key.variable == "#time"
-            u_modified!(compInt.integrator, true)
             compInt.integrator.t = value
             return nothing
         end
