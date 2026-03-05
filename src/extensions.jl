@@ -1,8 +1,3 @@
-export DEComponent, DEComponentIntegrator
-export AgentsComponent, AgentsComponentIntegrator
-export MOLComponent, MOLComponentIntegrator
-export SurrogateComponent, SurrogateComponentIntegrator
-
 struct DEComponent{A, B, C, D, E, F} <: AbstractTimeDependentComponent
     model::A
     name::B
@@ -13,6 +8,20 @@ struct DEComponent{A, B, C, D, E, F} <: AbstractTimeDependentComponent
 end
 
 mutable struct DEComponentIntegrator{A, B} <: AbstractComponentIntegrator
+    integrator::A
+    component::B
+end
+
+struct JumpComponent{A, B, C, D, E, F} <: AbstractTimeDependentComponent
+    model::A
+    name::B
+    state_names::C
+    timestep::D
+    alg::E
+    intkwargs::F
+end
+
+mutable struct JumpComponentIntegrator{A, B} <: AbstractComponentIntegrator
     integrator::A
     component::B
 end
