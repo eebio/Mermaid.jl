@@ -281,6 +281,17 @@ end
     step!(int)
     @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1, 1, 1]
 
+    # Test copying
+    a = getstate(int, ConnectedVariable("Schelling.list_property"); copy = false)
+    a[2] = 2
+    @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1, 2, 1]
+    a = getstate(int, ConnectedVariable("Schelling.list_property"); copy = true)
+    a[2] = 3
+    @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1, 2, 1]
+    a = getstate(int, ConnectedVariable("Schelling.list_property"))
+    a[2] = 4
+    @test getstate(int, ConnectedVariable("Schelling.list_property")) == [1, 4, 1]
+
     @test gettime(int) == 1.0
     step!(int)
     @test gettime(int) == 2.0
