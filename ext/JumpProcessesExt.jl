@@ -1,4 +1,4 @@
-module DiffEqExt
+module JumpProcessesExt
 
 using Mermaid
 using CommonSolve
