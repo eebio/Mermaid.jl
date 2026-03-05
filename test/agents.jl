@@ -198,29 +198,31 @@ end
           [7, 8, 6]
 
     # getstate and setstate! for duplicated AgentsComponent
+    # abmtime is part of the state, not Mermaid's time control
     @test getstate(integrator) isa StandardABM
     @test gettime(integrator) ≈ 0.2
     state = getstate(integrator; copy = true) # Get a copy of the state
     state2 = getstate(integrator) # Default is don't copy, just return reference
     state3 = getstate(integrator; copy = false)
     step!(integrator)
-    @test gettime(integrator) ≈ 0.4
+    @test abmtime(getstate(integrator))*timestep(integrator) ≈ 0.4
     setstate!(integrator, state)
-    @test gettime(integrator) ≈ 0.2
+    @test abmtime(getstate(integrator))*timestep(integrator) ≈ 0.2
     setstate!(integrator, state2)
-    @test gettime(integrator) ≈ 0.4
+    @test abmtime(getstate(integrator))*timestep(integrator) ≈ 0.4
     setstate!(integrator, state3)
-    @test gettime(integrator) ≈ 0.4
+    @test abmtime(getstate(integrator))*timestep(integrator) ≈ 0.4
 
-    # Settime does nothing since Agents.jl does not support setting time directly but rather stores it within the state
     settime!(integrator, 1.0)
-    @test gettime(integrator) ≈ 0.4
+    @test gettime(integrator) == 1.0
+    step!(integrator)
+    @test gettime(integrator) == 1.2
 
     # Same thing but with the #model variable
     @test getstate(integrator, ConnectedVariable("Schelling.#model")) isa StandardABM
-    state = getstate(integrator, ConnectedVariable("Schelling.#model"))
+    state = getstate(integrator, ConnectedVariable("Schelling.#model"); copy = true)
     step!(integrator)
-    @test gettime(integrator) ≈ 0.6
+    @test abmtime(getstate(integrator))*timestep(integrator) ≈ 0.8
     setstate!(integrator, ConnectedVariable("Schelling.#model"), state)
-    @test gettime(integrator) ≈ 0.4
+    @test abmtime(getstate(integrator))*timestep(integrator) ≈ 0.6
 end
