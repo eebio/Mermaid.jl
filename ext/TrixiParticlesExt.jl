@@ -8,7 +8,7 @@ using OrderedCollections: OrderedDict
 
 """
     TrixiParticlesComponent(semi::TrixiParticles.Semidiscretization, alg;
-                name::String="TrixiParticles Component", time_step::Float64=1.0,
+                name::String="TrixiParticles Component", timestep::Float64=1.0,
                 intkwargs::Tuple=(), tspan=(0.0, Inf),
                 state_names::Dict{String,Any}=Dict{String,Any}())
 
@@ -19,7 +19,7 @@ using OrderedCollections: OrderedDict
 
 # Keyword Arguments
 - `name::AbstractString`: Name of the component. Defaults to "TrixiParticles Component".
-- `time_step::Real`: Time step for the component. Defaults to 1.0.
+- `timestep::Real`: Time step for the component. Defaults to 1.0.
 - `intkwargs`: Additional keyword arguments for the DE solver. Defaults to no keywords.
 - `tspan`: Time span for the simulation. Defaults to (0.0, Inf).
 - `state_names`: Dictionary mapping variable names (as strings) to their corresponding
@@ -27,10 +27,10 @@ using OrderedCollections: OrderedDict
     dictionary.
 """
 function Mermaid.TrixiParticlesComponent(semi::TrixiParticles.Semidiscretization,
-        alg; name = "TrixiParticles Component", time_step::Real = 1.0, intkwargs = (),
+        alg; name = "TrixiParticles Component", timestep::Real = 1.0, intkwargs = (),
         tspan = (0.0, Inf), state_names = Dict{String, Any}())
     ode = semidiscretize(semi, tspan)
-    return Mermaid.TrixiParticlesComponent(ode, semi, name, state_names, time_step, alg, intkwargs)
+    return Mermaid.TrixiParticlesComponent(ode, semi, name, state_names, timestep, alg, intkwargs)
 end
 
 function CommonSolve.init(c::Mermaid.TrixiParticlesComponent)
@@ -40,7 +40,7 @@ function CommonSolve.init(c::Mermaid.TrixiParticlesComponent)
 end
 
 function CommonSolve.step!(compInt::Mermaid.TrixiParticlesComponentIntegrator)
-    CommonSolve.step!(compInt.integrator, time_step(compInt), true)
+    CommonSolve.step!(compInt.integrator, timestep(compInt), true)
 end
 
 function Mermaid.getstate(compInt::Mermaid.TrixiParticlesComponentIntegrator, key)

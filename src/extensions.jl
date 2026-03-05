@@ -22,7 +22,7 @@ struct TrixiParticlesComponent{A, B, C, D, E, F, G} <: AbstractTimeDependentComp
     semi::B
     name::C
     state_names::D
-    time_step::E
+    timestep::E
     alg::F
     intkwargs::G
 end

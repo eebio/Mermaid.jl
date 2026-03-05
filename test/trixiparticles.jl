@@ -112,8 +112,8 @@ end
     using OrdinaryDiffEq
     using Mermaid
 
-    comp = TrixiParticlesComponent(semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", time_step = 0.002)
-    mp = MermaidProblem(components = [comp], connectors = [], max_t = tspan[2])
+    comp = TrixiParticlesComponent(semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", timestep = 0.002)
+    mp = MermaidProblem(components = [comp], connectors = [], tspan = tspan)
     alg = MinimumTimeStepper()
     sol_mermaid = solve(mp, alg; save_vars = ["TrixiParticles Component.#state"])
     a = [sol_mermaid(i)["TrixiParticles Component.#state"] for i in 0:0.1:tspan[2]]
@@ -126,7 +126,7 @@ end
     using OrdinaryDiffEq
     using Mermaid
 
-    comp = TrixiParticlesComponent(semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", time_step = 0.002)
+    comp = TrixiParticlesComponent(semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", timestep = 0.002)
 
     function f1!(du, u, p, t)
         x, y = u
@@ -137,7 +137,7 @@ end
     comp2 = DEComponent(
         prob1, Euler();
         name = "ODE",
-        time_step = 0.002,
+        timestep = 0.002,
         state_names = OrderedDict("integral" => 1, "pressure" => 2),
         intkwargs = (:adaptive => false, :dt => 0.002)
     )
@@ -154,7 +154,7 @@ end
         func = pressure_interpolation
     )
 
-    mp = MermaidProblem(components = [comp, comp2], connectors = [conn], max_t = tspan[2])
+    mp = MermaidProblem(components = [comp, comp2], connectors = [conn], tspan = tspan)
     alg = MinimumTimeStepper()
     sol_mermaid = solve(mp, alg; save_vars = ["TrixiParticles Component.#state"])
 
@@ -171,7 +171,7 @@ end
     using OrdinaryDiffEq
 
     comp = TrixiParticlesComponent(
-        semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", time_step = 0.002,
+        semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", timestep = 0.002,
         state_names = Dict("particle1velx" => 1, "particle1vely" => 2))
     int = init(comp)
     @test gettime(int) == 0.0
