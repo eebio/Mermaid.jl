@@ -129,11 +129,11 @@ function should_save(merInt::AbstractMermaidIntegrator, saveat::Function)
     return saveat(merInt, merInt.currtime)
 end
 
-function getstate(merInt::AbstractMermaidIntegrator, key::AbstractConnectedVariable)
+function getstate(merInt::AbstractMermaidIntegrator, key::AbstractConnectedVariable; kwargs...)
     # Get the state of the component based on the key
     for integrator in merInt.integrators
         if name(integrator) == key.component
-            return getstate(integrator, key)
+            return getstate(integrator, key; kwargs...)
         end
     end
 end
@@ -197,6 +197,14 @@ function getstate(int::AbstractComponentIntegrator; copy = false)
         return deepcopy(getstate(int))
     else
         return getstate(int)
+    end
+end
+
+function getstate(int::AbstractComponentIntegrator, key; copy = false)
+    if copy
+        return deepcopy(getstate(int, key))
+    else
+        return getstate(int, key)
     end
 end
 
