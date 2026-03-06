@@ -37,6 +37,10 @@ function CommonSolve.init(c::Mermaid.JumpComponent)
 end
 
 function CommonSolve.step!(compInt::Mermaid.JumpComponentIntegrator)
+    # Doing reset here rather than setstate! ensures we only reset at the last possible time
+    if compInt.integrator.u_modified
+        reset_aggregated_jumps!(compInt.integrator)
+    end
     CommonSolve.step!(compInt.integrator, timestep(compInt), true)
 end
 
@@ -57,9 +61,6 @@ end
 function Mermaid.setstate!(compInt::Mermaid.JumpComponentIntegrator, key, value)
     u_modified!(compInt.integrator, true)
     # Clear jump caches too
-    # If parameters have changed, we need to do extra work
-    param_changed = false
-    reset_aggregated_jumps!(compInt.integrator; update_jump_params = param_changed)
     if first(key.variable) == '#'
         if key.variable == "#time"
             compInt.integrator.t = value
@@ -72,8 +73,6 @@ end
 
 function Mermaid.setstate!(compInt::Mermaid.JumpComponentIntegrator, value)
     u_modified!(compInt.integrator, true)
-    param_changed = false
-    reset_aggregated_jumps!(compInt.integrator; update_jump_params = param_changed)
     compInt.integrator.u = value
 end
 
