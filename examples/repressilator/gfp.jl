@@ -1,7 +1,7 @@
 module Repressilator
 
     using Catalyst
-    using DifferentialEquations, StochasticDiffEq
+    using DifferentialEquations, StochasticDiffEq, JumpProcesses
     using Plots
     using Random
 
@@ -59,6 +59,26 @@ module Repressilator
         Plots.plot(sol, vars=[:gfp], xlabel="Time", ylabel="Concentration", label="gfp - Cell 1", title="Repressilator Protein Dynamics", linewidth=2)
         sol = solve(prob, Tsit5())
         display(Plots.plot!(sol, vars=[:gfp], label="gfp - Cell 2", linestyle=:dash, linewidth=2))
+    end
+
+    function jump_repressilator()
+    u0_integers = [:P₁ => 10, :P₂ => 10, :P₃ => 500, :m₁ => 50, :m₂ => 5,
+        :m₃ => 5, :m_gfp => 0, :gfp => 0, :gr => 1.0, :V => 1.0]
+
+        prob = DiscreteProblem(repressilator, u0_integers, tspan, ps)
+        jprob = JumpProblem(repressilator, prob, Direct(); save_positions = (false, false))
+        return jprob
+    end
+
+    function plot_jump()
+        prob = jump_repressilator()
+        sol = solve(prob)
+
+        Plots.plot(sol, vars = [:gfp], xlabel = "Time", ylabel = "Concentration",
+            label = "gfp - Cell 1", title = "Repressilator Protein Dynamics", linewidth = 2)
+        sol = solve(prob)
+        display(Plots.plot!(
+            sol, vars = [:gfp], label = "gfp - Cell 2", linestyle = :dash, linewidth = 2))
     end
 
     function sde_repressilator()
