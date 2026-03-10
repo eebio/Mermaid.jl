@@ -1,5 +1,5 @@
 using Catalyst
-using DifferentialEquations, StochasticDiffEq
+using OrdinaryDiffEq
 using Plots
 
 # Constants

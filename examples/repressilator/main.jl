@@ -1,5 +1,4 @@
 using Mermaid
-using StochasticDiffEq
 using SymbolicIndexingInterface
 using Distributions
 
@@ -17,7 +16,6 @@ max_t = 11.0
 use_improved = true
 
 repressilator = Repressilator.repressilator
-#sde = SDEProblem(repressilator, Repressilator.u0, Repressilator.tspan, Repressilator.ps)
 jprob = Repressilator.jump_repressilator()
 jprob_improved = jump_improved_repressilator()
 improved = jprob_improved.prob.f.sys
