@@ -235,7 +235,7 @@ function initialize_cell_model(;
     ninit=3,
     radius=2.0,
     dt=0.01,
-    sides=SVector(20.0, 20.0))
+    sides=SVector(50.0, 50.0))
     Random.seed!(0)
     # Generate the initial random positions
     cent = SVector(sides[1] / 2, sides[2] / 2)
