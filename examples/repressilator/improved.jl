@@ -5,6 +5,7 @@ using JumpProcesses
 import Distributions: Geometric
 using Polynomials
 using Random
+import PolynomialRoots
 
 # Constants
 λ = 60
@@ -19,9 +20,8 @@ N̄ₜ = 40
 m = rand(Geometric(1/b)) + 1
 
 function root(Pt, Npro, K)
-    p = Polynomial([-K^1.5*Pt, 0, K^1.5, 2Npro-Pt, 0, 1])
     f = x -> isreal(x) && 0<=real(x)<=Pt
-    r = roots(p)
+    r = PolynomialRoots.roots([-K^1.5 * Pt, 0, K^1.5, 2Npro - Pt, 0, 1])
     r = filter(f, r)
     if isempty(r)
         if Pt < 1e-3
