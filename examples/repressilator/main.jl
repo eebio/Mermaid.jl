@@ -6,13 +6,14 @@ include("gfp.jl")
 includet("cells.jl")
 includet("growth.jl")
 includet("improved.jl")
+includet("nutrients.jl")
 
 using Random
 Random.seed!(123)
 
 using .Repressilator
 
-max_t = 11.0
+max_t = 20.0
 use_improved = true
 
 repressilator = Repressilator.repressilator
@@ -25,13 +26,15 @@ agents = initialize_cell_model()
 growth = ode_growth()
 g_model = get_growth_model()
 
+nutrient_prob = get_nutrient_prob()
+
 rep = JumpComponent(jprob,
     SSAStepper();
     name = "repressilator",
     state_names = Dict("gfp" => variable_index(jprob, :gfp),
         "growth_rate" => variable_index(jprob, :gr), "volume" => variable_index(
             jprob, :V)),
-    timestep = agents.dt, intkwargs = ())
+    timestep = agents.dt)
 
 rep_imp = JumpComponent(jprob_improved,
     SSAStepper();
@@ -43,9 +46,23 @@ rep_imp = JumpComponent(jprob_improved,
 
 abm = AgentsComponent(agents;
     name = "cells",
-    state_names = Dict("gfp" => :gfp, "size" => :size, "nutrients" => :nuts,
-        "nut_import_rate" => :nut_import_rate),
+    state_names = Dict("gfp" => :gfp, "size" => :size, "nutrients" => :nuts, "space_nutrients" => :nutrients,
+        "nut_import_rate" => :nut_import_rate, "nut_import_rate_space" => :nutrient_import_rate),
     timestep = agents.dt
+)
+
+function var_index(s)
+    return variable_index(nutrient_prob, ModelingToolkit.parse_variable(nutrient_prob.f.sys, s))
+end
+
+pde = MOLComponent(nutrient_prob, Tsit5();
+    name = "PDE",
+    state_names = Dict(
+        "N" => [var_index("N[" * string(x) * "," * string(y) * "]") for x in 2:10
+                for y in 2:10],
+        "N₋" => [var_index("N₋[" * string(x) * "," * string(y) * "]") for x in 2:10
+                 for y in 2:10]),
+    timestep = agents.dt, intkwargs = (:save_everystep => false, :maxiters => Inf)
 )
 
 gro = DEComponent(growth,
@@ -86,7 +103,7 @@ voronoi_marker = (model, tessellation, cell) -> begin
     return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
 end
 function voronoi_color(cell)
-    get(cgrad([:black, :green]), cell.gfp / cell.size^3 / (use_improved ? 10000.0 : 1000.0))
+    get(cgrad([:black, :green]), cell.gfp / cell.size^3 / 1000.0)
 end
 tessellation = voronoi(agents.triangulation; clip = true)
 fig, ax = abmplot(agents, agent_marker = cell -> voronoi_marker(agents, tessellation, cell),
@@ -116,7 +133,7 @@ lines!(ax_1_2, t, size1, color = :blue, label = "Size", linewidth = 3)
 lines!(ax_1_2, t, nut1, color = :green, label = "Nutrients", linewidth = 3)
 vlines!(ax_1, 0.0, color = :grey, linestyle = :dash, linewidth = 3)
 Makie.xlims!(ax_1, 0, max_t)
-Makie.ylims!(ax_1, 0, use_improved ? 100000 : 2000)
+Makie.ylims!(ax_1, 0, 2000)
 Makie.xlims!(ax_1_2, 0, max_t)
 Makie.ylims!(ax_1_2, 0, 5.0)
 gfp2_layout = plot_layout[2, 1] = GridLayout()
@@ -130,7 +147,7 @@ lines!(ax_2_2, t, size2, color = :blue, label = "Size", linewidth = 3)
 lines!(ax_2_2, t, nut2, color = :green, label = "Nutrients", linewidth = 3)
 vlines!(ax_2, 0.0, color = :grey, linestyle = :dash, linewidth = 3)
 Makie.xlims!(ax_2, 0, max_t)
-Makie.ylims!(ax_2, 0, use_improved ? 100000 : 2000)
+Makie.ylims!(ax_2, 0, 2000)
 Makie.xlims!(ax_2_2, 0, max_t)
 Makie.ylims!(ax_2_2, 0, 5.0)
 resize_to_layout!(fig)
@@ -143,32 +160,30 @@ function plot_input(model)
     push!(nut2, model[2].nuts)
     push!(size1, model[1].size^3)
     push!(size2, model[2].size^3)
-    if abmtime(model) % Int(0.1 / model.dt) == 0
-        empty!(ax)
-        empty!(ax_1)
-        empty!(ax_2)
-        empty!(ax_1_2)
-        empty!(ax_2_2)
-        tessellation = voronoi(model.triangulation; clip = true)
-        abmplot!(ax, model; agent_marker = cell -> voronoi_marker(model, tessellation, cell),
-            agent_color = voronoi_color,
-            agentsplotkwargs = (strokewidth = 1,), #heatarray = :nutrients, heatkwargs = (colorrange = (
-                #0.0, 1.0),)
-                )
-        abmplot!(ax, model; agent_marker = :circle, agent_color = :red,
-            agent_size = cell -> cell.id ∈ [1, 2] ? 10 : 0)
-        lines!(ax_1, t, gfp1, color = :black, label = "Total", linewidth = 3)
-        lines!(ax_1_2, t, size1, color = :blue, label = "Size", linewidth = 3)
-        lines!(ax_1_2, t, nut1, color = :green, label = "Nutrients", linewidth = 3)
-        vlines!(ax_1, t[end], color = :grey, linestyle = :dash, linewidth = 3)
-        lines!(ax_2, t, gfp2, color = :black, label = "Total", linewidth = 3)
-        lines!(ax_2_2, t, size2, color = :blue, label = "Size", linewidth = 3)
-        lines!(ax_2_2, t, nut2, color = :green, label = "Nutrients", linewidth = 3)
-        vlines!(ax_2, t[end], color = :grey, linestyle = :dash, linewidth = 3)
-        recordframe!(io)
-        @show abmtime(model) * model.dt
-        @show nagents(model)
-    end
+    empty!(ax)
+    empty!(ax_1)
+    empty!(ax_2)
+    empty!(ax_1_2)
+    empty!(ax_2_2)
+    tessellation = voronoi(model.triangulation; clip = true)
+    abmplot!(ax, model; agent_marker = cell -> voronoi_marker(model, tessellation, cell),
+        agent_color = voronoi_color,
+        agentsplotkwargs = (strokewidth = 1,), #heatarray = :nutrients, heatkwargs = (colorrange = (
+            #0.0, 1.0),)
+            )
+    abmplot!(ax, model; agent_marker = :circle, agent_color = :red,
+        agent_size = cell -> cell.id ∈ [1, 2] ? 10 : 0)
+    lines!(ax_1, t, gfp1, color = :black, label = "Total", linewidth = 3)
+    lines!(ax_1_2, t, size1, color = :blue, label = "Size", linewidth = 3)
+    lines!(ax_1_2, t, nut1, color = :green, label = "Nutrients", linewidth = 3)
+    vlines!(ax_1, t[end], color = :grey, linestyle = :dash, linewidth = 3)
+    lines!(ax_2, t, gfp2, color = :black, label = "Total", linewidth = 3)
+    lines!(ax_2_2, t, size2, color = :blue, label = "Size", linewidth = 3)
+    lines!(ax_2_2, t, nut2, color = :green, label = "Nutrients", linewidth = 3)
+    vlines!(ax_2, t[end], color = :grey, linestyle = :dash, linewidth = 3)
+    recordframe!(io)
+    @show abmtime(model) * model.dt
+    @show nagents(model)
 end
 
 function set_initial_states_half!(states, ids, model) # Do mutating functions work in Mermaid connectors?
@@ -252,20 +267,41 @@ conn_nuts_imp = Connector(
     func = (imp) -> imp ./ 1e8 * 1.5 # Scaling is arbitrary
 )
 
+function pde_to_agent(nutrients)
+    return ones(9,9)
+    return reshape(nutrients, (9, 9))
+end
+
+function agent_to_pde(nutrients)
+    return reshape(nutrients, 81)
+end
+
+conn_nutrients_space = Connector(
+    inputs = ["PDE.N"],
+    outputs = ["cells.space_nutrients"],
+    func = pde_to_agent
+)
+
+conn_nut_import_rate_space = Connector(
+    inputs = ["cells.nut_import_rate_space"],
+    outputs = ["PDE.N₋"],
+    func = pde_to_agent
+)
+
 if use_improved
     mp = MermaidProblem(
-        components = [dup_g, dup_i, abm], # TODO get awkward error when repressilator is run before growth
+        components = [dup_g, dup_i, abm, pde], # TODO get awkward error when repressilator is run before growth
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
-            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp],
+            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_nutrients_space, conn_nut_import_rate_space],
         tspan = (0, max_t)
     )
 else
     mp = MermaidProblem(
-        components = [dup_g, dup_r, abm], # TODO get awkward error when repressilator is run before growth
+        components = [dup_g, dup_r, abm, pde], # TODO get awkward error when repressilator is run before growth
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
-            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp],
+            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_nutrients_space, conn_nut_import_rate_space],
         tspan = (0, max_t)
     )
 end

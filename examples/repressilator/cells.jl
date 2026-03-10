@@ -22,6 +22,7 @@ mutable struct ModelProperties{X <: DT.Triangulation}
     triangulation::X
     dt::Float64
     nutrients::Matrix{Float64}
+    nutrient_import_rate::Matrix{Float64}
 end
 
 DT.getx(cell::Cell) = cell.pos[1]
@@ -183,6 +184,7 @@ end
 
 function update_nutrients!(model, t)
     # Clear previous growth
+    model.nutrient_import_rate .= 0.0
     tmp_pos = MVector{2, Float64}(0.0, 0.0)
     for p in allagents(model)
         # Get the triangle of that voronoi cell
@@ -200,16 +202,9 @@ function update_nutrients!(model, t)
         # Points will be duplicated if they are closer to the centre of the cell
         p.nuts = mean(model.nutrients[inds])
         for ind in inds
-            #model.nutrients[ind] -= p.nut_import_rate * model.dt/num_sample_points
-            #model.nutrients[ind] = max(0, model.nutrients[ind])
+            model.nutrient_import_rate[ind] += p.nut_import_rate * model.dt/num_sample_points
         end
     end
-    # Diffuse nutrients
-    #tmp = copy(model.nutrients)
-    #for x in 2:size(model.nutrients, 1)-1, y in 2:size(model.nutrients, 2)-1
-        #tmp[x,y] = max(0, 0.99*model.nutrients[x,y] + 0.01*(sum(model.nutrients[x-1:x+1,y-1:y+1]) - model.nutrients[x,y]) / 8)
-    #end
-    #model.nutrients = tmp
     return model
 end
 
@@ -255,7 +250,8 @@ function initialize_cell_model(;
     properties = ModelProperties(
         triangulation,
         dt,
-        ones(100,100),
+        ones(9,9),
+        zeros(9,9),
     )
 
     # Define the space
