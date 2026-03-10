@@ -14,13 +14,13 @@ Random.seed!(123)
 using .Repressilator
 
 max_t = 11.0
-use_improved = false
+use_improved = true
 
 repressilator = Repressilator.repressilator
 #sde = SDEProblem(repressilator, Repressilator.u0, Repressilator.tspan, Repressilator.ps)
 jprob = Repressilator.jump_repressilator()
-sde_improved = sde_improved_repressilator()
-improved = sde_improved.f.sys
+jprob_improved = jump_improved_repressilator()
+improved = jprob_improved.prob.f.sys
 
 agents = initialize_cell_model()
 
@@ -35,13 +35,13 @@ rep = JumpComponent(jprob,
             jprob, :V)),
     timestep = agents.dt, intkwargs = ())
 
-rep_imp = DEComponent(sde_improved,
-    EM();
+rep_imp = JumpComponent(jprob_improved,
+    SSAStepper();
     name = "repressilator",
     state_names = Dict("gfp" => variable_index(improved, :gfp),
         "growth_rate" => variable_index(improved, :gr), "volume" => variable_index(
             improved, :V)),
-    timestep = agents.dt, intkwargs = (:maxiters => Inf, :save_everystep => false))
+    timestep = agents.dt)
 
 abm = AgentsComponent(agents;
     name = "cells",
@@ -63,7 +63,7 @@ gro = DEComponent(growth,
 
 dup_r = DuplicatedComponent(rep, []; default_state = jprob.prob.u0)
 
-dup_i = DuplicatedComponent(rep_imp, []; default_state = sde_improved.u0)
+dup_i = DuplicatedComponent(rep_imp, []; default_state = jprob_improved.prob.u0)
 
 dup_g = DuplicatedComponent(gro, []; default_state = growth.u0)
 
