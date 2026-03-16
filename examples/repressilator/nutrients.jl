@@ -15,7 +15,7 @@ function get_nutrient_prob()
         Dt(N(t, x, y)) ~ 0.01*(Dxx(N(t, x, y)) + Dyy(N(t, x, y))) -
                     N₋(t, x, y),
         Dt(N₋(t, x, y)) ~ 0.0]
-    bcs = [N(0, x, y) ~ x,
+    bcs = [N(0, x, y) ~ 1.0,
         N₋(0, x, y) ~ 0.0,
         Dx(N(t, 0, y)) ~ 0.0,
         Dx(N(t, 1, y)) ~ 0.0,
