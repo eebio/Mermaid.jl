@@ -13,7 +13,7 @@ Random.seed!(123)
 
 using .Repressilator
 
-max_t = 20.0
+max_t = 10.0
 use_improved = true
 
 repressilator = Repressilator.repressilator
@@ -244,8 +244,8 @@ conn_nuts_imp = Connector(
 )
 
 function pde_to_agent(nutrients)
-    return ones(9,9)
-    return reshape(nutrients, (9, 9))
+    #return ones(9,9)
+    return reshape(clamp.(nutrients, 0, 1), (9, 9))
 end
 
 function agent_to_pde(nutrients)
