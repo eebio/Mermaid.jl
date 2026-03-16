@@ -1,6 +1,6 @@
 using Mermaid
+using StochasticDiffEq
 using SymbolicIndexingInterface
-using Distributions
 
 include("gfp.jl")
 includet("cells.jl")
@@ -17,9 +17,9 @@ max_t = 20.0
 use_improved = true
 
 repressilator = Repressilator.repressilator
-jprob = Repressilator.jump_repressilator()
-jprob_improved = jump_improved_repressilator()
-improved = jprob_improved.prob.f.sys
+sde = SDEProblem(repressilator, Repressilator.u0, Repressilator.tspan, Repressilator.ps)
+sde_improved = sde_improved_repressilator()
+improved = sde_improved.f.sys
 
 agents = initialize_cell_model()
 
@@ -28,21 +28,21 @@ g_model = get_growth_model()
 
 nutrient_prob = get_nutrient_prob()
 
-rep = JumpComponent(jprob,
-    SSAStepper();
+rep = DEComponent(sde,
+    EM();
     name = "repressilator",
-    state_names = Dict("gfp" => variable_index(jprob, :gfp),
-        "growth_rate" => variable_index(jprob, :gr), "volume" => variable_index(
-            jprob, :V)),
-    timestep = agents.dt)
+    state_names = Dict("gfp" => variable_index(sde, :gfp),
+        "growth_rate" => variable_index(sde, :gr), "volume" => variable_index(
+            sde, :V)),
+    timestep = agents.dt, intkwargs = (:save_everystep => false, :maxiters => Inf))
 
-rep_imp = JumpComponent(jprob_improved,
-    SSAStepper();
+rep_imp = DEComponent(sde_improved,
+    EM();
     name = "repressilator",
     state_names = Dict("gfp" => variable_index(improved, :gfp),
         "growth_rate" => variable_index(improved, :gr), "volume" => variable_index(
             improved, :V)),
-    timestep = agents.dt)
+    timestep = agents.dt, intkwargs = (:save_everystep => false, :maxiters => Inf))
 
 abm = AgentsComponent(agents;
     name = "cells",
@@ -76,9 +76,9 @@ gro = DEComponent(growth,
         :maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u),
         :save_everystep => false))
 
-dup_r = DuplicatedComponent(rep, []; default_state = jprob.prob.u0)
+dup_r = DuplicatedComponent(rep, []; default_state = sde.u0)
 
-dup_i = DuplicatedComponent(rep_imp, []; default_state = jprob_improved.prob.u0)
+dup_i = DuplicatedComponent(rep_imp, []; default_state = sde_improved.u0)
 
 dup_g = DuplicatedComponent(gro, []; default_state = growth.u0)
 
@@ -103,7 +103,7 @@ voronoi_marker = (model, tessellation, cell) -> begin
     return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
 end
 function voronoi_color(cell)
-    get(cgrad([:black, :green]), cell.gfp / cell.size^3 / 1000.0)
+    get(cgrad([:black, :green]), cell.gfp / cell.size^3 / (use_improved ? 10000.0 : 1000.0))
 end
 tessellation = voronoi(agents.triangulation; clip = true)
 fig, ax = abmplot(agents, agent_marker = cell -> voronoi_marker(agents, tessellation, cell),
@@ -133,7 +133,7 @@ lines!(ax_1_2, t, size1, color = :blue, label = "Size", linewidth = 3)
 lines!(ax_1_2, t, nut1, color = :green, label = "Nutrients", linewidth = 3)
 vlines!(ax_1, 0.0, color = :grey, linestyle = :dash, linewidth = 3)
 Makie.xlims!(ax_1, 0, max_t)
-Makie.ylims!(ax_1, 0, 2000)
+Makie.ylims!(ax_1, 0, (use_improved ? 10000.0 : 2000.0))
 Makie.xlims!(ax_1_2, 0, max_t)
 Makie.ylims!(ax_1_2, 0, 5.0)
 gfp2_layout = plot_layout[2, 1] = GridLayout()
@@ -147,7 +147,7 @@ lines!(ax_2_2, t, size2, color = :blue, label = "Size", linewidth = 3)
 lines!(ax_2_2, t, nut2, color = :green, label = "Nutrients", linewidth = 3)
 vlines!(ax_2, 0.0, color = :grey, linestyle = :dash, linewidth = 3)
 Makie.xlims!(ax_2, 0, max_t)
-Makie.ylims!(ax_2, 0, 2000)
+Makie.ylims!(ax_2, 0, (use_improved ? 10000.0 : 2000.0))
 Makie.xlims!(ax_2_2, 0, max_t)
 Makie.ylims!(ax_2_2, 0, 5.0)
 resize_to_layout!(fig)
@@ -186,7 +186,7 @@ function plot_input(model)
     @show nagents(model)
 end
 
-function set_initial_states_half!(states, ids, model) # Do mutating functions work in Mermaid connectors?
+function set_initial_states!(states, ids, model) # Do mutating functions work in Mermaid connectors?
     # init_states is returned, states is mutated
     init_states = Dict{Int, Vector{Float64}}()
     for id in allids(model)
@@ -194,32 +194,8 @@ function set_initial_states_half!(states, ids, model) # Do mutating functions wo
             # New cell, so either divided or freshly created at start of simulation
             parent = model[id].parent
             if !isnothing(parent)
-                states[ids .== parent.id] = states[ids .== parent.id] ./ 2 # This is changing the state
+                states[ids .== parent.id] = states[ids .== parent.id] ./ 2
                 init_states[id] = first(deepcopy(states[ids .== parent.id]))
-            end
-        end
-    end
-    return init_states
-end
-
-function set_initial_states_binomial!(states, ids, model) # Do mutating functions work in Mermaid connectors?
-    # init_states is returned, states is mutated
-    init_states = Dict{Int, Vector{Float64}}()
-    for id in allids(model)
-        if id ∉ ids
-            # New cell, so either divided or freshly created at start of simulation
-            parent = model[id].parent
-            if !isnothing(parent)
-                parent_state = deepcopy(states[ids .== parent.id][1])
-                for i in 1:length(states[ids .== parent.id][1])
-                    if parent_state[i] ≈ round(parent_state[i])
-                        dist = Distributions.Binomial(round(parent_state[i]), 0.5)
-                        states[ids .== parent.id][1][i] = rand(dist)
-                    else
-                        states[ids .== parent.id][1][i] = parent_state[i] / 2 # This is changing the state
-                    end
-                end
-                init_states[id] = parent_state - states[ids .== parent.id][1]
             end
         end
     end
@@ -229,13 +205,13 @@ end
 conn_init_states_rep = Connector(
     inputs = ["repressilator.#states", "repressilator.#ids", "cells.#model"],
     outputs = ["repressilator.#init_states"],
-    func = set_initial_states_binomial!
+    func = set_initial_states!
 )
 
 conn_init_states_growth = Connector(
     inputs = ["growth.#states", "growth.#ids", "cells.#model"],
     outputs = ["growth.#init_states"],
-    func = set_initial_states_half!
+    func = set_initial_states!
 )
 
 conn_gr = Connector(
@@ -308,7 +284,7 @@ end
 
 alg = MinimumTimeStepper()
 start_time = time()
-@profview sol = solve(mp, alg; save_vars = ["cells.#model", "repressilator.gfp", "repressilator.volume", "repressilator.growth_rate"], saveat = 0.1)
+@profview sol = solve(mp, alg; save_vars = ["cells.#model"], saveat = 0.1)
 end_time = time()
 println("Simulation took $(end_time - start_time) seconds")
 

@@ -1,6 +1,7 @@
 module Repressilator
 
     using OrdinaryDiffEq
+    using StochasticDiffEq
     using Catalyst
     using JumpProcesses
     using Plots
@@ -80,6 +81,22 @@ module Repressilator
         sol = solve(prob)
         display(Plots.plot!(
             sol, vars = [:gfp], label = "gfp - Cell 2", linestyle = :dash, linewidth = 2))
+    end
+
+    function sde_repressilator()
+        return SDEProblem(repressilator, u0, tspan, ps)
+    end
+
+    function plot_sde()
+        sde = sde_repressilator()
+        sol_sde = solve(sde, EM(), dt = 0.1)
+
+        Plots.plot(sol_sde, vars = [:gfp], xlabel = "Time",
+            ylabel = "Concentration", label = "gfp - Cell 1",
+            title = "Repressilator Protein Dynamics (Stochastic)", linewidth = 2)
+        sol_sde = solve(sde, EM(), dt = 0.1)
+        display(Plots.plot!(
+            sol_sde, vars = [:gfp], label = "gfp - Cell 2", linestyle = :dash, linewidth = 2))
     end
 end
 using .Repressilator

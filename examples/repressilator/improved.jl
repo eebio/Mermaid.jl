@@ -77,3 +77,41 @@ function plot_jump()
     sol = solve(jprob, SSAStepper(); progress=true)
     display(Plots.plot!(sol, vars=[:gfp], label="gfp - Cell 2", linestyle=:dash, linewidth=2))
 end
+
+function sde_improved_repressilator()
+    r = @reaction_network begin
+        @parameters n K[1:3]
+        @species gr(t) V(t)
+        a*gr * N̄ₒ*V, ∅ --> Nₒ
+        a*gr * N̄ₜ*V, ∅ --> Nₜ
+        a*gr * (hillr(root(P₃/V, (Nₒ + Nₜ)/V, K[3]), λ * (Nₒ + Nₜ)/V, K[3], n))*V, ∅ --> b̄ * P₁
+        a*gr * (hillr(root(P₁/V, Nₒ/V, K[1]), λ * Nₒ/V, K[1], n))*V, ∅ --> b̄ * P₂
+        a*gr * (hillr(root(P₂/V, Nₒ/V, K[2]), λ * Nₒ/V, K[2], n))*V, ∅ --> b̄ * P₃
+        a*gr * (hillr(root(P₃/V, (Nₒ + Nₜ)/V, K[3]), λ * (Nₒ + Nₜ)/V, K[3], n))*V, ∅ --> b̄ * gfp
+        b*gr, Nₒ --> ∅ # Degradation is only mimicing dilution
+        b*gr, Nₜ --> ∅
+        b*gr, P₁ --> ∅
+        b*gr, P₂ --> ∅
+        b*gr, P₃ --> ∅
+        b*gr, gfp --> ∅
+    end
+
+    u0 = [:P₁ => 0.0, :P₂ => 0.0, :Nₒ => 10.0, :Nₜ => 40.0, :P₃ => 1000.0, :gfp => 0.0, :gr => 1.0, :V => 1.0]
+    tspan = (0., 30.)
+    ps = [:K => K, :N̄ₒ => N̄ₒ, :N̄ₜ => N̄ₜ, :λ => λ, :n => n, :b̄ => b̄, :a => 15.0, :b => 4.0]
+    sde = SDEProblem(r, u0, tspan, ps; structural_simplify = true)
+    return sde
+end
+
+function plot_sde()
+    sde = sde_improved_repressilator()
+    method = EM()
+    sol_sde = solve(sde, method, dt=0.01)
+
+    display(Plots.plot(sol_sde, vars=[:P₁, :P₂, :P₃], xlabel="Time", ylabel="Concentration", title="Repressilator Protein Dynamics (SDE)", linewidth=2))
+    display(Plots.plot(sol_sde, vars=[:Nₒ, :Nₜ], xlabel="Time", ylabel="Concentration", title="Plasmid Concentrations (SDE)", linewidth=2))
+    Plots.plot(sol_sde, vars=[:gfp], xlabel="Time", ylabel="Concentration", title="Repressilator Protein Dynamics (SDE)", linewidth=2)
+
+    sol_sde = solve(sde, method, dt=0.01)
+    display(Plots.plot!(sol_sde, vars=[:gfp], label="gfp - Cell 2", linestyle=:dash, linewidth=2))
+end
