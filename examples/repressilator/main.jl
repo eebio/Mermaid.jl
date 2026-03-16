@@ -245,7 +245,7 @@ conn_nuts_imp = Connector(
 
 function pde_to_agent(nutrients)
     #return ones(9,9)
-    return reshape(clamp.(nutrients, 0, 1), (9, 9))
+    return reshape(clamp.(nutrients, 1e-6, 1), (9, 9))
 end
 
 function agent_to_pde(nutrients)
