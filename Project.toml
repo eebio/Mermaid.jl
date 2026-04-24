@@ -26,7 +26,7 @@ TrixiParticlesExt = ["TrixiParticles", "DiffEqBase"]
 [compat]
 Agents = "7"
 CommonSolve = "0.2.4"
-DiffEqBase = "6.190.2"
+DiffEqBase = "6.190.2, 7.0"
 DocStringExtensions = "0.9.5"
 Flux = "0.16.5"
 MethodOfLines = "0.11.9"
