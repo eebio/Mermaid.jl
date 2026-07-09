@@ -69,9 +69,9 @@ gro = DEComponent(growth,
     Rosenbrock23();
     name = "growth",
     state_names = Dict(
-        "s" => variable_index(growth.f.sys, :s), "λ" => variable_index(growth.f.sys, :λ),
-        "mass" => variable_index(growth.f.sys, :M),
-        "import" => variable_index(growth.f.sys, :ν_imp)),
+        "s" => variable_index(growth.f.sys, :s), "λ" => growth.f.sys.λ,
+        "mass" => growth.f.sys.M,
+        "import" => growth.f.sys.ν_imp),
     timestep = agents.dt, intkwargs = (
         :maxiters => Inf, :isoutofdomain => (u, p, t) -> any(x -> x < 0, u),
         :save_everystep => false))
