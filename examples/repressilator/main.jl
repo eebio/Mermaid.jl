@@ -52,8 +52,10 @@ rep_imp = DEComponent(sde_improved,
 
 abm = AgentsComponent(agents;
     name = "cells",
-    state_names = Dict("gfp" => :gfp, "size" => :size, "nutrients" => :nuts, "space_nutrients" => :nutrients,
-        "nut_import_rate" => :nut_import_rate, "nut_import_rate_space" => :nutrient_import_rate),
+    state_names = Dict("gfp" => :gfp, "size" => :size, "nutrients" => :nuts,
+        "space_nutrients" => :nutrients,
+        "nut_import_rate" => :nut_import_rate, "nut_import_rate_space" =>
+            :nutrient_import_rate),
     timestep = agents.dt
 )
 
@@ -99,7 +101,8 @@ conn_gfp = Connector(
     outputs = ["cells.gfp"]
 )
 
-voronoi_marker = (model, tessellation, cell) -> begin
+voronoi_marker = (model, tessellation,
+    cell) -> begin
     #return :+
     verts = get_polygon_coordinates(tessellation, cell.index)
     return Makie.Polygon([Point2f(getxy(q) .- cell.pos) for q in verts])
@@ -108,17 +111,22 @@ function voronoi_color(cell)
     get(cgrad([:black, :green]), cell.gfp / cell.size^3 / (use_improved ? 10000.0 : 1000.0))
 end
 tessellation = voronoi(agents.triangulation; clip = true)
-fig, ax = abmplot(agents, agent_marker = cell -> voronoi_marker(agents, tessellation, cell),
+fig,
+ax = abmplot(agents, agent_marker = cell -> voronoi_marker(agents, tessellation, cell),
     agent_color = voronoi_color,
     agentsplotkwargs = (strokewidth = 1,), figure = (; size = (1600, 800), fontsize = 34),
     axis = (; width = 800, height = 800), heatarray = :nutrients, heatkwargs = (colorrange = (
         0.0, 1.0),)
-        )
+)
 abmplot!(ax, agents; agent_marker = :xcross, agent_color = :red,
     agent_size = cell -> cell.id ∈ [1, 2] ? 10 : 0)
 t = [0.0]
-gfp1 = [agents[1].gfp / agents[1].size^3]
-gfp2 = [agents[2].gfp / agents[2].size^3]
+gfp1 = [let v = agents[1].gfp / agents[1].size^3;
+    v > 0 ? v : NaN
+end]
+gfp2 = [let v = agents[2].gfp / agents[2].size^3;
+    v > 0 ? v : NaN
+end]
 nut1 = [agents[1].nuts]
 nut2 = [agents[2].nuts]
 size1 = [agents[1].size^3]
@@ -126,7 +134,8 @@ size2 = [agents[2].size^3]
 plot_layout = fig[:, end + 1] = GridLayout()
 gfp1_layout = plot_layout[1, 1] = GridLayout()
 ax_1 = Axis(gfp1_layout[1, 1], title = "Cell 1", xlabel = "Time (Generations)",
-    ylabel = "GFP", width = 600, height = 400)
+    ylabel = "GFP", width = 600, height = 400, yscale = log10, limits = (
+        0, max_t, 1, 1e6))
 ax_1_2 = Axis(gfp1_layout[1, 1],
     ylabel = rich(rich("Size", color = :blue), "/", rich("Nutrients", color = :green)),
     yaxisposition = :right)
@@ -134,13 +143,12 @@ lines!(ax_1, t, gfp1, color = :black, label = "Total", linewidth = 3)
 lines!(ax_1_2, t, size1, color = :blue, label = "Size", linewidth = 3)
 lines!(ax_1_2, t, nut1, color = :green, label = "Nutrients", linewidth = 3)
 vlines!(ax_1, 0.0, color = :grey, linestyle = :dash, linewidth = 3)
-Makie.xlims!(ax_1, 0, max_t)
-Makie.ylims!(ax_1, 0, (use_improved ? 10000.0 : 2000.0))
 Makie.xlims!(ax_1_2, 0, max_t)
 Makie.ylims!(ax_1_2, 0, 5.0)
 gfp2_layout = plot_layout[2, 1] = GridLayout()
 ax_2 = Axis(gfp2_layout[1, 1], title = "Cell 2", xlabel = "Time (Generations)",
-    ylabel = "GFP", width = 600, height = 400)
+    ylabel = "GFP", width = 600, height = 400, yscale = log10, limits = (
+        0, max_t, 1, 1e6))
 ax_2_2 = Axis(gfp2_layout[1, 1],
     ylabel = rich(rich("Size", color = :blue), "/", rich("Nutrients", color = :green)),
     yaxisposition = :right)
@@ -148,16 +156,18 @@ lines!(ax_2, t, gfp2, color = :black, label = "Total", linewidth = 3)
 lines!(ax_2_2, t, size2, color = :blue, label = "Size", linewidth = 3)
 lines!(ax_2_2, t, nut2, color = :green, label = "Nutrients", linewidth = 3)
 vlines!(ax_2, 0.0, color = :grey, linestyle = :dash, linewidth = 3)
-Makie.xlims!(ax_2, 0, max_t)
-Makie.ylims!(ax_2, 0, (use_improved ? 10000.0 : 2000.0))
 Makie.xlims!(ax_2_2, 0, max_t)
 Makie.ylims!(ax_2_2, 0, 5.0)
 resize_to_layout!(fig)
 io = VideoStream(fig; framerate = 20)
 function plot_input(model)
     push!(t, abmtime(model) * model.dt)
-    push!(gfp1, model[1].gfp / model[1].size^3)
-    push!(gfp2, model[2].gfp / model[2].size^3)
+    push!(gfp1, let v = model[1].gfp / model[1].size^3;
+        v > 0 ? v : 1e-100
+    end)
+    push!(gfp2, let v = model[2].gfp / model[2].size^3;
+        v > 0 ? v : 1e-100
+    end)
     push!(nut1, model[1].nuts)
     push!(nut2, model[2].nuts)
     push!(size1, model[1].size^3)
@@ -172,7 +182,7 @@ function plot_input(model)
         agent_color = voronoi_color,
         agentsplotkwargs = (strokewidth = 1,), heatarray = :nutrients, heatkwargs = (colorrange = (
             0.0, 1.0),)
-            )
+    )
     abmplot!(ax, model; agent_marker = :circle, agent_color = :red,
         agent_size = cell -> cell.id ∈ [1, 2] ? 10 : 0)
     lines!(ax_1, t, gfp1, color = :black, label = "Total", linewidth = 3)
@@ -274,7 +284,8 @@ if use_improved
         components = [dup_g, dup_i, abm, pde], # TODO get awkward error when repressilator is run before growth
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
-            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_nutrients_space, conn_nut_import_rate_space],
+            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp,
+            conn_nutrients_space, conn_nut_import_rate_space],
         tspan = (0, max_t)
     )
 else
@@ -282,7 +293,8 @@ else
         components = [dup_g, dup_r, abm, pde], # TODO get awkward error when repressilator is run before growth
         connectors = [
             conn_init_states_rep, conn_init_states_growth, conn_ids_1, conn_ids_2, conn_gfp,
-            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp, conn_nutrients_space, conn_nut_import_rate_space],
+            conn_gr, conn_size, conn_nuts, conn_volume, conn_nuts_imp,
+            conn_nutrients_space, conn_nut_import_rate_space],
         tspan = (0, max_t)
     )
 end
