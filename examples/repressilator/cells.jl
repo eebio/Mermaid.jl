@@ -250,8 +250,8 @@ function initialize_cell_model(;
     properties = ModelProperties(
         triangulation,
         dt,
-        ones(9,9),
-        zeros(9,9),
+        ones(100,100),
+        zeros(100,100),
     )
 
     # Define the space

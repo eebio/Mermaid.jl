@@ -13,7 +13,7 @@ Random.seed!(123)
 
 using .Repressilator
 
-max_t = 10.0
+max_t = 15.0
 use_improved = true
 
 repressilator = Repressilator.repressilator
@@ -26,7 +26,7 @@ agents = initialize_cell_model()
 growth = ode_growth()
 g_model = get_growth_model()
 
-nutrient_prob = get_nutrient_prob()
+nutrient_prob, dsrs = get_nutrient_prob()
 
 rep = DEComponent(sde,
     EM();
@@ -55,13 +55,9 @@ function var_index(s)
     return variable_index(nutrient_prob, ModelingToolkit.parse_variable(nutrient_prob.f.sys, s))
 end
 
-pde = MOLComponent(nutrient_prob, Tsit5();
+pde = DEComponent(nutrient_prob, Tsit5();
     name = "PDE",
-    state_names = Dict(
-        "N" => [var_index("N[" * string(x) * "," * string(y) * "]") for x in 2:10
-                for y in 2:10],
-        "N₋" => [var_index("N₋[" * string(x) * "," * string(y) * "]") for x in 2:10
-                 for y in 2:10]),
+    state_names = Dict(), # Catalyst spatial doesn't support variable_index for spatial variables
     timestep = agents.dt, intkwargs = (:save_everystep => false, :maxiters => Inf)
 )
 
@@ -109,8 +105,8 @@ tessellation = voronoi(agents.triangulation; clip = true)
 fig, ax = abmplot(agents, agent_marker = cell -> voronoi_marker(agents, tessellation, cell),
     agent_color = voronoi_color,
     agentsplotkwargs = (strokewidth = 1,), figure = (; size = (1600, 800), fontsize = 34),
-    axis = (; width = 800, height = 800), #heatarray = :nutrients, heatkwargs = (colorrange = (
-        #0.0, 1.0),)
+    axis = (; width = 800, height = 800), heatarray = :nutrients, heatkwargs = (colorrange = (
+        0.0, 1.0),)
         )
 abmplot!(ax, agents; agent_marker = :xcross, agent_color = :red,
     agent_size = cell -> cell.id ∈ [1, 2] ? 10 : 0)
@@ -168,8 +164,8 @@ function plot_input(model)
     tessellation = voronoi(model.triangulation; clip = true)
     abmplot!(ax, model; agent_marker = cell -> voronoi_marker(model, tessellation, cell),
         agent_color = voronoi_color,
-        agentsplotkwargs = (strokewidth = 1,), #heatarray = :nutrients, heatkwargs = (colorrange = (
-            #0.0, 1.0),)
+        agentsplotkwargs = (strokewidth = 1,), heatarray = :nutrients, heatkwargs = (colorrange = (
+            0.0, 1.0),)
             )
     abmplot!(ax, model; agent_marker = :circle, agent_color = :red,
         agent_size = cell -> cell.id ∈ [1, 2] ? 10 : 0)
@@ -243,25 +239,28 @@ conn_nuts_imp = Connector(
     func = (imp) -> imp ./ 1e8 * 1.5 # Scaling is arbitrary
 )
 
-function pde_to_agent(nutrients)
+function pde_to_agent(int)
+    # Get just the nutrients from the state
+    nuts = spat_getu(int, :nut, dsrs)
     #return ones(9,9)
-    return reshape(clamp.(nutrients, 1e-6, 1), (9, 9))
+    return reshape(clamp.(nuts, 1e-6, 1), (100, 100))
 end
 
-function agent_to_pde(nutrients)
-    return reshape(nutrients, 81)
+function agent_to_pde(nutrients, int)
+    spat_setu!(int, :nut_rate, dsrs, nutrients)
+    return reshape(nutrients, 100^2)
 end
 
 conn_nutrients_space = Connector(
-    inputs = ["PDE.N"],
+    inputs = ["PDE.#integrator"],
     outputs = ["cells.space_nutrients"],
     func = pde_to_agent
 )
 
 conn_nut_import_rate_space = Connector(
-    inputs = ["cells.nut_import_rate_space"],
-    outputs = ["PDE.N₋"],
-    func = pde_to_agent
+    inputs = ["cells.nut_import_rate_space", "PDE.#integrator"],
+    outputs = String[],
+    func = agent_to_pde
 )
 
 if use_improved
