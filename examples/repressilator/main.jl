@@ -1,33 +1,38 @@
 using Mermaid
+using OrdinaryDiffEq
 using StochasticDiffEq
 using SymbolicIndexingInterface
+using Catalyst
 using CairoMakie
 
-include("gfp.jl")
+includet("repressilator.jl")
+includet("improved.jl")
 includet("cells.jl")
 includet("growth.jl")
-includet("improved.jl")
 includet("nutrients.jl")
+
+using .Repressilator
+using .Improved
+using .Growth
+using .Nutrients
 
 using Random
 Random.seed!(123)
 
-using .Repressilator
-
 max_t = 15.0
 use_improved = true
 
-repressilator = Repressilator.repressilator
-sde = SDEProblem(repressilator, Repressilator.u0, Repressilator.tspan, Repressilator.ps)
-sde_improved = sde_improved_repressilator()
+sde = Repressilator.sde_repressilator()
+sde_improved = Improved.sde_improved_repressilator()
+repressilator = sde.f.sys
 improved = sde_improved.f.sys
 
 agents = initialize_cell_model()
 
-growth = ode_growth()
-g_model = get_growth_model()
+growth = Growth.ode_growth()
+g_model = Growth.get_growth_model()
 
-nutrient_prob, dsrs = get_nutrient_prob()
+nutrient_prob, dsrs = Nutrients.get_nutrient_prob()
 
 rep = DEComponent(sde,
     EM();
