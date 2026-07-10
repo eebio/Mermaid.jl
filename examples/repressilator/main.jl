@@ -1,6 +1,7 @@
 using Mermaid
 using StochasticDiffEq
 using SymbolicIndexingInterface
+using CairoMakie
 
 include("gfp.jl")
 includet("cells.jl")

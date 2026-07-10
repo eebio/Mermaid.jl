@@ -2,15 +2,11 @@ using Agents, StaticArrays
 using Random
 using LinearAlgebra
 using StatsBase
-using CairoMakie
-using StreamSampling
 using DelaunayTriangulation
 const DT = DelaunayTriangulation
 
 @agent struct Cell(ContinuousAgent{2,Float64})
     gfp::Float64
-    const birth::Float64
-    death::Float64 = Inf
     index::Int = typemin(Int)
     const parent::Union{Cell, Nothing} = nothing
     nut_import_rate::Float64 = 0.0
@@ -31,146 +27,70 @@ DT.number_type(::Type{Cell}) = Float64
 DT.number_type(::Type{Vector{Cell}}) = Float64
 DT.is_point2(::Cell) = true
 
-spring_constant(p, q) = 20.0 # μ
-heterotypic_spring_constant(p, q) = 1.0 # μₕₑₜ
-drag_coefficient(p) = 1.0 # η
-mature_cell_spring_rest_length(p, q) = p.size + q.size # s
-expansion_rate(p, q) = 0.05 * mature_cell_spring_rest_length(p, q) # ε
+spring_constant() = 20.0 # μ
+drag_coefficient() = 1.0 # η
 cutoff_distance(p, q) = 1.5 # ℓₘₐₓ
-intrinsic_proliferation_rate(p) = 0.05 # β
-carrying_capacity_density(p) = 100.0^2 # K
-max_age(p) = 10.0 # dₘₐₓ
-min_division_age(p) = 15.0 # tₘᵢₙ
-max_division_age(p) = 10000.0 # tₘₐₓ
-death_rate(p) = 0.001 # psick
-mutation_probability(p) = 0.3 # pₘᵤₜ
-min_area(p) = 1e-2 # Aₘᵢₙ
+rest_length(p, q) = (p.size + q.size) * 0.2 # ℓ₀
+proliferation_rate(model, i::Int) = model[i].size^3 > 1.0 ? 3.0 : 0.0
 
-spring_constant(model, i::Int, j::Int, t) = spring_constant(model, model[i], model[j], t)
-function spring_constant(model, p, q, t)
-    μ = spring_constant(p, q)
-    return μ # no adhesion for the initial population
-end
-
-rest_length(model, i::Int, j::Int, t) = rest_length(model, model[i], model[j]..., t)
-function rest_length(model, p, q, t)
-    return mature_cell_spring_rest_length(p, q) * 0.2
-end
-
-function proliferation_rate(model, i::Int, t)
-    return model[i].size^3 > 1.0 ? 3.0 : 0.0
-end
-
-function force(model, p, q, t)
+function force(p::Cell, q::Cell)
     δ = norm(p.pos - q.pos)
     if δ > cutoff_distance(p, q)
         return SVector(0.0, 0.0)
     end
-    μ = spring_constant(model, p, q, t)
-    s = rest_length(model, p, q, t)
+    μ = spring_constant()
+    s = rest_length(p, q)
     rᵢⱼ = q.pos - p.pos
     return μ * (norm(rᵢⱼ) - s) * rᵢⱼ / norm(rᵢⱼ)
 end
-function force(model, p::Cell, t)
+function force(model, p::Cell)
     F = SizedVector(0.0, 0.0)
     for j in get_neighbours(model.triangulation, p.index)
         DT.is_ghost_vertex(j) && continue
         # Find the agent with index j
-        F .+= force(model, p, tri2agent(model.triangulation, j), t)
+        F .+= force(p, tri2agent(model.triangulation, j))
     end
     return F
 end
 
 tri2agent(triangulation, p::Int) = triangulation.points[p]
 
-velocity(model, p::Cell, t) = force(model, p, t) / drag_coefficient(p)
+velocity(model, p::Cell) = force(model, p) / drag_coefficient()
 
-function update_velocities!(model, t)
+function update_velocities!(model)
     for p in allagents(model)
-        p.vel = velocity(model, p, t)
+        p.vel = velocity(model, p)
     end
     return model
 end
-function update_positions!(model, t)
-    update_velocities!(model, t)
+function update_positions!(model)
+    update_velocities!(model)
     for p in allagents(model)
         move_agent!(p, model, model.dt)
     end
     return model
 end
 
-function sample_triangle(tri::Triangulation, T)
-    i, j, k = triangle_vertices(T)
-    p, q, r = get_point(tri, i, j, k)
-    px, py = getxy(p)
-    qx, qy = getxy(q)
-    rx, ry = getxy(r)
-    a = (qx - px, qy - py)
-    b = (rx - px, ry - py)
-    u₁, u₂ = rand(), rand()
-    if u₁ + u₂ > 1
-        u₁, u₂ = 1 - u₁, 1 - u₂
-    end
-    ax, ay = getxy(a)
-    bx, by = getxy(b)
-    wx, wy = u₁ * ax + u₂ * bx, u₁ * ay + u₂ * by
-    return SVector(px + wx, py + wy)
-end
-
-function random_triangle(tri::Triangulation)
-    triangles = DT.each_solid_triangle(tri)
-    area(T) = DT.triangle_area(get_point(tri, triangle_vertices(T)...)...)
-    T = itsample(triangles, area)
-    return T
-end
-
-function triangulate_voronoi_cell(vorn::VoronoiTessellation, i)
-    S = @view get_polygon(vorn, i)[1:end-1]
-    points = DT.get_polygon_points(vorn)
-    return triangulate_convex(points, S)
-end
-function sample_voronoi_cell(vorn::VoronoiTessellation, i)
-    tri = triangulate_voronoi_cell(vorn, i)
-    T = random_triangle(tri)
-    return sample_triangle(tri, T)
-end
-
-function place_daughter_cell!(model, i, t)
+function place_daughter_cell!(model, i)
     parent = model[i]
     daughter = SVector(rand()-0.5, rand()-0.5) * 2 * 0.2 * parent.size
     while norm(daughter) > 0.2 * parent.size
         daughter = SVector(rand()-0.5, rand()-0.5) * 2 * 0.2 * parent.size
     end
     daughter = parent.pos + daughter
-    add_agent!(daughter, model; birth=t, gfp=parent.gfp, vel=SVector(0.0, 0.0), parent=parent, size=parent.size*0.5^(1/3), nuts=parent.nuts)
+    add_agent!(daughter, model; gfp=parent.gfp, vel=SVector(0.0, 0.0), parent=parent, size=parent.size*0.5^(1/3), nuts=parent.nuts)
     return daughter
 end
-function proliferate_cells!(model, t)
+function proliferate_cells!(model)
     for p in collect(allagents(model))
-        Gᵢ = proliferation_rate(model, p.id, t)
+        Gᵢ = proliferation_rate(model, p.id)
         u = rand()
         if u < Gᵢ * model.dt
-            place_daughter_cell!(model, p.id, t)
+            place_daughter_cell!(model, p.id)
             p.size *= 0.5^(1/3)
         end
     end
     return true
-end
-
-function cull_cells!(model, t)
-    for p in allagents(model)
-        elder = t - p.birth > max_age(p)
-        sick = rand() < model.dt * death_rate(p)
-        xmax, ymax = spacesize(model)
-        x, y = p.pos
-        distance_to_origin = norm(p.pos - SVector(xmax / 2, ymax / 2))
-        outside = distance_to_origin > 0.5 * min(xmax, ymax)
-        if (elder || sick || outside)
-            remove_agent!(p.id, model)
-            p.death = t
-        end
-    end
-    return model
 end
 
 function get_spatial_index_type_stable(pos, property::AbstractArray{T, D}, model::ABM) where {T, D}
@@ -182,7 +102,7 @@ function get_spatial_index_type_stable(pos, property::AbstractArray{T, D}, model
     #return CartesianIndex(Tuple(idxs))
 end
 
-function update_nutrients!(model, t)
+function update_nutrients!(model)
     # Clear previous growth
     model.nutrient_import_rate .= 0.0
     tmp_pos = MVector{2, Float64}(0.0, 0.0)
@@ -209,12 +129,9 @@ function update_nutrients!(model, t)
 end
 
 function model_step!(model)
-    stepn = abmtime(model)
-    t = stepn * model.dt
-    update_positions!(model, t)
-    update_nutrients!(model, t)
-    #cull_cells!(model, t)
-    proliferate_cells!(model, t)
+    update_positions!(model)
+    update_nutrients!(model)
+    proliferate_cells!(model)
     model.triangulation = retriangulate(model.triangulation, collect(allagents(model)))
     set_indexes(model)
     return model
@@ -239,7 +156,7 @@ function initialize_cell_model(;
         r = radius * sqrt(rand())
         pos = cent + SVector(r * cos(θ), r * sin(θ))
         cell = Cell(; id=i, pos=pos,
-            birth=0.0, gfp=rand(), vel=SVector(0.0, 0.0), nuts=1.0, size=1.0)
+            gfp=rand(), vel=SVector(0.0, 0.0), nuts=1.0, size=1.0)
     end
     positions = [cell.pos for cell in cells]
 
@@ -262,7 +179,7 @@ function initialize_cell_model(;
 
     # Add the agents
     for (id, pos) in pairs(positions)
-        add_agent!(pos, model; birth=0.0, gfp=rand(), vel=SVector(0.0, 0.0), index=id, nuts=1.0, size=1.0)
+        add_agent!(pos, model; gfp=rand(), vel=SVector(0.0, 0.0), index=id, nuts=1.0, size=1.0)
     end
 
     return model
