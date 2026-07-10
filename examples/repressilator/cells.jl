@@ -144,8 +144,8 @@ function set_indexes(model)
 end
 
 function initialize_cell_model(;
-    ninit=3,
-    radius=2.0,
+    ninit=5,
+    radius=0.5,
     dt=0.01,
     sides=SVector(20.0, 20.0))
     Random.seed!(0)
