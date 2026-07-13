@@ -9,5 +9,6 @@ updates:
     directories:
     - "/"
     - "/test"
+    - "/docs"
     schedule:
       interval: "weekly"
