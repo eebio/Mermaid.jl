@@ -36,6 +36,7 @@ SOFTWARE.
 
     using TrixiParticles
     using OrdinaryDiffEq
+    using OrdinaryDiffEqLowStorageRK
 
     # ==========================================================================================
     # ==== Resolution
@@ -124,6 +125,8 @@ end
 @testitem "coupled trixi particles sim with interpolation" setup = [trixisim] begin
     using TrixiParticles
     using OrdinaryDiffEq
+    using OrdinaryDiffEqLowOrderRK
+    using OrdinaryDiffEqLowStorageRK
     using Mermaid
 
     comp = TrixiParticlesComponent(semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", timestep = 0.002)
@@ -169,6 +172,7 @@ end
 @testitem "state control" setup = [trixisim] begin
     using TrixiParticles
     using OrdinaryDiffEq
+    using OrdinaryDiffEqLowStorageRK
 
     comp = TrixiParticlesComponent(
         semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", timestep = 0.002,

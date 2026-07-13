@@ -1,5 +1,6 @@
 @testitem "simple ODE" begin
     using OrdinaryDiffEq
+    using OrdinaryDiffEqLowOrderRK
 
     function f!(du, u, p, t)
         x, y = u
@@ -74,6 +75,7 @@ end
 
 @testitem "mtk" begin
     using ModelingToolkit, OrdinaryDiffEq
+    using OrdinaryDiffEqLowOrderRK
     using ModelingToolkit: t_nounits as t, D_nounits as D
 
     @variables x(t) y(t)

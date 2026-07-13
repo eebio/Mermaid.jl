@@ -64,10 +64,10 @@ function Mermaid.getstate(compInt::Mermaid.TrixiParticlesComponentIntegrator)
 end
 
 function Mermaid.setstate!(compInt::Mermaid.TrixiParticlesComponentIntegrator, key, value)
-    u_modified!(compInt.integrator, true)
+    derivative_discontinuity!(compInt.integrator, true)
     if first(key.variable) == '#'
         if key.variable == "#time"
-            u_modified!(compInt.integrator, true)
+            derivative_discontinuity!(compInt.integrator, true)
             compInt.integrator.t = value
             return nothing
         end
@@ -81,7 +81,7 @@ function Mermaid.setstate!(compInt::Mermaid.TrixiParticlesComponentIntegrator, k
 end
 
 function Mermaid.setstate!(compInt::Mermaid.TrixiParticlesComponentIntegrator, value)
-    u_modified!(compInt.integrator, true)
+    derivative_discontinuity!(compInt.integrator, true)
     compInt.integrator.u = value
 end
 
