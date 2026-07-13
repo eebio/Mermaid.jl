@@ -12,7 +12,7 @@
     prob = ODEProblem(tree!, u0, tspan)
 
     comp1 = DEComponent(
-        prob, Rodas5();
+        prob, Rodas5P();
         name = "tree",
         state_names = OrderedDict("heat" => 1, "life" => 2)
     )
@@ -90,7 +90,7 @@ end
     tspan = (0.0, 2.0)
     prob = ODEProblem(coupled!, u0, tspan)
     comp1 = DEComponent(
-        prob, Rodas5();
+        prob, Rodas5P();
         name = "decay",
         state_names = OrderedDict("val" => 1, "val2" => 2)
     )

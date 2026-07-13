@@ -150,7 +150,7 @@ end
     prob = ODEProblem(f!, u0, tspan)
 
     c1 = DEComponent(
-        prob, Rodas5();
+        prob, Rodas5P();
         name = "Lotka-Volterra",
         timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2)
