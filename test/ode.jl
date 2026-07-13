@@ -1,5 +1,6 @@
 @testitem "simple ODE" begin
     using OrdinaryDiffEq
+    using OrdinaryDiffEqLowOrderRK
 
     function f!(du, u, p, t)
         x, y = u
@@ -74,6 +75,7 @@ end
 
 @testitem "mtk" begin
     using ModelingToolkit, OrdinaryDiffEq
+    using OrdinaryDiffEqLowOrderRK
     using ModelingToolkit: t_nounits as t, D_nounits as D
 
     @variables x(t) y(t)
@@ -148,7 +150,7 @@ end
     prob = ODEProblem(f!, u0, tspan)
 
     c1 = DEComponent(
-        prob, Rodas5();
+        prob, Rodas5P();
         name = "Lotka-Volterra",
         timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2)

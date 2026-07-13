@@ -1,5 +1,7 @@
 @testitem "MOL" begin
     using OrdinaryDiffEq, ModelingToolkit, MethodOfLines, DomainSets
+    using OrdinaryDiffEqLowOrderRK
+
     # Parameters, variables, and derivatives
     @parameters t x
     @variables u(..) g(..) [irreducible = true]

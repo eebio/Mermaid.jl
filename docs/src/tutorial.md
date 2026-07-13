@@ -43,7 +43,7 @@ For this, we will need to define the `state_names` field, and should generally p
 
 ```@example tutorial
 using Mermaid
-comp1 = DEComponent(prob, Rodas5();
+comp1 = DEComponent(prob, Rodas5P();
     name="tree", state_names=Dict("heat" => 1, "life" => 2),
 )
 

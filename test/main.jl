@@ -139,6 +139,7 @@ end
 
 @testitem "mermaid integrator" begin
     using OrdinaryDiffEq
+    using OrdinaryDiffEqLowOrderRK
 
     function f1!(du, u, p, t)
         x, y = u
@@ -347,6 +348,7 @@ end
 
 @testitem "timescales" begin
     using OrdinaryDiffEq
+    using OrdinaryDiffEqLowOrderRK
 
     function f1!(du, u, p, t)
         x, y = u

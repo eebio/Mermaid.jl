@@ -1,5 +1,5 @@
 using TrixiParticles
-using OrdinaryDiffEq
+using OrdinaryDiffEqLowStorageRK
 using Plots
 
 tspan = (0.0, 2.0)
@@ -88,10 +88,10 @@ state_equation = StateEquationCole(; sound_speed, reference_density = fluid_dens
     exponent = 1)
 density_diffusion = DensityDiffusionMolteniColagrossi(delta = 0.1)
 
-fluid_system = WeaklyCompressibleSPHSystem(fluid, fluid_density_calculator,
-    state_equation, smoothing_kernel,
+fluid_system = WeaklyCompressibleSPHSystem(fluid; density_calculator = fluid_density_calculator,
+    state_equation = state_equation, smoothing_kernel = smoothing_kernel,
     density_diffusion = density_diffusion,
-    smoothing_length, viscosity = viscosity,
+    smoothing_length = smoothing_length, viscosity = viscosity,
     shifting_technique = ParticleShiftingTechnique(v_max_factor = 1.5),
     buffer_size = n_buffer_particles)
 

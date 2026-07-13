@@ -36,6 +36,7 @@ SOFTWARE.
 
     using TrixiParticles
     using OrdinaryDiffEq
+    using OrdinaryDiffEqLowStorageRK
 
     # ==========================================================================================
     # ==== Resolution
@@ -75,9 +76,9 @@ SOFTWARE.
 
     # This is to set acceleration with `trixi_include`
     system_acceleration = (0.0, -gravity)
-    fluid_system = WeaklyCompressibleSPHSystem(tank.fluid, fluid_density_calculator,
-        state_equation, smoothing_kernel,
-        smoothing_length, viscosity = viscosity_fluid,
+    fluid_system = WeaklyCompressibleSPHSystem(tank.fluid; density_calculator = fluid_density_calculator,
+        state_equation = state_equation, smoothing_kernel = smoothing_kernel,
+        smoothing_length = smoothing_length, viscosity = viscosity_fluid,
         acceleration = system_acceleration,
         source_terms = nothing)
 
@@ -124,6 +125,8 @@ end
 @testitem "coupled trixi particles sim with interpolation" setup = [trixisim] begin
     using TrixiParticles
     using OrdinaryDiffEq
+    using OrdinaryDiffEqLowOrderRK
+    using OrdinaryDiffEqLowStorageRK
     using Mermaid
 
     comp = TrixiParticlesComponent(semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", timestep = 0.002)
@@ -169,6 +172,7 @@ end
 @testitem "state control" setup = [trixisim] begin
     using TrixiParticles
     using OrdinaryDiffEq
+    using OrdinaryDiffEqLowStorageRK
 
     comp = TrixiParticlesComponent(
         semi, RDPK3SpFSAL35(); name = "TrixiParticles Component", timestep = 0.002,
