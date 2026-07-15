@@ -29,8 +29,12 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
     # Step the integrator
     for (int, timescale) in zip(merInt.integrators, merInt.timescales)
         if (gettime(int) + timestep(int)) * timescale <= nextfloat(merInt.currtime)
+            t_before = gettime(int)
             # Step the integrator
             step!(int)
+            if gettime(int) <= t_before
+                error("Component $(name(int)) failed to advance: time did not move forward from $t_before.")
+            end
             # Force time synchronization after stepping to avoid floating point issues.
             # Especially important for handling multiple timescales.
             if gettime(int) * timescale == nextfloat(merInt.currtime)

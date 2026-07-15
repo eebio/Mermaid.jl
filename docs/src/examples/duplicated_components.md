@@ -31,7 +31,7 @@ u0 = [1.0, 1.0]
 tspan = (0.0, 250.0)
 prob = ODEProblem(cell!, u0, tspan)
 using Mermaid
-comp1 = DEComponent(prob, Rodas5();
+comp1 = DEComponent(prob, Rodas5P();
     name="cell", state_names=Dict("nutrients" => 1, "mass" => 2),
 )
 

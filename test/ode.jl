@@ -1,5 +1,6 @@
 @testitem "simple ODE" begin
     using OrdinaryDiffEq
+    using OrdinaryDiffEqLowOrderRK
 
     function f!(du, u, p, t)
         x, y = u
@@ -29,7 +30,7 @@
         name = "Prey",
         timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2),
-        intkwargs = (:adaptive => false,)
+        intkwargs = (:adaptive => false, :dt => 0.002)
     )
 
     c2 = DEComponent(
@@ -37,7 +38,7 @@
         name = "Predator",
         timestep = 0.002,
         state_names = OrderedDict("predator" => 1, "prey" => 2),
-        intkwargs = (:adaptive => false,)
+        intkwargs = (:adaptive => false, :dt => 0.002)
     )
 
     conn1 = Connector(
@@ -74,6 +75,7 @@ end
 
 @testitem "mtk" begin
     using ModelingToolkit, OrdinaryDiffEq
+    using OrdinaryDiffEqLowOrderRK
     using ModelingToolkit: t_nounits as t, D_nounits as D
 
     @variables x(t) y(t)
@@ -94,7 +96,7 @@ end
         name = "Prey",
         timestep = 0.002,
         state_names = OrderedDict("prey" => x, "predator" => y),
-        intkwargs = (:adaptive => false,)
+        intkwargs = (:adaptive => false, :dt => 0.002)
     )
 
     eqs = [D(x) ~ 0
@@ -107,7 +109,7 @@ end
         name = "Predator",
         timestep = 0.002,
         state_names = OrderedDict("prey" => x, "predator" => y),
-        intkwargs = (:adaptive => false,)
+        intkwargs = (:adaptive => false, :dt => 0.002)
     )
 
     conn1 = Connector(
@@ -148,7 +150,7 @@ end
     prob = ODEProblem(f!, u0, tspan)
 
     c1 = DEComponent(
-        prob, Rodas5();
+        prob, Rodas5P();
         name = "Lotka-Volterra",
         timestep = 0.002,
         state_names = OrderedDict("prey" => 1, "predator" => 2)

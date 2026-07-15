@@ -37,7 +37,7 @@ end
 
 function CommonSolve.init(c::Mermaid.DEComponent)
     integrator = Mermaid.DEComponentIntegrator(
-        init(c.model, c.alg; dt = c.timestep, c.intkwargs...), c)
+        init(c.model, c.alg; c.intkwargs...), c)
     return integrator
 end
 
@@ -62,7 +62,7 @@ function Mermaid.getstate(compInt::Mermaid.DEComponentIntegrator)
 end
 
 function Mermaid.setstate!(compInt::Mermaid.DEComponentIntegrator, key, value)
-    u_modified!(compInt.integrator, true)
+    derivative_discontinuity!(compInt.integrator, true)
     if first(key.variable) == '#'
         if key.variable == "#time"
             compInt.integrator.t = value
@@ -76,7 +76,7 @@ function Mermaid.setstate!(compInt::Mermaid.DEComponentIntegrator, key, value)
 end
 
 function Mermaid.setstate!(compInt::Mermaid.DEComponentIntegrator, value)
-    u_modified!(compInt.integrator, true)
+    derivative_discontinuity!(compInt.integrator, true)
     compInt.integrator.u = value
 end
 

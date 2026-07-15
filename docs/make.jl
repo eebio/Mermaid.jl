@@ -28,7 +28,7 @@ PAGES = [
     "API" => "API.md"
 ]
 
-modules = [CommonSolve, Mermaid,
+modules = [Mermaid,
     Base.get_extension(Mermaid, :AgentsExt),
     Base.get_extension(Mermaid, :DiffEqExt),
     Base.get_extension(Mermaid, :MethodOfLinesExt),
