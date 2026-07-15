@@ -67,6 +67,7 @@ end
 
 @testitem "hybrid jump ode" begin
     using OrdinaryDiffEq, JumpProcesses
+    using OrdinaryDiffEqLowOrderRK
 
     β = 0.1 / 1000.0
     ν = 0.01
