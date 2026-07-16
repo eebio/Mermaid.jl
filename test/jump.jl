@@ -41,7 +41,7 @@
     @test all(sol["SIR.I"] .== 0) # No infected to model won't change
 
     function f(u, p, t)
-        return 1
+        return 1.0
     end
     u₀ = 0.0
     odeprob = ODEProblem(f, u₀, tspan, nothing)
@@ -102,7 +102,8 @@ end
     c = JumpComponent(jump_prob, Tsit5();
         name = "SIR",
         state_names = Dict("S" => 1, "I" => 2, "R" => 3, "u" => 4),
-        timestep = 1.0
+        timestep = 1.0,
+        intkwargs = (:adaptive => false, :dt => 0.002)
     )
 
     # Override the dynamics of the ODE with our own ODE
@@ -114,7 +115,8 @@ end
     odecomp = DEComponent(odeprob, Euler();
         name = "ODE",
         state_names = Dict("u" => 1),
-        timestep = 1.0
+        timestep = 1.0,
+        intkwargs = (:adaptive => false, :dt => 0.002)
     )
 
     conn = Connector(
