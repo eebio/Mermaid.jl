@@ -68,7 +68,8 @@ function Mermaid.setstate!(compInt::Mermaid.DEComponentIntegrator, key, value)
             compInt.integrator.t = value
             return nothing
         elseif key.variable == "#integrator"
-            return compInt.integrator
+            compInt.integrator = value
+            return nothing
         end
     end
     index = compInt.component.state_names[key.variable]
