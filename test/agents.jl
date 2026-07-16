@@ -1,5 +1,7 @@
 @testitem "agent" begin
     using Agents, OrdinaryDiffEq
+    using Random
+    Random.seed!(1234)
 
     space = GridSpace((20, 20))
 
@@ -53,7 +55,8 @@
         prob, Tsit5();
         name = "ode",
         timestep = 1.0,
-        state_names = OrderedDict("happy" => 1)
+        state_names = OrderedDict("happy" => 1),
+        intkwargs = (:dt => 1.0,)
     )
 
     conn = Connector(
