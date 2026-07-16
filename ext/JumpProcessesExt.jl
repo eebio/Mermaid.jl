@@ -38,7 +38,7 @@ end
 
 function CommonSolve.step!(compInt::Mermaid.JumpComponentIntegrator)
     # Doing reset here rather than setstate! ensures we only reset at the last possible time
-    if compInt.integrator.u_modified
+    if compInt.integrator.derivative_discontinuity
         reset_aggregated_jumps!(compInt.integrator)
     end
     CommonSolve.step!(compInt.integrator, timestep(compInt), true)
@@ -59,7 +59,7 @@ function Mermaid.getstate(compInt::Mermaid.JumpComponentIntegrator)
 end
 
 function Mermaid.setstate!(compInt::Mermaid.JumpComponentIntegrator, key, value)
-    u_modified!(compInt.integrator, true)
+    derivative_discontinuity!(compInt.integrator, true)
     # Clear jump caches too
     if first(key.variable) == '#'
         if key.variable == "#time"
@@ -72,7 +72,7 @@ function Mermaid.setstate!(compInt::Mermaid.JumpComponentIntegrator, key, value)
 end
 
 function Mermaid.setstate!(compInt::Mermaid.JumpComponentIntegrator, value)
-    u_modified!(compInt.integrator, true)
+    derivative_discontinuity!(compInt.integrator, true)
     compInt.integrator.u = value
 end
 
