@@ -200,4 +200,12 @@ end
     @test getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) ≠ 1.0
     @test getstate(integrator, ConnectedVariable("Lotka-Volterra.predator")) ≠ 1.0
     @test getstate(integrator) ≠ [1.0, 1.0]
+
+    # Check we can get and set the whole integrator
+    int2 = getstate(integrator, ConnectedVariable("Lotka-Volterra.#integrator"); copy=true)
+    @test int2.u == getstate(integrator)
+    step!(integrator)
+    @test getstate(integrator) ≠ int2.u
+    setstate!(integrator, ConnectedVariable("Lotka-Volterra.#integrator"), int2)
+    @test getstate(integrator) == int2.u
 end
