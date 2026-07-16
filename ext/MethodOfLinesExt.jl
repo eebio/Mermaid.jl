@@ -64,7 +64,6 @@ function Mermaid.setstate!(compInt::MOLComponentIntegrator, key, value)
     derivative_discontinuity!(compInt.integrator, true)
     if first(key.variable) == '#'
         if key.variable == "#time"
-            derivative_discontinuity!(compInt.integrator, true)
             compInt.integrator.t = value
             return nothing
         end

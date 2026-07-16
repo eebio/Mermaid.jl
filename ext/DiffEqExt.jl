@@ -49,6 +49,8 @@ function Mermaid.getstate(compInt::Mermaid.DEComponentIntegrator, key)
     if first(key.variable) == '#'
         if key.variable == "#time"
             return compInt.integrator.t
+        elseif key.variable == "#integrator"
+            return compInt.integrator
         end
     end
     index = compInt.component.state_names[key.variable]
@@ -63,8 +65,10 @@ function Mermaid.setstate!(compInt::Mermaid.DEComponentIntegrator, key, value)
     derivative_discontinuity!(compInt.integrator, true)
     if first(key.variable) == '#'
         if key.variable == "#time"
-            derivative_discontinuity!(compInt.integrator, true)
             compInt.integrator.t = value
+            return nothing
+        elseif key.variable == "#integrator"
+            compInt.integrator = value
             return nothing
         end
     end
