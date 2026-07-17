@@ -24,7 +24,9 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
     merInt.currtime = min_t
     # Apply connections
     for conn in merInt.connectors
-        runconnection!(merInt, conn)
+        if checkconnection(conn, merInt)
+            runconnection!(merInt, conn)
+        end
     end
     # Step the integrator
     for (int, timescale) in zip(merInt.integrators, merInt.timescales)

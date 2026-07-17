@@ -180,3 +180,28 @@ function runconnection!(merInt::AbstractMermaidIntegrator, conn::AbstractConnect
         end
     end
 end
+
+function checkconnection(conn::AbstractConnector, merInt::AbstractMermaidIntegrator)
+    # Check if all inputs are earlier in time than (or equal to) the time of all outputs
+    max_input_time = -Inf
+    for input in conn.inputs
+        conn_tmp = ConnectedVariable(input.component, "#time", nothing, nothing)
+        time_tmp = prevfloat(getstate(merInt, conn_tmp))
+        # Apply timescales
+        time_tmp *= prevfloat(merInt.timescales[findfirst(i -> name(i) == input.component, merInt.integrators)])
+        if time_tmp > max_input_time
+            max_input_time = time_tmp
+        end
+    end
+    min_output_time = Inf
+    for output in conn.outputs
+        conn_tmp = ConnectedVariable(output.component, "#time", nothing, nothing)
+        time_tmp = nextfloat(getstate(merInt, conn_tmp))
+        # Apply timescales
+        time_tmp *= nextfloat(merInt.timescales[findfirst(i -> name(i) == output.component, merInt.integrators)])
+        if time_tmp < min_output_time
+            min_output_time = time_tmp
+        end
+    end
+    return max_input_time <= min_output_time
+end
