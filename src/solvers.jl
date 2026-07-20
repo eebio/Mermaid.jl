@@ -24,11 +24,13 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
     merInt.currtime = min_t
     # Apply connections
     for conn in merInt.connectors
-        runconnection!(merInt, conn)
+        if checkconnection(conn, merInt)
+            runconnection!(merInt, conn)
+        end
     end
     # Step the integrator
     for (int, timescale) in zip(merInt.integrators, merInt.timescales)
-        if (gettime(int) + timestep(int)) * timescale <= nextfloat(merInt.currtime)
+        if (gettime(int) + timestep(int)) * timescale <= nextfloat(merInt.currtime, 3)
             t_before = gettime(int)
             # Step the integrator
             step!(int)
@@ -36,8 +38,9 @@ function CommonSolve.step!(merInt::MermaidIntegrator, ::MinimumTimeStepper)
                 error("Component $(name(int)) failed to advance: time did not move forward from $t_before.")
             end
             # Force time synchronization after stepping to avoid floating point issues.
-            # Especially important for handling multiple timescales.
-            if gettime(int) * timescale == nextfloat(merInt.currtime)
+            # Especially important for handling multiple timescales to avoid errors stacking.
+            if gettime(int) * timescale != merInt.currtime
+                @assert prevfloat(merInt.currtime, 3) <= gettime(int) * timescale <= nextfloat(merInt.currtime, 3) "Floating point rounding is larger than expected. Please report this bug. $((gettime(int), timescale, merInt.currtime))"
                 settime!(int, merInt.currtime / timescale)
             end
         end
