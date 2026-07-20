@@ -12,7 +12,7 @@ For this reason, it is also possible to create duplicated components with a vari
 
 ## Setup
 
-For this example, we are going to create an agent-based model of a cell population with each cell goverened by a simple growth model tracking protein mass which is dependent on a spatial nutrient distribution and the number of nearby cells.
+For this example, we are going to create an agent-based model of a cell population with each cell governed by a simple growth model tracking protein mass, which depends on a spatial nutrient distribution and the number of nearby cells.
 
 ```@example dupcomp
 using OrdinaryDiffEq, Agents, Random, Mermaid, CairoMakie

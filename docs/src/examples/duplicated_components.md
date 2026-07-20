@@ -10,7 +10,7 @@ To begin, we need to define our components. These will be an ODE model component
 
 ### ODE Component
 
-To define a [DuplicatedComponent](@ref), we first need to define the component we want to duplicate. In this case, its a [DEComponent](@ref).
+To define a [DuplicatedComponent](@ref), we first need to define the component we want to duplicate. In this case, it is a [DEComponent](@ref).
 
 ```@example tutorial
 using OrdinaryDiffEq
@@ -34,7 +34,7 @@ nothing #hide
 
 ### Duplicated Component
 
-Since the `ODEProblem` is defined for only a single tree, we can efficiently simulate time ODE system many times by generating a duplicated component.
+Since the `ODEProblem` is defined for only a single tree, we can efficiently simulate the same ODE system many times by generating a duplicated component.
 This component stores a single `ODEProblem` that it will solve across many different states.
 In this case, we can have a state for each tree in the Agent-based model.
 Let's have a look at how to define a [DuplicatedComponent](@ref).
@@ -87,7 +87,7 @@ function tree_step!(tree, forest)
         # Tree on fire
         tree.heat += 1.0
     else
-        # Tree not on fire so heat disappates
+        # Tree not on fire, so heat dissipates
         tree.heat -= 0.05
     end
     if tree.heat < 0.0
@@ -153,8 +153,8 @@ nothing # hide
 ## Advanced Visualisations
 
 While we can plot the variables from the ODE component easily, the Agent-based model is a bit more challenging.
-But default, we only store the variables given in state\_names in the solution.
-This can be changed by providing `save_vars=["forest.#model"]` to `solve`, in which case the full Agent-based model state will be visable in the solution at all timepoints.
+By default, we only store the variables given in `state_names` in the solution.
+This can be changed by providing `save_vars=["forest.#model"]` to `solve`, in which case the full agent-based model state will be visible in the solution at all time points.
 
 !!! tip "#model and Special Variables"
     `"#model"` is a special variable for AgentsComponents. Special variables, denoted by starting with `#` are not saved by default but can be used with connectors, `getstate`, `setstate!`, or `save_vars`. To view the special variables of a component, you can call `variables(component)`.

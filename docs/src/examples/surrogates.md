@@ -45,7 +45,7 @@ nothing # hide
 
 ## Comparing performance
 
-Surrogates main use is to provide faster solutions to a model or simulation.
+The main use of surrogates is to provide faster solutions to a model or simulation.
 However, faster performance is not guaranteed.
 Surrogates are frequently more performant but this should still be measured.
 

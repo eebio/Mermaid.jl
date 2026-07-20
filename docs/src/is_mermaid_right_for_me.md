@@ -11,6 +11,6 @@ In short, if your whole system can be expressed in ModelingToolkit and solved (*
 The most notable exception to this is multirate solvers. Mermaid naturally has components solved through different solvers, on different (possibly adaptive) timescales. Multirate and multisolver functionality is limited in DifferentialEquations.
 
 !!! warning "Multi-rate solvers"
-    Using multirate solver for differential equations typically comes with a lower order accuracy on the connected variables. If you are unsure if a multirate solver is suitable, it is likely better to favour the solver algorithms in DifferentialEquations and use ModelingToolkit to perform the connections.
+    Using a multirate solver for differential equations typically results in lower-order accuracy for the connected variables. If you are unsure whether a multirate solver is suitable, it is likely better to favor the solver algorithms in DifferentialEquations and use ModelingToolkit to perform the connections.
 
 If only part of the whole system can be expressed in ModelingToolkit, you may still be able to benefit from ModelingToolkit features. Combining the relevant components together through ModelingToolkit and then converting that `System` to a component to connect through Mermaid allows you to benefit from all ModelingToolkit features possible, while still having the flexibility to connect outside the ModelingToolkit ecosystem.

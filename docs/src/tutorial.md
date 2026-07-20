@@ -83,7 +83,7 @@ function initialize_model(;
     space2d = ContinuousSpace(extent)
     rng = Random.MersenneTwister(seed)
 
-    props = Dict(:food_x => rand()extent[1],
+    props = Dict(:food_x => rand() * extent[1],
         :food_y => rand()*extent[2])
 
     model = StandardABM(
@@ -171,7 +171,7 @@ MermaidSolution
 ```@example tutorial
 using Plots
 
-plot(sol["food.x"], sol["food.y"], color=:green, label="X position")
+plot(sol["food.x"], sol["food.y"], color=:green, label="Food trajectory")
 
 nothing # hide
 ```
@@ -179,8 +179,8 @@ nothing # hide
 ## Advanced Visualisations
 
 While we can plot the variables from the ODE component easily, the Agent-based model is a bit more challenging.
-But default, we only store the variables given in state\_names in the solution.
-This can be changed by providing `save_vars=["forest.#model"]` to `solve`, in which case the full Agent-based model state will be visable in the solution at all timepoints.
+By default, we only store the variables given in `state_names` in the solution.
+This can be changed by providing `save_vars=["birds.#model"]` to `solve`, in which case the full agent-based model state will be visible in the solution at all time points.
 
 !!! tip "#model and Special Variables"
     `"#model"` is a special variable for AgentsComponents. Special variables, denoted by starting with `#` are not saved by default but can be used with connectors, `getstate`, `setstate!`, or `save_vars`. To view the special variables of a component, you can call `variables(component)`.
