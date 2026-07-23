@@ -120,7 +120,7 @@ end
     @test issetequal(keys(sol.u),
         ConnectedVariable.([
             "Schelling.min_to_be_happy", "Schelling.list_property", "Schelling.mood",
-            "Schelling.group", "Schelling.#model", "Schelling.#time"
+            "Schelling.group", "Schelling.#model", "Schelling.#time", "Schelling.#model", "Schelling.#ids"
         ]))
     sol = solve(mp, alg)
     @test issetequal(keys(sol.u),

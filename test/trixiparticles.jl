@@ -194,7 +194,7 @@ end
     step!(int)
     @test getstate(int) ≈ sol_trixi(0.082) rtol=1e-6
 
-    @test issetequal(variables(int), ["particle1velx", "particle1vely", "#time", "#semi", "#state"])
+    @test issetequal(variables(int), ["particle1velx", "particle1vely", "#time", "#semi", "#integrator", "#state"])
 
     @test getstate(int, ConnectedVariable("TrixiParticles Component.particle1velx")) == getstate(int)[1]
     @test getstate(int, ConnectedVariable("TrixiParticles Component.particle1vely")) == getstate(int)[2]

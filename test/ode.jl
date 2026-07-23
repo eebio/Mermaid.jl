@@ -166,7 +166,7 @@ end
     )
     integrator = init(c1)
 
-    @test issetequal(variables(integrator), ["prey", "predator", "#time"])
+    @test issetequal(variables(integrator), ["prey", "predator", "#time", "#integrator", "#state"])
 
     # Check initial state
     @test getstate(integrator, ConnectedVariable("Lotka-Volterra.prey")) == 4.0

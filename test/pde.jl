@@ -152,7 +152,7 @@ end
     )
     integrator = init(c1)
 
-    @test issetequal(variables(integrator), ["u", "g", "#time"])
+    @test issetequal(variables(integrator), ["u", "g", "#time", "#integrator", "#state"])
 
     # Check initial state
     @test getstate(integrator, ConnectedVariable("PDE.u")) ==
