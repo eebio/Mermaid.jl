@@ -11,12 +11,26 @@ using CommonSolve
 Defines a Mermaid hybrid simulation problem.
 
 # Keyword Arguments
-- `components::Vector{<:AbstractComponent}`: Vector of Components.
-- `connectors::Vector{<:AbstractConnector}`: Vector of [Connector](@ref).
-- `tspan::Tuple{Float64, Float64}`: The time span of the simulation.
+- `components::Vector{<:AbstractComponent}`: Vector of [Components](@ref AbstractComponent). Order is significant
+    because it determines stepping order when multiple components can be stepped together.
+    Component names must be unique.
+- `connectors::Vector{<:AbstractConnector}`: Vector of [Connectors](@ref Connector). Order
+    is significant; connectors are applied in order, and later connectors can observe
+    changes made by earlier ones.
+- `tspan::Tuple{Float64, Float64}`: The time span of the simulation, from start to end time.
 - `timescales::Vector{Float64}=ones(length(components))`: Timescales for each component.
-    Each component's timescale will be multiplied by the component's time to convert it to
-    the universal simulation time.
+    For component `i`, global time is computed as `t_global[i] = timescales[i] * t_local[i]`.
+    A component with timescale 0.1 advances ten local time units per one global time unit.
+    This allows components using different time units to be connected in a single
+    simulation.
+
+# Notes on Ordering
+- `components` order determines stepping priority when multiple components are ready.
+- `connectors` order is critical. Connectors are applied before component steps, in the
+    order given. A connector is eligible only when every input is no later than every
+    output in global time. Later connectors see changes made by earlier connectors. This is
+    particularly important for setting `#ids` and `#init_states` in a
+    [DuplicatedComponent](@ref).
 """
 @kwdef struct MermaidProblem <: AbstractMermaidProblem
     components::Vector{AbstractComponent}
@@ -39,7 +53,9 @@ end
 
 Created using `init(prob::MermaidProblem, alg::AbstractMermaidSolver; save_vars=[])`. All fields are considered internal.
 """
-mutable struct MermaidIntegrator{X <: AbstractMermaidSolver, S <: Union{Function, AbstractVector}} <: AbstractMermaidIntegrator
+mutable struct MermaidIntegrator{
+    X <: AbstractMermaidSolver, S <: Union{Function, AbstractVector}} <:
+               AbstractMermaidIntegrator
     integrators::Vector{<:AbstractComponentIntegrator}
     connectors::Vector{<:AbstractConnector}
     tspan::Tuple{Float64, Float64}
@@ -60,14 +76,19 @@ Defines the integrator for a Mermaid hybrid simulation.
 - `prob::AbstractMermaidProblem`: The problem to be solved.
 - `alg::AbstractMermaidSolver`: The Mermaid solver algorithm to be used.
 - `save_vars`: Variables to be saved during the simulation. Options include:
-    - `:all`: Save all variables.
-    - `:none`: Save no variables. Equivalent to an empty vector.
-    - `Vector{String}`: A vector of connected variable names to save.
-    - `nothing`: Default. Save all non-special variables (i.e., variables that do not start with '#').
-- `saveat::Function`: When to save the variables during the simulation. Can be a function
-    that takes the integrator and current time and returns a boolean, or a vector of time
-    points at which to save, or a number representing the time interval (save at
-    `tspan[1]:saveat:tspan[2]`).
+    - `nothing` (default): Save all non-special variables (those not starting with '#').
+    - `:all`: Save all variables, including special variables.
+    - `:none` or `String[]`: Save no variables (time is still recorded).
+    - `Vector{String}`: A vector of connected variable fullnames to save, including optional
+      indices like `"forest.life[1]"` or `"tree[1:10].life"`.
+- `saveat`: When to save the variables during the simulation. Options include:
+    - `nothing` (default): Save after initialization and after every Mermaid event.
+    - A number `Δt`: Save at times `tspan[1]:Δt:tspan[2]`.
+    - A vector of times: Save at exactly these time points.
+    - A function `(integrator, t) -> Bool`: Save when it returns true (checked at scheduled stops).
+
+# Returns
+- `MermaidIntegrator`: A mutable integrator ready for solving.
 """
 function CommonSolve.init(prob::AbstractMermaidProblem, alg::AbstractMermaidSolver;
         save_vars = nothing, saveat = nothing)
@@ -117,14 +138,20 @@ end
 """
     solve!(merInt::AbstractMermaidIntegrator)
 
-Solves the problem using the MermaidIntegrator. This handles all the message passing
-    and calls step! on the MermaidIntegrator.
+Solves the problem using the MermaidIntegrator by advancing it until the end of the
+time span, recording solutions according to the `saveat` configuration.
 
 # Arguments
 - `merInt::AbstractMermaidIntegrator`: The integrator to be solved.
 
 # Returns
-- `MermaidSolution`: The [solution](@ref MermaidSolution) of the problem.
+- `MermaidSolution`: The [solution](@ref MermaidSolution) of the problem, containing
+  saved times and states.
+
+# Behavior
+- Records initial state if `saveat` is satisfied at `t=tspan[1]`.
+- Repeatedly calls `step!(integrator)` until `currtime >= tspan[2]`.
+- Records state after each step if `saveat` is satisfied.
 """
 function CommonSolve.solve!(merInt::AbstractMermaidIntegrator)
     sol = MermaidSolution(merInt)

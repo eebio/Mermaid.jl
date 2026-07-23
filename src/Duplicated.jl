@@ -43,6 +43,27 @@ Duplicate an existing component into a [DuplicatedComponent](@ref).
     variables in the original component. Defaults to the original component's state names.
 - `default_state`: The default state to use when a new instance is created. Defaults to a
     zero vector of the same length as the first initial state.
+
+# Special Variables
+- `#time`: Passed to the duplicated component.
+- `#ids`: Current integer IDs in current state order.
+- `#states`: Complete vector of all instance states.
+- `#init_states`: Initial states used when an ID is first created.
+
+# ID Semantics
+When `#ids` is set via a connector, Mermaid compares it against the previous value:
+- Existing IDs retain their states.
+- Missing IDs are removed.
+- New IDs receive a copy of the matching `#init_states` entry or `default_state`.
+- The order of the `#ids` matches the order of the `#states` vector.
+
+Duplicated indices in connections (e.g., `comp[1:3].var`) can select specific ID or ID
+    ranges.
+
+# Fixed vs. Flexible Instances
+- With a fixed `instances` value, `#ids` initialize as `1:instances`.
+- With `instances=nothing`, the component is flexible and initially has no IDs; connect
+  its `#ids` variable to create and remove states.
 """
 function DuplicatedComponent(component::AbstractTimeDependentComponent,
         init_states::AbstractVector; instances::Union{Int, Nothing} = nothing,
@@ -171,5 +192,6 @@ function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
 end
 
 function variables(component::DuplicatedComponent)
-    return union(variables(component.component), ["#time", "#ids", "#states", "#init_states"])
+    return union(variables(component.component), [
+        "#time", "#ids", "#states", "#init_states"])
 end

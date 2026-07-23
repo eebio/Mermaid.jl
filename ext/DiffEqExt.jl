@@ -7,9 +7,12 @@ using OrderedCollections: OrderedDict
 
 """
     DEComponent(model::DiffEqBase.AbstractDEProblem, alg;
-                name::String="DE Component", timestep::Float64=1.0, intkwargs::Tuple=(),
+                name::String="DE", timestep::Float64=1.0, intkwargs::Tuple=(),
                 state_names::Dict{String,Any}=Dict{String,Any}())
     DEComponent(model::DiffEqBase.AbstractDEProblem; kwargs...)
+
+A Mermaid component that wraps a SciML Differential Equations problem (ODEProblem,
+    DAEProblem, etc).
 
 # Arguments
 - `model::DiffEqBase.AbstractDEProblem`: The SciML Differential Equations problem (e.g.,
@@ -24,7 +27,22 @@ using OrderedCollections: OrderedDict
 - `intkwargs`: Additional keyword arguments for the DE solver. Defaults to no keywords.
 - `state_names`: Dictionary mapping variable names (as strings) to their corresponding
     indices in the state vector or symbols from Symbolics.jl. Defaults to an empty
-    dictionary.
+    dictionary. Map strings like \"x\" to indices (1, 2, ...) or symbolic variables.
+
+# Special Variables
+- `#time`: The current time (`integrator.t`).
+- `#state`: The full state vector (`integrator.u`).
+- `#integrator`: The underlying DifferentialEquations.jl integrator object.
+
+# Examples
+```julia
+function f!(du, u, p, t)
+    du[1] = -u[1]
+end
+prob = ODEProblem(f!, [1.0], (0.0, 10.0))
+comp = DEComponent(prob, Tsit5(); name=\"ode_comp\",
+                   state_names=Dict(\"x\" => 1))
+```
 """
 function Mermaid.DEComponent(model::DiffEqBase.AbstractDEProblem,
         alg; name = "DE", timestep::Real = 1.0, intkwargs = (),

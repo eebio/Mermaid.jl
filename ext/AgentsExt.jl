@@ -20,9 +20,31 @@ A Mermaid component that wraps an agent-based model (ABM) using the Agents.jl pa
 - `name::AbstractString`: The name of the component. Defaults to "Agents".
 - `state_names`: A dictionary mapping variable names (as strings) to their corresponding
     properties (agent properties or model properties) in the `model`. Defaults to an empty
-    dictionary.
-- `timestep::Real`: The time step for the component (not the ABM solver timestep), i.e. how
-    frequently should the inputs and outputs be updated.
+    dictionary. Values can be agent properties (accessed per agent) or model properties.
+- `timestep::Real=1`: The time step for the component (not the ABM solver timestep), i.e.
+    how frequently should the inputs and outputs be updated (in units of `abmtime(model)`).
+    For example, if `timestep=5`, the component will step the ABM 5 times for every
+    synchronization, and set #time=5.
+
+# Special Variables
+- `#time`: The component clock (independent from `abmtime(model)`).
+- `#model`: The current `StandardABM` object (read-only; use `getstate` with `copy=true` to
+    get a copy).
+- `#ids`: The vector of all current agent IDs (read-only; cannot be used with `setstate!`).
+
+# state_names Semantics
+- A key without a variable index accesses agent properties for all agents or model
+    properties.
+- A key with a variable index (e.g., `\"comp.var[1:5]\"\") accesses specific agent IDs.
+- Since the `variableindex` is used for accessing the properties of particular agents, use a
+    connector function to index into complex properties.
+
+# Examples
+```julia
+comp = AgentsComponent(model;
+    name=\"abm_comp\",
+    state_names=Dict(\"x\" => :pos_x, \"y\" => :pos_y))
+```
 """
 function Mermaid.AgentsComponent(model::StandardABM;
         name::AbstractString = "Agents", state_names = Dict{String, Any}(),

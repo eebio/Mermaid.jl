@@ -8,9 +8,11 @@ using OrderedCollections: OrderedDict
 
 """
     TrixiParticlesComponent(semi::TrixiParticles.Semidiscretization, alg;
-                name::String="TrixiParticles Component", timestep::Float64=1.0,
+                name::String="TrixiParticles", timestep::Float64=1.0,
                 intkwargs::Tuple=(), tspan=(0.0, Inf),
                 state_names::Dict{String,Any}=Dict{String,Any}())
+
+A Mermaid component that wraps a TrixiParticles.jl particle method simulation.
 
 # Arguments
 - `semi::TrixiParticles.Semidiscretization`: TrixiParticles semidiscretization object.
@@ -24,13 +26,20 @@ using OrderedCollections: OrderedDict
 - `tspan`: Time span for the simulation. Defaults to (0.0, Inf).
 - `state_names`: Dictionary mapping variable names (as strings) to their corresponding
     indices in the state vector or symbols from Symbolics.jl. Defaults to an empty
-    dictionary.
+    dictionary. Typically maps particle positions, velocities, or properties.
+
+# Special Variables
+- `#time`: The current time (`integrator.t`).
+- `#state`: The full particle state vector (`integrator.u`).
+- `#integrator`: The underlying DifferentialEquations.jl integrator object.
+- `#semi`: The TrixiParticles semidiscretization object (read-only; cannot be used with `setstate!`).
 """
 function Mermaid.TrixiParticlesComponent(semi::TrixiParticles.Semidiscretization,
         alg; name = "TrixiParticles", timestep::Real = 1.0, intkwargs = (),
         tspan = (0.0, Inf), state_names = Dict{String, Any}())
     ode = semidiscretize(semi, tspan)
-    return Mermaid.TrixiParticlesComponent(ode, semi, name, state_names, timestep, alg, intkwargs)
+    return Mermaid.TrixiParticlesComponent(
+        ode, semi, name, state_names, timestep, alg, intkwargs)
 end
 
 function CommonSolve.init(c::Mermaid.TrixiParticlesComponent)
