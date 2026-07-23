@@ -192,19 +192,11 @@ Get the variables names of the component or integrator that can be accessed thro
 """
 variables(integrator::AbstractComponentIntegrator) = variables(integrator.component)
 
-function getstate(args...; copy = false)
+function getstate(args...; copy = false, kwargs...)
     if copy
-        return deepcopy(getstate(args...))
+        return deepcopy(getstate(args...; kwargs...))
     else
-        return getstate(args...)
-    end
-end
-
-function getstate(int::AbstractComponentIntegrator, key; copy = false)
-    if copy
-        return deepcopy(getstate(int, key))
-    else
-        return getstate(int, key)
+        return getstate(args...; kwargs...)
     end
 end
 
