@@ -47,12 +47,12 @@ function Mermaid.getstate(compInt::Mermaid.TrixiParticlesComponentIntegrator, ke
     if first(key.variable) == '#'
         if key.variable == "#time"
             return compInt.integrator.t
-        end
-        if key.variable == "#semi"
+        elseif key.variable == "#semi"
             return compInt.component.semi
-        end
-        if key.variable == "#state"
+        elseif key.variable == "#state"
             return getstate(compInt)
+        elseif key.variable == "#integrator"
+            return compInt.integrator
         end
     end
     index = compInt.component.state_names[key.variable]
@@ -70,8 +70,10 @@ function Mermaid.setstate!(compInt::Mermaid.TrixiParticlesComponentIntegrator, k
             derivative_discontinuity!(compInt.integrator, true)
             compInt.integrator.t = value
             return nothing
-        end
-        if key.variable == "#state"
+        elseif key.variable == "#integrator"
+            compInt.integrator = value
+            return nothing
+        elseif key.variable == "#state"
             setstate!(compInt, value)
             return nothing
         end
@@ -86,7 +88,7 @@ function Mermaid.setstate!(compInt::Mermaid.TrixiParticlesComponentIntegrator, v
 end
 
 function Mermaid.variables(component::Mermaid.TrixiParticlesComponent)
-    return union(keys(component.state_names), ["#semi", "#time", "#state"])
+    return union(keys(component.state_names), ["#semi", "#time", "#state", "#integrator"])
 end
 
 end

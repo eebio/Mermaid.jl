@@ -51,6 +51,8 @@ function Mermaid.getstate(compInt::Mermaid.DEComponentIntegrator, key)
             return compInt.integrator.t
         elseif key.variable == "#integrator"
             return compInt.integrator
+        elseif key.variable == "#state"
+            return compInt.integrator.u
         end
     end
     index = compInt.component.state_names[key.variable]
@@ -70,6 +72,9 @@ function Mermaid.setstate!(compInt::Mermaid.DEComponentIntegrator, key, value)
         elseif key.variable == "#integrator"
             compInt.integrator = value
             return nothing
+        elseif key.variable == "#state"
+            compInt.integrator.u = value
+            return nothing
         end
     end
     index = compInt.component.state_names[key.variable]
@@ -82,7 +87,7 @@ function Mermaid.setstate!(compInt::Mermaid.DEComponentIntegrator, value)
 end
 
 function Mermaid.variables(component::Mermaid.DEComponent)
-    return union(keys(component.state_names), ["#time"])
+    return union(keys(component.state_names), ["#time", "#integrator", "#state"])
 end
 
 end

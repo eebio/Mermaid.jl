@@ -53,6 +53,9 @@ function DuplicatedComponent(component::AbstractTimeDependentComponent,
         state_names, default_state)
 end
 
+"""
+$(TYPEDEF)
+"""
 mutable struct DuplicatedComponentIntegrator{T <: AbstractComponentIntegrator, U, V} <:
                AbstractComponentIntegrator
     integrator::T
@@ -164,5 +167,5 @@ function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
 end
 
 function variables(component::DuplicatedComponent)
-    return variables(component.component)
+    return union(variables(component.component), ["#time", "#ids", "#states", "#init_states"])
 end

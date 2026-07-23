@@ -174,6 +174,6 @@ function Mermaid.setstate!(compInt::AgentsComponentIntegrator, state::StandardAB
 end
 
 function Mermaid.variables(component::AgentsComponent)
-    return union(keys(component.state_names), ["#model", "#time"])
+    return union(keys(component.state_names), ["#model", "#time", "#ids"])
 end
 end
