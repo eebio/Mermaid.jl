@@ -104,18 +104,20 @@ function getstate(compInt::DuplicatedComponentIntegrator, key)
             return compInt.init_states
         end
     end
-    out = Vector{Any}(nothing, length(compInt.ids))
     if isnothing(key.duplicatedindex)
-        index = eachindex(compInt.ids)
+        ids = compInt.ids
     else
-        index = key.duplicatedindex
+        ids = key.duplicatedindex
     end
-    for i in index
-        setstate!(compInt.integrator, compInt.states[i])
+    out = Vector{Any}(nothing, length(ids))
+    for i in eachindex(ids)
+        id = ids[i]
+        index = findfirst(==(id), compInt.ids)
+        setstate!(compInt.integrator, compInt.states[index])
         newkey = ConnectedVariable(key.component, key.variable, key.variableindex, nothing)
         out[i] = getstate(compInt.integrator, newkey)
     end
-    return out[index]
+    return out
 end
 
 function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
@@ -159,10 +161,12 @@ function setstate!(compInt::DuplicatedComponentIntegrator, key, value)
         ids = key.duplicatedindex
     end
     for i in eachindex(ids)
-        setstate!(compInt.integrator, compInt.states[i])
+        id = ids[i]
+        index = findfirst(==(id), compInt.ids)
+        setstate!(compInt.integrator, compInt.states[index])
         newkey = ConnectedVariable(key.component, key.variable, nothing, nothing)
         setstate!(compInt.integrator, newkey, value[i])
-        compInt.states[i] = getstate(compInt.integrator)
+        compInt.states[index] = getstate(compInt.integrator)
     end
 end
 

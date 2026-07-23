@@ -141,9 +141,6 @@ A variable index is an integer or an integer collection/range.
 A duplicated index selects IDs in a [`DuplicatedComponent`](@ref), or rather there corresponding `#state`.
 String construction parses the index expressions as Julia expressions, so use literal integer indices and ranges such as `1`, `1:5`, or `[1, 3]`.
 
-!!! todo
-    Double check that duplicated index does correspond to #ids - its not, need to fix this
-
 `fullname(variable)` produces the canonical string representation.
 
 ### Connectors
