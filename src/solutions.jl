@@ -132,7 +132,12 @@ function (sol::AbstractMermaidSolution)(t::Real)
         ))
     end
     function interpolate_state(state1, state2, alpha)
-        return state1 .+ alpha .* (state2 .- state1)
+        interp_state1 = (state1 isa AbstractArray && eltype(state1) <: Number) || (state1 isa Number)
+        interp_state2 = (state2 isa AbstractArray && eltype(state2) <: Number) || (state2 isa Number)
+        if interp_state1 && interp_state2
+            return state1 .+ alpha .* (state2 .- state1)
+        end
+        return state1
     end
     lb = findlast(x -> x <= t, sol.t)
     ub = findfirst(x -> x >= t, sol.t)

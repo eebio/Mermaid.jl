@@ -262,8 +262,7 @@ Calling `sol(t)` returns a one-time-point solution from linear interpolation bet
 The time must be within `sol.t`.
 Interpolation applies component-wise arithmetic to saved values, so it is appropriate for numeric states but generally not meaningful for non-numeric objects such as an Agents.jl model.
 
-!!! todo
-    Numeric data should be linearly interpolated, but anything else should use a constant interpolation
+Interpolation only happens between states that are numeric, or abstract arrays where the elements are numeric. All other instances use a constant interpolation (returning the state at the last saved time point before `t`).
 
 ## Components
 
