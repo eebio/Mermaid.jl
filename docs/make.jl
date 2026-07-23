@@ -18,6 +18,7 @@ PAGES = [
     "Examples" => [
         "examples/surrogates.md",
         #"examples/mtk.md",
+        "examples/duplicated_components.md",
         "examples/advanced_duplicated_components.md",
         #"examples/out_of_sync.md",
         #"examples/spatial_maps.md",
