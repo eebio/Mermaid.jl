@@ -9,6 +9,8 @@ export OrderedDict
 # Exports
 export AbstractComponent, AbstractTimeDependentComponent, AbstractTimeIndependentComponent
 export AbstractComponentIntegrator
+export AbstractMermaidProblem, AbstractMermaidIntegrator, AbstractMermaidSolver, AbstractMermaidSolution
+export AbstractConnectedVariable, AbstractConnector
 export DEComponent, DuplicatedComponent, MOLComponent, AgentsComponent, SurrogateComponent, JumpComponent, TrixiParticlesComponent
 export DEComponentIntegrator, DuplicatedComponentIntegrator, MOLComponentIntegrator, AgentsComponentIntegrator, SurrogateComponentIntegrator,
        JumpComponentIntegrator, TrixiParticlesComponentIntegrator
@@ -79,37 +81,27 @@ Retrieve the variable names of a component.
 function variables end
 
 """
-    step!(int::AbstractMermaidIntegrator)
     step!(int::AbstractComponentIntegrator)
 
 Advance the state of the integrator `int` by one time step.
 
 # Arguments
-- `int::Union{AbstractMermaidIntegrator, AbstractComponentIntegrator}`: The integrator to
-    advance.
+- `int::AbstractComponentIntegrator`: The integrator to advance.
 """
-function step! end
+function step!(::AbstractComponentIntegrator) end
 
 """
-    init(prob::MermaidProblem, alg::MermaidSolver; save_vars=[])
     init(comp::AbstractComponent)
 
-Initialises an integrator (MermaidIntegrator or [AbstractComponentIntegrator](@ref))
-    for the given [MermaidProblem](@ref)/[AbstractComponent](@ref).
+Initialises an integrator ([AbstractComponentIntegrator](@ref))
+    for the given [AbstractComponent](@ref).
 
 # Arguments
-- `prob::MermaidProblem`: The hybrid problem to be solved.
-- `alg::AbstractMermaidSolver`: The [AbstractMermaidSolver](@ref) algorithm to be used for
-    solving the problem.
 - `comp::AbstractComponent`: The component to be initialised.
 
-# Keyword Arguments
-- `save_vars=[]`: Which variables to save in the solution. Defaults to all non-special
-    variables.
-
 # Returns
-- `MermaidIntegrator`: The initialized integrator for the problem.
+- `MermaidIntegrator`: The initialised integrator for the problem.
 """
-function init end
+function init(::AbstractComponent) end
 
 end

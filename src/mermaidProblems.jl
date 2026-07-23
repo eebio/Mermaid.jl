@@ -14,7 +14,7 @@ Defines a Mermaid hybrid simulation problem.
 - `components::Vector{<:AbstractComponent}`: Vector of Components.
 - `connectors::Vector{<:AbstractConnector}`: Vector of [Connector](@ref).
 - `tspan::Tuple{Float64, Float64}`: The time span of the simulation.
-- `timescales::Vector{Float64}`=ones(length(components)): Timescales for each component.
+- `timescales::Vector{Float64}=ones(length(components))`: Timescales for each component.
     Each component's timescale will be multiplied by the component's time to convert it to
     the universal simulation time.
 """
@@ -25,6 +25,20 @@ Defines a Mermaid hybrid simulation problem.
     timescales::Vector{Float64} = ones(length(components))
 end
 
+"""
+    MermaidIntegrator <: AbstractMermaidIntegrator
+    MermaidIntegrator(;
+        integrators::Vector{<:AbstractComponentIntegrator},
+        connectors::Vector{<:AbstractConnector},
+        tspan::Tuple{Float64, Float64},
+        currtime::Float64,
+        alg::AbstractMermaidSolver,
+        save_vars::Vector{<:AbstractString},
+        saveat::Union{Function, AbstractVector},
+        timescales::Vector{Float64})
+
+Created using `init(prob::MermaidProblem, alg::AbstractMermaidSolver; save_vars=[])`. All fields are considered internal.
+"""
 mutable struct MermaidIntegrator{X <: AbstractMermaidSolver, S <: Union{Function, AbstractVector}} <: AbstractMermaidIntegrator
     integrators::Vector{<:AbstractComponentIntegrator}
     connectors::Vector{<:AbstractConnector}
@@ -87,6 +101,15 @@ function CommonSolve.init(prob::AbstractMermaidProblem, alg::AbstractMermaidSolv
         integrators, prob.connectors, prob.tspan, 0.0, alg, save_vars, saveat, prob.timescales)
 end
 
+"""
+    step!(int::AbstractMermaidIntegrator)
+
+Advance the state of the integrator `int` by one time step.
+
+# Arguments
+- `int::Union{AbstractMermaidIntegrator, AbstractComponentIntegrator}`: The integrator to
+    advance.
+"""
 function CommonSolve.step!(merInt::AbstractMermaidIntegrator)
     step!(merInt, merInt.alg)
 end
