@@ -18,7 +18,7 @@ using OrderedCollections: OrderedDict
     DynamicalODEProblem.
 
 # Keyword Arguments
-- `name::AbstractString`: Name of the component. Defaults to "TrixiParticles Component".
+- `name::AbstractString`: Name of the component. Defaults to "TrixiParticles".
 - `timestep::Real`: Time step for the component. Defaults to 1.0.
 - `intkwargs`: Additional keyword arguments for the DE solver. Defaults to no keywords.
 - `tspan`: Time span for the simulation. Defaults to (0.0, Inf).
@@ -27,7 +27,7 @@ using OrderedCollections: OrderedDict
     dictionary.
 """
 function Mermaid.TrixiParticlesComponent(semi::TrixiParticles.Semidiscretization,
-        alg; name = "TrixiParticles Component", timestep::Real = 1.0, intkwargs = (),
+        alg; name = "TrixiParticles", timestep::Real = 1.0, intkwargs = (),
         tspan = (0.0, Inf), state_names = Dict{String, Any}())
     ode = semidiscretize(semi, tspan)
     return Mermaid.TrixiParticlesComponent(ode, semi, name, state_names, timestep, alg, intkwargs)

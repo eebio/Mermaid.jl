@@ -17,7 +17,7 @@ using OrderedCollections: OrderedDict
     for solving the JumpProblem.
 
 # Keyword Arguments
-- `name::AbstractString`: Name of the component. Defaults to "Jump Component".
+- `name::AbstractString`: Name of the component. Defaults to "Jump".
 - `timestep::Real`: Time step for the component. Defaults to 1.0.
 - `intkwargs`: Additional keyword arguments for the Jump solver. Defaults to no keywords.
 - `state_names`: Dictionary mapping variable names (as strings) to their corresponding
@@ -25,7 +25,7 @@ using OrderedCollections: OrderedDict
     dictionary.
 """
 function Mermaid.JumpComponent(model::JumpProblem,
-        alg; name = "Jump Component", timestep::Real = 1.0, intkwargs = (),
+        alg; name = "Jump", timestep::Real = 1.0, intkwargs = (),
         state_names = Dict{String, Any}())
     return Mermaid.JumpComponent(model, name, state_names, timestep, alg, intkwargs)
 end

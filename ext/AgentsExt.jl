@@ -17,7 +17,7 @@ A Mermaid component that wraps an agent-based model (ABM) using the Agents.jl pa
 - `model::StandardABM`: The agent-based model to be solved.
 
 # Keyword Arguments
-- `name::AbstractString`: The name of the component. Defaults to "Agents Component".
+- `name::AbstractString`: The name of the component. Defaults to "Agents".
 - `state_names`: A dictionary mapping variable names (as strings) to their corresponding
     properties (agent properties or model properties) in the `model`. Defaults to an empty
     dictionary.
@@ -25,7 +25,7 @@ A Mermaid component that wraps an agent-based model (ABM) using the Agents.jl pa
     frequently should the inputs and outputs be updated.
 """
 function Mermaid.AgentsComponent(model::StandardABM;
-        name::AbstractString = "Agents Component", state_names = Dict{String, Any}(),
+        name::AbstractString = "Agents", state_names = Dict{String, Any}(),
         timestep::Real = 1)
     return Mermaid.AgentsComponent(model, name, state_names, timestep)
 end

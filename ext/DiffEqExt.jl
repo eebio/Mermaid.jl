@@ -12,13 +12,14 @@ using OrderedCollections: OrderedDict
     DEComponent(model::DiffEqBase.AbstractDEProblem; kwargs...)
 
 # Arguments
-- `model::DiffEqBase.AbstractDEProblem`: SciML DE problem (e.g., ODEProblem, etc.)
+- `model::DiffEqBase.AbstractDEProblem`: The SciML Differential Equations problem (e.g.,
+    ODEProblem, etc.)
 - `alg`: Algorithm from DifferentialEquations.jl to be used
     for solving the DEProblem. If no algorithm is provided, the algorithm will be
     automatically chosen by DifferentialEquations.jl.
 
 # Keyword Arguments
-- `name::AbstractString`: Name of the component. Defaults to "DE Component".
+- `name::AbstractString`: Name of the component. Defaults to "DE".
 - `timestep::Real`: Time step for the component. Defaults to 1.0.
 - `intkwargs`: Additional keyword arguments for the DE solver. Defaults to no keywords.
 - `state_names`: Dictionary mapping variable names (as strings) to their corresponding
@@ -26,7 +27,7 @@ using OrderedCollections: OrderedDict
     dictionary.
 """
 function Mermaid.DEComponent(model::DiffEqBase.AbstractDEProblem,
-        alg; name = "DE Component", timestep::Real = 1.0, intkwargs = (),
+        alg; name = "DE", timestep::Real = 1.0, intkwargs = (),
         state_names = Dict{String, Any}())
     return Mermaid.DEComponent(model, name, state_names, timestep, alg, intkwargs)
 end

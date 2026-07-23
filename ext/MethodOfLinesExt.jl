@@ -11,12 +11,13 @@ using DiffEqBase
                  state_names::Dict{String,Any}=Dict{String,Any}())
 
 # Arguments
-- `model::DiffEqBase.AbstractDEProblem`: SciML DE problem (e.g., ODEProblem, etc.)
+- `model::DiffEqBase.AbstractDEProblem`: The SciML Differential Equations problem (e.g.,
+    ODEProblem, etc.)
 - `alg::DiffEqBase.AbstractDEAlgorithm`: Algorithm from DifferentialEquations.jl to be used
     for solving the DEProblem.
 
 # Keyword Arguments
-- `name::AbstractString`: Name of the component. Defaults to "MOL Component".
+- `name::AbstractString`: Name of the component. Defaults to "MOL".
 - `timestep::Real`: Time step for the component. Defaults to 1.0.
 - `intkwargs`: Additional keyword arguments for the DE solver. Defaults to no keywords.
 - `state_names`: Dictionary mapping variable names (as strings) to their corresponding
@@ -24,7 +25,7 @@ using DiffEqBase
     dictionary.
 """
 function Mermaid.MOLComponent(model::DiffEqBase.AbstractDEProblem,
-        alg::DiffEqBase.AbstractDEAlgorithm; name = "MOL Component",
+        alg::DiffEqBase.AbstractDEAlgorithm; name = "MOL",
         timestep::Real = 1.0, intkwargs = (), state_names = Dict{String, Any}())
     return Mermaid.MOLComponent(model, name, state_names, timestep, alg, intkwargs)
 end
