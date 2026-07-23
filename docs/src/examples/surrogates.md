@@ -96,10 +96,5 @@ ylims!(p1, -88.005, -87.92)
 ylims!(p2, 144.475, 144.675)
 ylabel!(p1, "Membrane Potential (mV)")
 ylabel!(p2, "K+ Concentration (mM)")
-fig = plot(p1, p2, layout = (1, 2), size = (800, 300), right_margin = 4Plots.mm,
-    bottom_margin = 5Plots.mm, left_margin = 3Plots.mm)
-savefig(fig, "surrogates_accuracy.png") # hide
-nothing # hide
+plot(p1, p2, layout = (1, 2))
 ```
-
-![The accuracy of the surrogate component](surrogates_accuracy.png)
