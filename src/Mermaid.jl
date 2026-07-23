@@ -47,8 +47,8 @@ Set the state of a component.
 function setstate! end
 
 """
-    getstate(comp::AbstractComponentIntegrator)
-    getstate(comp::AbstractComponentIntegrator, key)
+    getstate(comp::AbstractComponentIntegrator; copy = false)
+    getstate(comp::AbstractComponentIntegrator, key; copy = false)
 
 Retrieve the state of a component.
 
@@ -56,6 +56,9 @@ Retrieve the state of a component.
 - `comp::AbstractComponentIntegrator`: The component whose state is to be retrieved.
 - `key`: The key specifying which part of the component's state to retrieve.
 
+# Keyword Arguments
+- `copy::Bool`: If `true`, a deep copy of the state is returned; otherwise, a reference to
+    the state is returned (assuming the state is mutable).
 """
 function getstate end
 
