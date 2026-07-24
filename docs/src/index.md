@@ -22,7 +22,7 @@ using Pkg; Pkg.add("Mermaid")
 
 **Q: How can I use Mermaid to run a hybrid model simulation?**
 
-**A:** Check out the [Tutorial](@ref), it covers how to set up and run a hybrid simualtion between an Agent-based model and an ODE system.
+**A:** Check out the [Tutorial](@ref), which covers how to set up and run a hybrid simulation between an agent-based model and an ODE system.
 
 **Q: What if Mermaid doesn't have a component for the type of model I want to use?**
 
@@ -33,11 +33,7 @@ using Pkg; Pkg.add("Mermaid")
 **A:** In the Examples section of course. We have examples showing all of the more advanced features of Mermaid including:
 
 * [duplicated components](@ref "Advanced Duplicated Components"),
-* [out of sync computation](@ref "Out of sync computation"),
-* [external (non-Julia) components](@ref "External Components"),
-* [surrogate model approximations](@ref "Surrogates"),
-* [mapping between spatial components on different resolutions](@ref "Spatial maps"),
-* [integration with ModelingToolkit.jl](@ref "ModelingToolkit Integration").
+* [surrogate model approximations](@ref "Surrogates")
 
 **Q: Is Mermaid the right tool for me?**
 

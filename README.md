@@ -4,7 +4,7 @@
 [![Run tests](https://github.com/mjowen/Mermaid.jl/actions/workflows/test.yml/badge.svg)](https://github.com/mjowen/Mermaid.jl/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/mjowen/Mermaid.jl/graph/badge.svg?token=XRLUZB8FQS)](https://codecov.io/gh/mjowen/Mermaid.jl)
 
-Mermaid.jl is a hybrid and multiscale simulation enviroment in Julia.
+Mermaid.jl is a hybrid and multiscale simulation environment in Julia.
 
 Complex simulations can be produced by connecting together components from a wide range of Julia modeling tools.
 
