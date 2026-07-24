@@ -201,4 +201,17 @@ end
     setstate!(int, ConnectedVariable("TrixiParticles Component.particle1velx"), 0.5)
     @test getstate(int, ConnectedVariable("TrixiParticles Component.particle1velx")) == 0.5
     step!(int)
+
+    # Test special variable #integrator
+    @test "#integrator" in variables(int)
+    integrator_copy = getstate(int, ConnectedVariable("TrixiParticles Component.#integrator"); copy = true)
+    @test typeof(integrator_copy) <: SciMLBase.DEIntegrator
+    @test typeof(integrator_copy.u) == typeof(getstate(int))
+    state_before_step = copy(getstate(int))
+    step!(int)
+    state_after_step = getstate(int)
+    @test state_after_step ≠ state_before_step
+    # Restore integrator state
+    setstate!(int, ConnectedVariable("TrixiParticles Component.#integrator"), integrator_copy)
+    @test getstate(int) == state_before_step
 end
