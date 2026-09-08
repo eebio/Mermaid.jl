@@ -1,3 +1,13 @@
+#=
+The growth model given here is based on the work of Weiße et al. (2015). The version
+implemented here is modified from the original implementation to allow variable cell volume.
+An implementation of the original model can be found on BioModels (ID: MODEL1502270000).
+
+Andrea Y Weiße, Diego A Oyarzún, Vincent Danos, Peter S Swain
+Mechanistic links between cellular trade-offs, gene expression, and growth
+Proceedings of the National Academy of Sciences of the United States of America, 3/2015,
+Volume 112, Issue 9, pages: E1038-47, PubMed ID: 25695966, DOI: 10.1073/pnas.1416533112
+=#
 module Growth
     using Catalyst
     using OrdinaryDiffEq

@@ -1,3 +1,14 @@
+#=
+The repressilator model given here is based on the work of Elowitz and Leibler (2000). The
+version implemented here is modified from the original implementation to allow variable cell
+volume and introduces free parameters a and b which are used to control production and
+degradation to control the timescales of the system.
+An implementation of the original model can be found on BioModels (ID: MODEL6615351360).
+
+M B Elowitz, S Leibler
+A synthetic oscillatory network of transcriptional regulators
+Nature, 1/2000, Volume 403, Issue 6767, pages: 335-338, PubMed ID: 10659856, DOI: 10.1038/35066519
+=#
 module Repressilator
     using StochasticDiffEq
     using Catalyst

@@ -1,3 +1,8 @@
+#=
+The Agent-based cell model given here is based on the "Integrating Agents.jl with
+DelaunayTriangulation.jl" tutorial of Agents.jl. The version implemented here has been
+heavily modified.
+=#
 using Agents, StaticArrays
 using Random
 using LinearAlgebra

@@ -1,3 +1,13 @@
+#=
+The improved repressilator model given here is based on the work of Potvin-Trottier et al.
+(2016). The version implemented here is not designed to reproduce the original
+implementation, but instead capture many of the features described in that model and
+reproduce the observed increase in oscillation stability.
+
+L Potvin-Trottier, Nathan D Lord, Glenn Vinnicombe, Johan Paulsson
+Synchronous long-term oscillations in a synthetic gene circuit
+Nature, 10/2016, Volume 538, pages: 514-517, PubMed ID: 27732583, DOI: 10.1038/nature19841
+=#
 module Improved
     using Catalyst
     using StochasticDiffEq
